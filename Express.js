@@ -1,10 +1,19 @@
 // *************** IMPORT LIBRARY ***************
 const express = require('express');
 
+// *************** IMPORT MODULE ***************
+const connectDB = require('./config/db');
+
+// Create an Express application instance to handle HTTP requests
 const app = express();
+
+// Define server port, using environment variable if available
 const PORT = process.env.PORT || 3000;
 
-// Middleware to parse JSON so client data can be accessed via req.body
+// Establish MongoDB connection before handling any requests
+connectDB();
+
+// Middleware to parse JSON so request bodies can be accessed via req.body
 app.use(express.json());
 
 // Root endpoint to verify service is running
