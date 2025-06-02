@@ -4,24 +4,27 @@ const express = require('express');
 // *************** IMPORT MODULE ***************
 const connectDB = require('./config/db');
 
-// Create an Express application instance to handle HTTP requests
+// *************** IMPORT MODULE ***************
+require('./models/User');
+require('./models/Student');
+require('./models/School');
+
+// *************** MUTATION ***************
+// Initialize Express app and connect to MongoDB
 const app = express();
-
-// Define server port, using environment variable if available
 const PORT = process.env.PORT || 3000;
-
-// Establish MongoDB connection before handling any requests
 connectDB();
 
-// Middleware to parse JSON so request bodies can be accessed via req.body
+// Enable JSON parsing for incoming requests
 app.use(express.json());
 
-// Root endpoint to verify service is running
+// Base route to verify service availability
 app.get('/', (req, res) => {
   res.send('Hello, Express!');
 });
 
-// Start the server using environment-defined port for deployment flexibility
+// *************** EXPORT MODULE ***************
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
