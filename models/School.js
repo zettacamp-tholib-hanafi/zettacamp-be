@@ -1,43 +1,24 @@
 /**
- * User Model
+ * School Model
  * ----------------------
- * Represents a system user.
+ * Represents a school in the system.
  */
-
-const { Schema, model } = require('mongoose');
+const { Schema, model, virtual } = require('mongoose');
 
 /* ---------------------------------- Schema --------------------------------- */
 
-const UserSchema = new Schema(
+const schoolSchema = new Schema(
   {
-    /* --------------------------- Required Fields --------------------------- */
-    firstName: {
+    name: {
       type: String,
       required: true,
       trim: true,
     },
-    lastName: {
+    address: {
       type: String,
-      required: true,
+      default: null,
       trim: true,
     },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    role: {
-      type: String,
-      required: true,
-    },
-
-    /* ---------------------------- Soft Deletion ---------------------------- */
     deletedAt: {
       type: Date,
       default: null,
@@ -45,20 +26,16 @@ const UserSchema = new Schema(
   },
   {
     timestamps: true,
-    versionKey: false,
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true },
   }
 );
 
-/* ---------------------------- Schema Options ------------------------------- */
-
-// Exclude password from JSON output
-UserSchema.set('toJSON', {
-  transform: (_doc, ret) => {
-    delete ret.password;
-    return ret;
-  },
+// Virtual: one-to-many relationship to students
+virtual('students', {
+  ref: 'Student',
+  localField: '_id',
+  foreignField: 'schoolId',
 });
 
-/* --------------------------------- Export ---------------------------------- */
-
-module.exports = model('User', UserSchema);
+module.exports = model('School', schoolSchema);
