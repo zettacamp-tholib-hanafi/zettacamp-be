@@ -4,7 +4,6 @@ const express = require('express');
 // *************** IMPORT MODULE ***************
 const connectDB = require('./config/db');
 
-// *************** IMPORT MODULE ***************
 require('./models/User');
 require('./models/Student');
 require('./models/School');
