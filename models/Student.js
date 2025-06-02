@@ -1,12 +1,54 @@
-const mongoose = require('mongoose');
+/**
+ * Student Model
+ * ----------------------
+ * Represents a student in the system.
+ */
 
-const studentSchema = new mongoose.Schema({
-  firstName:   { type: String, required: true },
-  lastName:    { type: String, required: true },
-  email:       { type: String, required: true, unique: true },
-  dateOfBirth: { type: Date },
-  schoolId:    { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
-  deletedAt:   { type: Date, default: null },
-}, { timestamps: true });
+const { Schema, model, Types } = require('mongoose');
 
-module.exports = mongoose.model('Student', studentSchema);
+/* ---------------------------------- Schema --------------------------------- */
+
+const StudentSchema = new Schema(
+  {
+    /* --------------------------- Required Fields --------------------------- */
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    schoolId: {
+      type: Types.ObjectId,
+      ref: 'School',
+      required: true,
+    },
+
+    /* --------------------------- Optional Fields --------------------------- */
+    dateOfBirth: {
+      type: Date,
+    },
+
+    /* ---------------------------- Soft Deletion ---------------------------- */
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+/* --------------------------------- Export ---------------------------------- */
+
+module.exports = model('Student', StudentSchema);
