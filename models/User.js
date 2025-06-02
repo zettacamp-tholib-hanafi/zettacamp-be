@@ -1,12 +1,51 @@
-const mongoose = require('mongoose');
+/**
+ * User Model
+ * ----------------------
+ * Represents a user in the system.
+ */
 
-const userSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName:  { type: String, required: true },
-  email:     { type: String, required: true, unique: true },
-  password:  { type: String, required: true },
-  role:      { type: String, required: true },
-  deletedAt: { type: Date, default: null },
-}, { timestamps: true });
+const { Schema, model } = require('mongoose');
 
-module.exports = mongoose.model('User', userSchema);
+/* ---------------------------------- Schema --------------------------------- */
+
+const userSchema = new Schema(
+    /* --------------------------- Required Fields --------------------------- */
+    {
+        firstName: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        lastName: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+        },
+        password: {
+            type: String,
+            required: true,
+        },
+        role: {
+            type: String,
+            required: true,
+        },
+        /* ---------------------------- Soft Deletion ---------------------------- */
+        deletedAt: {
+            type: Date,
+            default: null,
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+/* --------------------------------- Export ---------------------------------- */
+
+module.exports = model('User', userSchema);
