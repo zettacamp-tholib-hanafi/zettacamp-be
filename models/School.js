@@ -3,7 +3,7 @@
  * ----------------------
  * Represents a school in the system.
  */
-const { Schema, model, virtual } = require('mongoose');
+const { Schema, model } = require('mongoose');
 
 /* ---------------------------------- Schema --------------------------------- */
 
@@ -32,7 +32,7 @@ const schoolSchema = new Schema(
 );
 
 // Virtual: one-to-many relationship to students
-virtual('students', {
+schoolSchema.virtual('students', {
   ref: 'Student',
   localField: '_id',
   foreignField: 'schoolId',
