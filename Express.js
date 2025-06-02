@@ -1,4 +1,4 @@
-// *************** IMPORT CORE ***************
+// *************** IMPORT LIBRARY ***************
 const express = require('express');
 
 const app = express();
@@ -14,5 +14,5 @@ app.get('/', (req, res) => {
 
 // Start the server using environment-defined port for deployment flexibility
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
