@@ -21,15 +21,18 @@ require('./models/School');
 // Connect to MongoDB
 connectDB();
 
-// Load GraphQL schema
+// Load GraphQL schema and resolvers
 const typeDefs = mergeTypeDefs(
   loadFilesSync(path.join(__dirname, 'graphql/**/*.graphql')),
 );
-
+const resolvers = mergeResolvers(
+  loadFilesSync(path.join(__dirname, 'graphql/resolvers/**/*.js')),
+);
 
 // Configure Apollo Server
 const apollo = new ApolloServer({
   typeDefs,
+  resolvers,
   plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
 });
 
@@ -54,6 +57,5 @@ async function start() {
     console.log(`🚀  GraphQL ready at http://localhost:${PORT}/graphql`);
   });
 }
-
 // Call Apollo Server
 start();
