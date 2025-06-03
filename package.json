@@ -19,8 +19,14 @@
   },
   "homepage": "https://github.com/zettacamp-tholib-hanafi/zettacamp-be#readme",
   "dependencies": {
+    "@apollo/server": "^4.12.2",
+    "@graphql-tools/load-files": "^7.0.1",
+    "@graphql-tools/merge": "^9.0.24",
+    "@graphql-tools/schema": "^10.0.23",
     "apollo-server": "^3.13.0",
-    "express": "^5.1.0",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
     "graphql": "^16.11.0",
     "mongoose": "^8.15.1"
   }
