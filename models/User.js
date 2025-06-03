@@ -6,14 +6,14 @@ const { Schema, model } = require('mongoose');
 const userSchema = new Schema(
   {
     // First name of the user
-    firstName: {
+    first_name: {
       type: String,
       required: true,
       trim: true,
     },
 
     // Last name of the user
-    lastName: {
+    last_name: {
       type: String,
       required: true,
       trim: true,
@@ -40,7 +40,7 @@ const userSchema = new Schema(
     },
 
     // Marks soft deletion timestamp (null if not deleted)
-    deletedAt: {
+    deleted_at: {
       type: Date,
       default: null,
     },

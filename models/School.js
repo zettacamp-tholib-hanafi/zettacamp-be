@@ -20,7 +20,7 @@ const schoolSchema = new Schema(
     },
 
     // Marks soft deletion timestamp (null if not deleted)
-    deletedAt: {
+    deleted_at: {
       type: Date,
       default: null,
     },

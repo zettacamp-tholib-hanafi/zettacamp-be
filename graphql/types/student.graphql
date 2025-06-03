@@ -5,23 +5,23 @@ type Student {
   id: ID!
 
   # Student's first name
-  firstName: String!
+  first_name: String!
 
   # Student's last name
-  lastName: String!
+  last_name: String!
 
   # Student's email address
   email: String!
 
   # Student's date of birth
-  dateOfBirth: Date
+  date_of_birth: Date
 
   # Reference to the associated school
-  schoolId: ID!
+  school_id: ID!
 
-  # Resolved school object based on schoolId
+  # Resolved school object based on school_id
   school: School
 
   # Soft deletion timestamp; null if active
-  deletedAt: Date
+  deleted_at: Date
 }

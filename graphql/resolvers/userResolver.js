@@ -2,18 +2,18 @@
 import User from '../../models/User.js';
 
 // *************** RESOLVER ***************
-const userResolver = {
+const UserResolver = {
 
   // *************** QUERY ***************
   Query: {
     // Get all users (excluding soft-deleted)
     users: async () => {
-      return await User.find({deletedAt: null});
+      return await User.find({deleted_at: null});
     },
 
     // Get a specific user by ID (if not deleted)
     user: async (_, { id }) => {
-      return await User.findOne({ _id: id, deletedAt: null });
+      return await User.findOne({ _id: id, deleted_at: null });
     },
   },
 
@@ -38,7 +38,7 @@ const userResolver = {
     deleteUser: async (_, { id }) => {
       const deletedUser = await User.findOneAndUpdate(
         { _id: id },
-        { $set: { deletedAt: new Date() } },
+        { $set: { deleted_at: new Date() } },
         { new: true }
       );
       return deletedUser;
@@ -47,4 +47,4 @@ const userResolver = {
 };
 
 // *************** EXPORT RESOLVER ***************
-export default userResolver;
+export default UserResolver;

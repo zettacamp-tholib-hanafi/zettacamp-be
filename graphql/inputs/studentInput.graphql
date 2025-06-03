@@ -2,34 +2,34 @@
 
 input CreateStudentInput {
   # Required first name
-  firstName: String!
+  first_name: String!
 
   # Required last name
-  lastName: String!
+  last_name: String!
 
   # Required email address
   email: String!
 
   # Required date of birth
-  dateOfBirth: Date!
+  date_of_birth: Date!
 
   # Required associated school ID
-  schoolId: ID!
+  school_id: ID!
 }
 
 input UpdateStudentInput {
   # Optional new first name
-  firstName: String
+  first_name: String
 
   # Optional new last name
-  lastName: String
+  last_name: String
 
   # Optional new email address
   email: String
 
   # Optional new date of birth
-  dateOfBirth: Date
+  date_of_birth: Date
 
   # Optional new associated school ID
-  schoolId: ID
+  school_id: ID
 }

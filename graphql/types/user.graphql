@@ -5,10 +5,10 @@ type User {
   id: ID!
 
   # User's first name
-  firstName: String!
+  first_name: String!
 
   # User's last name
-  lastName: String!
+  last_name: String!
 
   # User's email address
   email: String!
@@ -17,5 +17,5 @@ type User {
   role: String!
 
   # Soft deletion timestamp; null if active
-  deletedAt: Date
+  deleted_at: Date
 }

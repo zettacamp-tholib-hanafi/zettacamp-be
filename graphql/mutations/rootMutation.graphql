@@ -2,29 +2,29 @@
 
 type Mutation {
   # Create a new user
-  createUser(input: CreateUserInput!): User!
+  CreateUser(input: CreateUserInput!): User!
 
   # Update user data by ID
-  updateUser(id: ID!, input: UpdateUserInput!): User!
+  UpdateUser(id: ID!, input: UpdateUserInput!): User!
 
   # Soft delete a user by ID
-  deleteUser(id: ID!): User!
+  DeleteUser(id: ID!): User!
 
   # Create a new student
-  createStudent(input: CreateStudentInput!): Student!
+  CreateStudent(input: CreateStudentInput!): Student!
 
   # Update student data by ID
-  updateStudent(id: ID!, input: UpdateStudentInput!): Student!
+  UpdateStudent(id: ID!, input: UpdateStudentInput!): Student!
 
   # Soft delete a student by ID
-  deleteStudent(id: ID!): Student!
+  DeleteStudent(id: ID!): Student!
 
   # Create a new school
-  createSchool(input: CreateSchoolInput!): School!
+  CreateSchool(input: CreateSchoolInput!): School!
 
   # Update school data by ID
-  updateSchool(id: ID!, input: UpdateSchoolInput!): School!
+  UpdateSchool(id: ID!, input: UpdateSchoolInput!): School!
 
   # Soft delete a school by ID
-  deleteSchool(id: ID!): School!
+  DeleteSchool(id: ID!): School!
 }

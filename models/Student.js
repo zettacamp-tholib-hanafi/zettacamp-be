@@ -6,14 +6,14 @@ const { Schema, model, Types } = require('mongoose');
 const StudentSchema = new Schema(
   {
     // First name of the student
-    firstName: {
+    first_name: {
       type: String,
       required: true,
       trim: true,
     },
 
     // Last name of the student
-    lastName: {
+    last_name: {
       type: String,
       required: true,
       trim: true,
@@ -28,19 +28,19 @@ const StudentSchema = new Schema(
     },
 
     // Reference to the associated school
-    schoolId: {
+    school_id: {
       type: Types.ObjectId,
       ref: 'School',
       required: true,
     },
 
     // Student's date of birth (optional)
-    dateOfBirth: {
+    date_of_birth: {
       type: Date,
     },
 
     // Marks soft deletion timestamp (null if not deleted)
-    deletedAt: {
+    deleted_at: {
       type: Date,
       default: null,
     },
