@@ -1,22 +1,22 @@
-// ************ Root Schema ************
+# ************ Root Schema ************
 
-// ************ IMPORT MODULES ************
+# ************ IMPORT MODULES ************
 
-// Types
+# Types
 #import ./types/user.graphql
 #import ./types/student.graphql
 #import ./types/school.graphql
 
-// Inputs
+# Inputs
 #import ./inputs/userInput.graphql
 #import ./inputs/studentInput.graphql
 #import ./inputs/schoolInput.graphql
 
-// Queries
+# Queries
 #import ./queries/rootQuery.graphql
 
-// Mutations
+# Mutations
 #import ./mutations/rootMutation.graphql
 
-// Scalars
+# Scalars
 scalar Date

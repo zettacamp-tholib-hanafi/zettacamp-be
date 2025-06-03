@@ -1,29 +1,29 @@
-// ************ User Input ************
+# ************ User Input ************
 
 input CreateUserInput {
-  // Required first name
+  # Required first name
   firstName: String!
 
-  // Required last name
+  # Required last name
   lastName: String!
 
-  // Required email address
+  # Required email address
   email: String!
 
-  // Required user role
+  # Required user role
   role: String!
 }
 
 input UpdateUserInput {
-  // Optional new first name
+  # Optional new first name
   firstName: String
 
-  // Optional new last name
+  # Optional new last name
   lastName: String
 
-  // Optional new email address
+  # Optional new email address
   email: String
 
-  // Optional new role
+  # Optional new role
   role: String
 }

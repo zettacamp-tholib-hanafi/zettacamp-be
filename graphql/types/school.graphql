@@ -1,15 +1,15 @@
-// ************ School Type ************
+# ************ School Type ************
 
 type School {
-  // Unique identifier for the school
+  # Unique identifier for the school
   id: ID!
 
-  // Name of the school
+  # Name of the school
   name: String!
 
-  // Optional address of the school
+  # Optional address of the school
   address: String
 
-  // List of students associated with the school
+  # List of students associated with the school
   students: [Student]
 }
