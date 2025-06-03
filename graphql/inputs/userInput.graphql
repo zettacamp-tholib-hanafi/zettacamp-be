@@ -10,6 +10,9 @@ input CreateUserInput {
   # Required email address
   email: String!
 
+  # Required Password
+  password: String!
+  
   # Required user role
   role: String!
 }
