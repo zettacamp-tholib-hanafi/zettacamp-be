@@ -1,29 +1,59 @@
 // *************** IMPORT LIBRARY ***************
 const express = require('express');
+const cors = require('cors');
+const { ApolloServer } = require('@apollo/server');
+const { expressMiddleware } = require('@apollo/server/express4');
+const path = require('path');
+const { loadFilesSync } = require('@graphql-tools/load-files');
+const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
+const { ApolloServerPluginLandingPageLocalDefault } = require('@apollo/server/plugin/landingPage/default');
 
-// *************** IMPORT MODULE ***************
+// *************** IMPORT MODUL ***************
+// Configuration modul db
 const connectDB = require('./config/db');
 
+// Model MongoDB
 require('./models/User');
 require('./models/Student');
 require('./models/School');
 
 // *************** MUTATION ***************
-// Initialize Express app and connect to MongoDB
-const app = express();
-const PORT = process.env.PORT || 3000;
+// Connect to MongoDB
 connectDB();
 
-// Enable JSON parsing for incoming requests
-app.use(express.json());
+// Load GraphQL schema
+const typeDefs = mergeTypeDefs(
+  loadFilesSync(path.join(__dirname, 'graphql/**/*.graphql')),
+);
 
-// Base route to verify service availability
-app.get('/', (req, res) => {
-  res.send('Hello, Express!');
+
+// Configure Apollo Server
+const apollo = new ApolloServer({
+  typeDefs,
+  plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
 });
 
-// *************** EXPORT MODULE ***************
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+// Start Express and Apollo
+async function start() {
+  await apollo.start();
+
+  const app = express();
+  const PORT = process.env.PORT || 4000;
+
+  // Define GraphQL endpoint
+  app.use(
+    '/graphql',
+    cors(),
+    express.json(),
+    expressMiddleware(apollo, {
+      context: async () => ({}),
+    }),
+  );
+
+  app.listen(PORT, () => {
+    console.log(`🚀  GraphQL ready at http://localhost:${PORT}/graphql`);
+  });
+}
+
+// Call Apollo Server
+start();
