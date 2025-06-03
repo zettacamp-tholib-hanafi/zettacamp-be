@@ -1,0 +1,21 @@
+// ************ Root Queries ************
+
+type Query {
+  // Get all users (excluding soft-deleted)
+  users: [User!]!
+
+  // Get a specific user by ID
+  user(id: ID!): User
+
+  // Get all students (excluding soft-deleted)
+  students: [Student!]!
+
+  // Get a specific student by ID
+  student(id: ID!): Student
+
+  // Get all schools
+  schools: [School!]!
+
+  // Get a specific school by ID
+  school(id: ID!): School
+}
