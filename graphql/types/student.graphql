@@ -1,0 +1,27 @@
+// ************ Student Type ************
+
+type Student {
+  // Unique identifier for the student
+  id: ID!
+
+  // Student's first name
+  firstName: String!
+
+  // Student's last name
+  lastName: String!
+
+  // Student's email address
+  email: String!
+
+  // Student's date of birth
+  dateOfBirth: Date
+
+  // Reference to the associated school
+  schoolId: ID!
+
+  // Resolved school object based on schoolId
+  school: School
+
+  // Soft deletion timestamp; null if active
+  deletedAt: Date
+}
