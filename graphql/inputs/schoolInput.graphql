@@ -1,0 +1,17 @@
+// ************ School Input ************
+
+input CreateSchoolInput {
+  // Required name of the school
+  name: String!
+
+  // Optional school address
+  address: String
+}
+
+input UpdateSchoolInput {
+  // Optional new school name
+  name: String
+
+  // Optional new address
+  address: String
+}
