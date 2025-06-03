@@ -2,10 +2,10 @@
 
 type Query {
   # Get all users (excluding soft-deleted)
-  users: [User!]!
+  GetAllUsers: [User!]!
 
   # Get a specific user by ID
-  user(id: ID!): User
+  GetOneUser(id: ID!): User
 
   # Get all students (excluding soft-deleted)
   students: [Student!]!
