@@ -1,0 +1,21 @@
+// ************ User Type ************
+
+type User {
+  // Unique identifier for the user
+  id: ID!
+
+  // User's first name
+  firstName: String!
+
+  // User's last name
+  lastName: String!
+
+  // User's email address
+  email: String!
+
+  // User's role in the system
+  role: String!
+
+  // Soft deletion timestamp; null if active
+  deletedAt: Date
+}
