@@ -1,4 +1,4 @@
-# ************ Type ************
+# ************ Type
 
 type Student {
   # Unique identifier for the student
@@ -26,7 +26,7 @@ type Student {
   deleted_at: Date
 }
 
-# ************ Input ************
+# ************ Input
 
 input CreateStudentInput {
   # Required first name
@@ -62,7 +62,7 @@ input UpdateStudentInput {
   school_id: ID
 }
 
-# ************ Queries ************
+# ************ QUERY ************
 
 extend type Query {
   # Get all students (excluding soft-deleted)
@@ -72,7 +72,7 @@ extend type Query {
   GetOneStudent(id: ID!): Student
 }
 
-# ************ Mutations ************
+# ************ MUTATION ************
 
 extend type Mutation {
   # Create a new student
@@ -85,5 +85,5 @@ extend type Mutation {
   DeleteStudent(id: ID!): Student!
 }
 
-# ************ Custom Scalar ************
+# ************ Custom Scalar
 scalar Date

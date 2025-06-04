@@ -1,4 +1,4 @@
-# ************ Type ************
+# ************ Type
 
 type School {
   # Unique identifier for the school
@@ -14,7 +14,7 @@ type School {
   students: [Student]
 }
 
-# ************ Input ************
+# ************ Input
 
 input CreateSchoolInput {
   # Required name of the school
@@ -32,7 +32,7 @@ input UpdateSchoolInput {
   address: String
 }
 
-# ************ Queries ************
+# ************ QUERY ************
 
 extend type Query {
   # Get all schools
@@ -42,7 +42,7 @@ extend type Query {
   GetOneSchool(id: ID!): School
 }
 
-# ************ Mutations ************
+# ************ MUTATION ************
 
 extend type Mutation {
   # Create a new school
@@ -55,5 +55,5 @@ extend type Mutation {
   DeleteSchool(id: ID!): School!
 }
 
-# ************ Custom Scalar ************
+# ************ Custom Scalar
 scalar Date
