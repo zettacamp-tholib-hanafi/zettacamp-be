@@ -6,8 +6,6 @@ const Student = require("./student.model");
 
 // *************** Batch Load Function
 const batchStudentsBySchoolId = async (school_id) => {
-  // *************** Query Database Log
-  console.info("[DataLoader] called with:", school_id);
   // *************** Find all students with the given school_id and not soft-deleted
   const students = await Student.find({
     school_id: { $in: school_id },
