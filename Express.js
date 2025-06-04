@@ -9,14 +9,6 @@ const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
 const { ApolloServerPluginLandingPageLocalDefault } = require('@apollo/server/plugin/landingPage/default');
 const ConnectDB = require('./utils/db');
 
-// *************** IMPORT MODUL ***************
-// Configuration modul db
-
-// Model MongoDB
-require('./models/User');
-require('./models/Student');
-require('./models/School');
-
 // *************** MUTATION ***************
 // Connect to MongoDB
 ConnectDB();

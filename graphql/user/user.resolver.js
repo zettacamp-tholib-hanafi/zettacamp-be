@@ -1,5 +1,5 @@
 // *************** IMPORT MODEL ***************
-import User from '../../models/User.js';
+import User from './user.model.js';
 
 // *************** RESOLVER ***************
 const UserResolver = {
