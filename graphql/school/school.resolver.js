@@ -16,7 +16,31 @@ const SchoolResolver = {
             return await School.findOne({ _id: id, deleted_at: null });
         },
     },
-    
+    Mutation: {
+        // create new School
+        CreateSchool: async (_, { input }) => {
+            const school = new School(input)
+            return await school.save()
+        },
+        // Update existing school by ID
+        UpdateUser: async (_, { id, input }) => {
+            return await User.findOneAndUpdate(
+                { _id: id },
+                { $set: input },
+                { new: true }
+            );
+        },
+
+        // Soft delete a school by ID
+        DeleteUser: async (_, { id }) => {
+            const deletedUser = await User.findOneAndUpdate(
+                { _id: id },
+                { $set: { deleted_at: new Date() } },
+                { new: true }
+            );
+            return deletedUser;
+        },
+    },
     School: {
         // Get all students in this school
         students: async (school) => {
