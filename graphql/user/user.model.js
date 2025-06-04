@@ -1,5 +1,5 @@
 // *************** IMPORT LIBRARY ***************
-const { Schema, model } = require('mongoose');
+const { Schema, model } = require("mongoose");
 
 // *************** MUTATION ***************
 // Define the User schema representing user data in the system
@@ -52,4 +52,4 @@ const userSchema = new Schema(
 );
 
 // *************** EXPORT MODULE ***************
-module.exports = model('User', userSchema);
+module.exports = model("User", userSchema);

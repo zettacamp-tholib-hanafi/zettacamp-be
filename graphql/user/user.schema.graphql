@@ -37,7 +37,7 @@ input CreateUserInput {
 
   # Required Password
   password: String!
-  
+
   # Required user role
   role: String!
 }

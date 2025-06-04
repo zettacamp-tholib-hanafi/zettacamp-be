@@ -1,5 +1,5 @@
 // *************** IMPORT LIBRARY ***************
-const { Schema, model } = require('mongoose');
+const { Schema, model } = require("mongoose");
 
 // *************** MUTATION ***************
 // *************** Defines the School schema representing school data in the system
@@ -32,4 +32,4 @@ const schoolSchema = new Schema(
 );
 
 // *************** EXPORT MODULE ***************
-module.exports = model('School', schoolSchema);
+module.exports = model("School", schoolSchema);

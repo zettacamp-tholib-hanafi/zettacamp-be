@@ -1,5 +1,5 @@
 // *************** IMPORT MODEL ***************
-const User = require('./user.model.js');
+const User = require("./user.model.js");
 
 // *************** QUERY ***************
 
@@ -43,11 +43,11 @@ const DeleteUser = async (_, { id }) => {
 module.exports = {
   Query: {
     GetAllUsers,
-    GetOneUser
+    GetOneUser,
   },
   Mutation: {
     CreateUser,
     UpdateUser,
-    DeleteUser
-  }
+    DeleteUser,
+  },
 };

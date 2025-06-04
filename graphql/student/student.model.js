@@ -1,8 +1,8 @@
 // *************** IMPORT LIBRARY ***************
-const { Schema, model, Types } = require('mongoose');
+const { Schema, model, Types } = require("mongoose");
 
 // *************** MUTATION ***************
-// Defines the Student schema representing student data in the system
+// *************** Defines the Student schema representing student data in the system
 const StudentSchema = new Schema(
   {
     // First name of the student
@@ -30,7 +30,7 @@ const StudentSchema = new Schema(
     // Reference to the associated school
     school_id: {
       type: Types.ObjectId,
-      ref: 'School',
+      ref: "School",
       required: true,
     },
 
@@ -52,4 +52,4 @@ const StudentSchema = new Schema(
 );
 
 // *************** EXPORT MODULE ***************
-module.exports = model('Student', StudentSchema);
+module.exports = model("Student", StudentSchema);
