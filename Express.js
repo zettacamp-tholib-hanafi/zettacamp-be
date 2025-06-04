@@ -46,7 +46,7 @@ async function start() {
   );
 
   app.listen(PORT, () => {
-    console.log(`🚀  GraphQL ready at http://localhost:${PORT}/graphql`);
+    console.log(`GraphQL Playground ready at http://localhost:${PORT}/graphql`);
   });
 }
 // Call Apollo Server
