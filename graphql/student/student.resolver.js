@@ -44,7 +44,7 @@ const StudentResolver = {
     Student: {
         // Resolve school relation
         school: async (student, _, { loaders }) => {
-            return await loaders.school.load(student.schoolId.toString());
+            return await loaders.school.load(student.school_id.toString());
         }
     }
 };

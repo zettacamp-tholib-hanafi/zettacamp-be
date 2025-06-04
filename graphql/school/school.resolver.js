@@ -1,5 +1,6 @@
 // *************** IMPORT MODEL ***************
 import School from './school.model.js';
+import Student from '../student/student.model.js';
 
 // *************** RESOLVER ***************
 const SchoolResolver = {
@@ -44,7 +45,7 @@ const SchoolResolver = {
     School: {
         // Get all students in this school
         students: async (school) => {
-            return await Student.find({ schoolId: school._id, deleted_at: null });
+            return await Student.find({ school_id: school._id, deleted_at: null });
         },
     },
 
