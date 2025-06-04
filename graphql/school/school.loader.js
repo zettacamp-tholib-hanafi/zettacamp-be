@@ -19,7 +19,7 @@ const batchSchoolsById = async (school_id) => {
   );
 };
 
-// *************** Create School DataLoader
+// *************** LOADER ***************
 function schoolLoader() {
   return new DataLoader(batchSchoolsById);
 }

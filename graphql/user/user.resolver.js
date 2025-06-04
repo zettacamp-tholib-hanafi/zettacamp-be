@@ -39,7 +39,7 @@ const DeleteUser = async (_, { id }) => {
   );
 };
 
-// *************** EXPORT ***************
+// *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
     GetAllUsers,

@@ -20,7 +20,7 @@ const batchStudentsBySchoolId = async (school_id) => {
   );
 };
 
-// *************** Create Student DataLoader
+// *************** LOADER ***************
 function studentLoader() {
   return new DataLoader(batchStudentsBySchoolId);
 }

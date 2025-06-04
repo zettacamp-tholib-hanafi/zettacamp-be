@@ -49,7 +49,7 @@ const students = (school, _, context) => {
   return context.loaders.student.load(school._id);
 };
 
-// *************** EXPORT ***************
+// *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
     GetAllSchools,

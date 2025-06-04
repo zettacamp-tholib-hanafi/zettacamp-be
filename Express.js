@@ -15,7 +15,6 @@ const ConnectDB = require("./utils/db");
 const { studentLoader } = require("./graphql/student/student.loader");
 const { schoolLoader } = require("./graphql/school/school.loader");
 
-// *************** MUTATION ***************
 // *************** Connect to MongoDB
 ConnectDB();
 

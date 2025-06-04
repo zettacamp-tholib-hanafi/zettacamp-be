@@ -46,7 +46,7 @@ const school = async (student, _, { loaders }) => {
   return await loaders.school.load(student.school_id.toString());
 };
 
-// *************** EXPORT ***************
+// *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
     GetAllStudents,

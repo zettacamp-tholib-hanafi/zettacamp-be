@@ -1,7 +1,6 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-// *************** MUTATION ***************
 // *************** Defines the Student schema representing student data in the system
 const StudentSchema = new Schema(
   {
