@@ -66,10 +66,10 @@ input UpdateStudentInput {
 
 extend type Query {
   # Get all students (excluding soft-deleted)
-  students: [Student!]!
+  GetAllStudents: [Student!]!
 
   # Get a specific student by ID
-  student(id: ID!): Student
+  GetOneStudent(id: ID!): Student
 }
 
 # ************ Mutations ************
