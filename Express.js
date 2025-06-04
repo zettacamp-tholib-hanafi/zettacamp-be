@@ -14,10 +14,10 @@ const { studentLoader } = require('./graphql/student/student.loader');
 const { schoolLoader } = require('./graphql/school/school.loader');
 
 // *************** MUTATION ***************
-// Connect to MongoDB
+// *************** Connect to MongoDB
 ConnectDB();
 
-// Load GraphQL schema and resolvers
+// *************** Load GraphQL schema and resolvers
 const typeDefs = mergeTypeDefs(
   loadFilesSync(path.join(__dirname, 'graphql/**/*.graphql')),
 );
@@ -25,21 +25,21 @@ const resolvers = mergeResolvers(
   loadFilesSync(path.join(__dirname, 'graphql/**/*.resolver.js')),
 );
 
-// Configure Apollo Server
+// *************** Configure Apollo Server
 const apollo = new ApolloServer({
   typeDefs,
   resolvers,
   plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })]
 });
 
-// Start Express and Apollo
+// *************** Start Express and Apollo
 async function start() {
   await apollo.start();
 
   const app = express();
   const PORT = process.env.PORT || 4000;
 
-  // Define GraphQL endpoint
+  // *************** Define GraphQL endpoint
   app.use(
     '/graphql',
     cors(),
@@ -59,5 +59,5 @@ async function start() {
     console.log(`GraphQL Playground ready at http://localhost:${PORT}/graphql`);
   });
 }
-// Call Apollo Server
+// *************** Call Apollo Server
 start();

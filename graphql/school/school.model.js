@@ -2,7 +2,7 @@
 const { Schema, model } = require('mongoose');
 
 // *************** MUTATION ***************
-// Defines the School schema representing school data in the system
+// *************** Defines the School schema representing school data in the system
 const schoolSchema = new Schema(
   {
     // Name of the school

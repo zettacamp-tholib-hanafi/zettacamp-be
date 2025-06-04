@@ -3,25 +3,25 @@ const Student = require('./student.model.js');
 
 // *************** QUERY ***************
 
-// Get all students (excluding soft-deleted)
+// *************** Get all students (excluding soft-deleted)
 const GetAllStudents = async () => {
     return await Student.find({ deleted_at: null });
 };
 
-// Get a specific student by ID (if not deleted)
+// *************** Get a specific student by ID (if not deleted)
 const GetOneStudent = async (_, { id }) => {
     return await Student.findOne({ _id: id, deleted_at: null });
 };
 
 // *************** MUTATION ***************
 
-// Create new student
+// *************** Create new student
 const CreateStudent = async (_, { input }) => {
     const student = new Student(input);
     return await student.save();
 };
 
-// Update existing student by ID
+// *************** Update existing student by ID
 const UpdateStudent = async (_, { id, input }) => {
     return await Student.findOneAndUpdate(
         { _id: id },
@@ -30,7 +30,7 @@ const UpdateStudent = async (_, { id, input }) => {
     );
 };
 
-// Soft delete a student by ID
+// *************** Soft delete a student by ID
 const DeleteStudent = async (_, { id }) => {
     return await Student.findOneAndUpdate(
         { _id: id },
@@ -41,7 +41,7 @@ const DeleteStudent = async (_, { id }) => {
 
 // *************** RESOLVER ***************
 
-// Resolve school relation
+// *************** Resolve school relation
 const school = async (student, _, { loaders }) => {
     return await loaders.school.load(student.school_id.toString());
 };
