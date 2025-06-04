@@ -23,8 +23,8 @@ const SchoolResolver = {
             return await school.save()
         },
         // Update existing school by ID
-        UpdateUser: async (_, { id, input }) => {
-            return await User.findOneAndUpdate(
+        UpdateSchool: async (_, { id, input }) => {
+            return await School.findOneAndUpdate(
                 { _id: id },
                 { $set: input },
                 { new: true }
@@ -32,13 +32,13 @@ const SchoolResolver = {
         },
 
         // Soft delete a school by ID
-        DeleteUser: async (_, { id }) => {
-            const deletedUser = await User.findOneAndUpdate(
+        DeleteSchool: async (_, { id }) => {
+            const deletedSchool = await School.findOneAndUpdate(
                 { _id: id },
                 { $set: { deleted_at: new Date() } },
                 { new: true }
             );
-            return deletedUser;
+            return deletedSchool;
         },
     },
     School: {
