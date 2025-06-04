@@ -36,10 +36,10 @@ input UpdateSchoolInput {
 
 extend type Query {
   # Get all schools
-  schools: [School!]!
+  GetAllSchools: [School!]!
 
   # Get a specific school by ID
-  school(id: ID!): School
+  GetOneSchool(id: ID!): School
 }
 
 # ************ Mutations ************
