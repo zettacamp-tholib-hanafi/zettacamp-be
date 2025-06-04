@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 // Connect to MongoDB using mongoose with proper error handling for reliability
-const connectDB = async () => {
+const ConnectDB = async () => {
   try {
     await mongoose.connect('mongodb://localhost:27017/zettacamp-be-tholib');
     console.log('✅ MongoDB connected');
@@ -15,4 +15,4 @@ const connectDB = async () => {
 };
 
 // *************** EXPORT MODULE ***************
-module.exports = connectDB;
+module.exports = ConnectDB;

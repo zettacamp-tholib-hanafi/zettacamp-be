@@ -1,25 +1,25 @@
 // *************** IMPORT LIBRARY ***************
-const { Schema, model } = require('mongoose');
+const { Schema, model, Types } = require('mongoose');
 
 // *************** MUTATION ***************
-// Define the User schema representing user data in the system
-const userSchema = new Schema(
+// Defines the Student schema representing student data in the system
+const StudentSchema = new Schema(
   {
-    // First name of the user
+    // First name of the student
     first_name: {
       type: String,
       required: true,
       trim: true,
     },
 
-    // Last name of the user
+    // Last name of the student
     last_name: {
       type: String,
       required: true,
       trim: true,
     },
 
-    // Unique email address of the user
+    // Unique email address of the student
     email: {
       type: String,
       required: true,
@@ -27,16 +27,16 @@ const userSchema = new Schema(
       trim: true,
     },
 
-    // Hashed password used for authentication
-    password: {
-      type: String,
+    // Reference to the associated school
+    school_id: {
+      type: Types.ObjectId,
+      ref: 'School',
       required: true,
     },
 
-    // Role of the user (e.g., admin, member)
-    role: {
-      type: String,
-      required: true,
+    // Student's date of birth (optional)
+    date_of_birth: {
+      type: Date,
     },
 
     // Marks soft deletion timestamp (null if not deleted)
@@ -52,4 +52,4 @@ const userSchema = new Schema(
 );
 
 // *************** EXPORT MODULE ***************
-module.exports = model('User', userSchema);
+module.exports = model('Student', StudentSchema);

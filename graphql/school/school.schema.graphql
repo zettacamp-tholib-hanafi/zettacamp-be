@@ -1,0 +1,59 @@
+# ************ Type ************
+
+type School {
+  # Unique identifier for the school
+  id: ID!
+
+  # Name of the school
+  name: String!
+
+  # Optional address of the school
+  address: String
+
+  # List of students associated with the school
+  students: [Student]
+}
+
+# ************ Input ************
+
+input CreateSchoolInput {
+  # Required name of the school
+  name: String!
+
+  # Optional school address
+  address: String
+}
+
+input UpdateSchoolInput {
+  # Optional new school name
+  name: String
+
+  # Optional new address
+  address: String
+}
+
+# ************ Queries ************
+
+extend type Query {
+  # Get all schools
+  schools: [School!]!
+
+  # Get a specific school by ID
+  school(id: ID!): School
+}
+
+# ************ Mutations ************
+
+extend type Mutation {
+  # Create a new school
+  CreateSchool(input: CreateSchoolInput!): School!
+
+  # Update school data by ID
+  UpdateSchool(id: ID!, input: UpdateSchoolInput!): School!
+
+  # Soft delete a school by ID
+  DeleteSchool(id: ID!): School!
+}
+
+# ************ Custom Scalar ************
+scalar Date

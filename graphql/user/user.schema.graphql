@@ -1,0 +1,83 @@
+# ************ Type ************
+
+type User {
+  # Unique identifier for the user
+  id: ID!
+
+  # User's first name
+  first_name: String!
+
+  # User's last name
+  last_name: String!
+
+  # User's email address
+  email: String!
+
+  # User's password in the system
+  password: String!
+
+  # User's role in the system
+  role: String!
+
+  # Soft deletion timestamp; null if active
+  deleted_at: Date
+}
+
+# ************ Input ************
+
+input CreateUserInput {
+  # Required first name
+  first_name: String!
+
+  # Required last name
+  last_name: String!
+
+  # Required email address
+  email: String!
+
+  # Required Password
+  password: String!
+  
+  # Required user role
+  role: String!
+}
+
+input UpdateUserInput {
+  # Optional new first name
+  first_name: String
+
+  # Optional new last name
+  last_name: String
+
+  # Optional new email address
+  email: String
+
+  # Optional new role
+  role: String
+}
+
+# ************ Queries ************
+
+type Query {
+  # Get all users (excluding soft-deleted)
+  GetAllUsers: [User!]!
+
+  # Get a specific user by ID
+  GetOneUser(id: ID!): User
+}
+
+# ************ Mutations ************
+
+type Mutation {
+  # Create a new user
+  CreateUser(input: CreateUserInput!): User!
+
+  # Update user data by ID
+  UpdateUser(id: ID!, input: UpdateUserInput!): User!
+
+  # Soft delete a user by ID
+  DeleteUser(id: ID!): User!
+}
+
+# ************ Custom Scalar ************
+scalar Date

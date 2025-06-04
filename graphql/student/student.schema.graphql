@@ -1,0 +1,89 @@
+# ************ Type ************
+
+type Student {
+  # Unique identifier for the student
+  id: ID!
+
+  # Student's first name
+  first_name: String!
+
+  # Student's last name
+  last_name: String!
+
+  # Student's email address
+  email: String!
+
+  # Student's date of birth
+  date_of_birth: Date
+
+  # Reference to the associated school
+  school_id: ID!
+
+  # Resolved school object based on school_id
+  school: School
+
+  # Soft deletion timestamp; null if active
+  deleted_at: Date
+}
+
+# ************ Input ************
+
+input CreateStudentInput {
+  # Required first name
+  first_name: String!
+
+  # Required last name
+  last_name: String!
+
+  # Required email address
+  email: String!
+
+  # Required date of birth
+  date_of_birth: Date!
+
+  # Required associated school ID
+  school_id: ID!
+}
+
+input UpdateStudentInput {
+  # Optional new first name
+  first_name: String
+
+  # Optional new last name
+  last_name: String
+
+  # Optional new email address
+  email: String
+
+  # Optional new date of birth
+  date_of_birth: Date
+
+  # Optional new associated school ID
+  school_id: ID
+}
+
+# ************ Queries ************
+
+extend type Query {
+  # Get all students (excluding soft-deleted)
+  students: [Student!]!
+
+  # Get a specific student by ID
+  student(id: ID!): Student
+}
+
+# ************ Mutations ************
+
+extend type Mutation {
+  # Create a new student
+  CreateStudent(input: CreateStudentInput!): Student!
+
+  # Update student data by ID
+  UpdateStudent(id: ID!, input: UpdateStudentInput!): Student!
+
+  # Soft delete a student by ID
+  DeleteStudent(id: ID!): Student!
+}
+
+# ************ Custom Scalar ************
+scalar Date

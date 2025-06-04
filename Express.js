@@ -7,10 +7,10 @@ const path = require('path');
 const { loadFilesSync } = require('@graphql-tools/load-files');
 const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
 const { ApolloServerPluginLandingPageLocalDefault } = require('@apollo/server/plugin/landingPage/default');
+const ConnectDB = require('./utils/db');
 
 // *************** IMPORT MODUL ***************
 // Configuration modul db
-const connectDB = require('./config/db');
 
 // Model MongoDB
 require('./models/User');
@@ -19,14 +19,14 @@ require('./models/School');
 
 // *************** MUTATION ***************
 // Connect to MongoDB
-connectDB();
+ConnectDB();
 
 // Load GraphQL schema and resolvers
 const typeDefs = mergeTypeDefs(
   loadFilesSync(path.join(__dirname, 'graphql/**/*.graphql')),
 );
 const resolvers = mergeResolvers(
-  loadFilesSync(path.join(__dirname, 'graphql/resolvers/**/*.js')),
+  loadFilesSync(path.join(__dirname, 'graphql/**/*.resolver.js')),
 );
 
 // Configure Apollo Server
