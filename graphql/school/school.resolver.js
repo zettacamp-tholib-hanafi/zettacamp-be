@@ -44,11 +44,11 @@ const SchoolResolver = {
     },
     School: {
         // Get all students in this school
-        students: async (school) => {
-            return await Student.find({ school_id: school._id, deleted_at: null });
-        },
-    },
-
+        students: (school, _, context) => {
+            if (!context?.loaders?.student) throw new Error("Student loader not initialized");
+            return context.loaders.student.load(school._id);
+        }
+    }
 };
 
 // *************** EXPORT RESOLVER ***************

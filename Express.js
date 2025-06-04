@@ -7,7 +7,11 @@ const path = require('path');
 const { loadFilesSync } = require('@graphql-tools/load-files');
 const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
 const { ApolloServerPluginLandingPageLocalDefault } = require('@apollo/server/plugin/landingPage/default');
+
+// *************** IMPORT MODULE ***************
 const ConnectDB = require('./utils/db');
+const { studentLoader } = require('./graphql/student/student.loader');
+const { schoolLoader } = require('./graphql/school/school.loader');
 
 // *************** MUTATION ***************
 // Connect to MongoDB
@@ -25,7 +29,7 @@ const resolvers = mergeResolvers(
 const apollo = new ApolloServer({
   typeDefs,
   resolvers,
-  plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
+  plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })]
 });
 
 // Start Express and Apollo
@@ -41,8 +45,14 @@ async function start() {
     cors(),
     express.json(),
     expressMiddleware(apollo, {
-      context: async () => ({}),
-    }),
+      context: async ({ req }) => ({
+        loaders: {
+          student: studentLoader(),
+          school: schoolLoader()
+        }
+      })
+    })
+
   );
 
   app.listen(PORT, () => {
