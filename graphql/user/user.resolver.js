@@ -1,42 +1,88 @@
 // *************** IMPORT MODEL ***************
 const User = require("./user.model.js");
 
+// *************** IMPORT VALIDATOR ***************
+const {
+  validateCreateUserInput,
+  validateUpdateUserInput,
+} = require("./user.validator.js");
+
+// *************** IMPORT HELPER FUNCTION ***************
+const {
+  handleCaughtError,
+  createAppError,
+} = require("../../utils/error.helper.js");
+
 // *************** QUERY ***************
 
 // *************** Get all users (excluding soft-deleted)
 const GetAllUsers = async () => {
-  return await User.find({ deleted_at: null });
+  try {
+    return await User.find({ deleted_at: null });
+  } catch (error) {
+    throw handleCaughtError(error, "Failed to fetch users");
+  }
 };
 
 // *************** Get a specific user by ID (if not deleted)
 const GetOneUser = async (_, { id }) => {
-  return await User.findOne({ _id: id, deleted_at: null });
+  try {
+    const user = await User.findOne({ _id: id, deleted_at: null });
+    if (!user) {
+      throw createAppError("User not found", "NOT_FOUND", { id });
+    }
+    return user;
+  } catch (error) {
+    throw handleCaughtError(error, "Failed to fetch user", "INTERNAL");
+  }
 };
 
 // *************** MUTATION ***************
 
 // *************** Create a new user
 const CreateUser = async (_, { input }) => {
-  const user = new User(input);
-  return await user.save();
+  try {
+    validateCreateUserInput(input);
+    const user = new User(input);
+    return await user.save();
+  } catch (error) {
+    throw handleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
+  }
 };
 
 // *************** Update existing user by ID
 const UpdateUser = async (_, { id, input }) => {
-  return await User.findOneAndUpdate(
-    { _id: id },
-    { $set: input },
-    { new: true }
-  );
+  try {
+    validateUpdateUserInput(input);
+    const updated = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: input },
+      { new: true }
+    );
+    if (!updated) {
+      throw createAppError("User not found", "NOT_FOUND", { id });
+    }
+    return updated;
+  } catch (error) {
+    throw handleCaughtError(error, "Failed to update user", "VALIDATION_ERROR");
+  }
 };
 
 // *************** Soft delete a user by ID
 const DeleteUser = async (_, { id }) => {
-  return await User.findOneAndUpdate(
-    { _id: id },
-    { $set: { deleted_at: new Date() } },
-    { new: true }
-  );
+  try {
+    const deleted = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: { deleted_at: new Date() } },
+      { new: true }
+    );
+    if (!deleted) {
+      throw createAppError("User not found", "NOT_FOUND", { id });
+    }
+    return deleted;
+  } catch (error) {
+    throw handleCaughtError(error, "Failed to delete user");
+  }
 };
 
 // *************** EXPORT MODULE ***************
