@@ -39,8 +39,6 @@ const DeleteStudent = async (_, { id }) => {
   );
 };
 
-// *************** RESOLVER ***************
-
 // *************** Resolve school relation
 const school = async (student, _, { loaders }) => {
   return await loaders.school.load(student.school_id.toString());

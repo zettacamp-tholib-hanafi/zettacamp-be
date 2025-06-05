@@ -39,8 +39,6 @@ const DeleteSchool = async (_, { id }) => {
   );
 };
 
-// *************** RESOLVER ***************
-
 // *************** Get all students in this school
 const students = (school, _, context) => {
   if (!context?.loaders?.student) {
