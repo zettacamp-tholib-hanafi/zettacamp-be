@@ -7,8 +7,9 @@ const {
   validateUpdateSchoolInput,
 } = require("./school.validator.js");
 
-// *************** IMPORT ERROR HANDLER ***************
+// *************** IMPORT UTILITIES ***************
 const { handleCaughtError } = require("../../utils/error.helper.js");
+const { SanitizeInput } = require("../../utils/SanitizeInput.js");
 
 // *************** QUERY ***************
 
@@ -38,7 +39,15 @@ const CreateSchool = async (_, { input }) => {
     // *************** Validate input
     validateCreateSchoolInput(input);
 
-    const school = new School(input);
+    // *************** allowed input fields
+    const allowedFields = [
+      "name",
+      "address",
+    ];
+    const schoolInputSanitize = SanitizeInput(input, allowedFields);
+
+    // *************** save to database
+    const school = new School(schoolInputSanitize);
     return await school.save();
   } catch (error) {
     throw handleCaughtError(error, "Failed to create school.");
@@ -51,9 +60,17 @@ const UpdateSchool = async (_, { id, input }) => {
     // *************** Validate input
     validateUpdateSchoolInput(input);
 
+    // *************** allowed input fields
+    const allowedFields = [
+      "name",
+      "address",
+    ];
+    const schoolUpdateSanitize = SanitizeInput(input, allowedFields);
+
+    // *************** update to database
     return await School.findOneAndUpdate(
       { _id: id },
-      { $set: input },
+      { $set: schoolUpdateSanitize },
       { new: true }
     );
   } catch (error) {
