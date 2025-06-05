@@ -7,8 +7,12 @@ const {
   validateUpdateStudentInput,
 } = require("./student.validator.js");
 
-// *************** IMPORT HELPER FUNCTION ***************
-const { createAppError, handleCaughtError } = require("../../utils/error.helper.js");
+// *************** IMPORT UTILITIES ***************
+const {
+  createAppError,
+  handleCaughtError,
+} = require("../../utils/error.helper.js");
+const { SanitizeInput } = require("../../utils/SanitizeInput.js");
 
 // *************** QUERY ***************
 
@@ -45,7 +49,18 @@ const CreateStudent = async (_, { input }) => {
     // *************** Validate input payload
     validateCreateStudentInput(input);
 
-    const student = new Student(input);
+    // *************** allowed input fields
+    const allowedFields = [
+      "first_name",
+      "last_name",
+      "email",
+      "date_of_birth",
+      "school_id",
+    ];
+    const studentInputSanitize = SanitizeInput(input, allowedFields);
+
+    // *************** save to database
+    const student = new Student(studentInputSanitize);
     return await student.save();
   } catch (error) {
     // *************** Handle creation error
@@ -59,15 +74,30 @@ const UpdateStudent = async (_, { id, input }) => {
     // *************** Validate input payload
     validateUpdateStudentInput(input);
 
+    // *************** allowed input fields
+    const allowedFields = [
+      "first_name",
+      "last_name",
+      "email",
+      "date_of_birth",
+      "school_id",
+    ];
+    const studentUpdateSanitize = SanitizeInput(input, allowedFields);
+
+    // *************** update to database
     const updated = await Student.findOneAndUpdate(
       { _id: id, deleted_at: null },
-      { $set: input },
+      { $set: studentUpdateSanitize },
       { new: true }
     );
 
     if (!updated) {
       // *************** If student not found or deleted
-      throw createAppError("Student not found or already deleted.", "NOT_FOUND", { field: "id" });
+      throw createAppError(
+        "Student not found or already deleted.",
+        "NOT_FOUND",
+        { field: "id" }
+      );
     }
 
     return updated;
@@ -80,6 +110,7 @@ const UpdateStudent = async (_, { id, input }) => {
 // *************** Soft delete a student by ID
 const DeleteStudent = async (_, { id }) => {
   try {
+    // *************** softdelete by adding deleted_at timestamp
     const deleted = await Student.findOneAndUpdate(
       { _id: id, deleted_at: null },
       { $set: { deleted_at: new Date() } },
@@ -88,7 +119,11 @@ const DeleteStudent = async (_, { id }) => {
 
     if (!deleted) {
       // *************** If already deleted or not found
-      throw createAppError("Student not found or already deleted.", "NOT_FOUND", { field: "id" });
+      throw createAppError(
+        "Student not found or already deleted.",
+        "NOT_FOUND",
+        { field: "id" }
+      );
     }
 
     return deleted;
