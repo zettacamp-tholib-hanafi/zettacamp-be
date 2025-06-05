@@ -81,10 +81,11 @@ function validateCreateUserInput(input) {
  * @param {string} [input.first_name] - New first name.
  * @param {string} [input.last_name] - New last name.
  * @param {string} [input.email] - New email address.
+ * @param {string} input.password - Password of the user.
  * @param {string} [input.role] - New user role.
  */
 function validateUpdateUserInput(input) {
-  const { first_name, last_name, email, role } = input;
+  const { first_name, last_name, email, password, role } = input;
 
   if (first_name !== undefined) {
     if (typeof first_name !== "string" || !first_name.trim()) {
@@ -126,6 +127,22 @@ function validateUpdateUserInput(input) {
         field: "email",
       });
     }
+  }
+
+  if (typeof password !== "string" || !password.trim()) {
+    throw createAppError(
+      "Password is required and must be a non-empty string.",
+      "VALIDATION_ERROR",
+      { field: "password" }
+    );
+  }
+
+  if (password.length < 8) {
+    throw createAppError(
+      "Password must be at least 8 characters long.",
+      "VALIDATION_ERROR",
+      { field: "password" }
+    );
   }
 
   if (role !== undefined) {

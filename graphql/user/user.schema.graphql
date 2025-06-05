@@ -52,6 +52,9 @@ input UpdateUserInput {
   # Optional new email address
   email: String
 
+  # Optional new Password
+  password: String!
+
   # Optional new role
   role: String
 }
