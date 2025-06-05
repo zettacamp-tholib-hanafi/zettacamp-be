@@ -1,4 +1,4 @@
-// *************** IMPORT MODEL ***************
+// *************** IMPORT MODULE ***************
 const User = require("./user.model.js");
 
 // *************** IMPORT VALIDATOR ***************

@@ -1,4 +1,4 @@
-// *************** IMPORT MODEL ***************
+// *************** IMPORT MODULE ***************
 const Student = require("./student.model.js");
 
 // *************** IMPORT VALIDATOR ***************
