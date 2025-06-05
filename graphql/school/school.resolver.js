@@ -8,7 +8,7 @@ const {
 } = require("./school.validator.js");
 
 // *************** IMPORT UTILITIES ***************
-const { handleCaughtError } = require("../../utils/error.helper.js");
+const { handleCaughtError } = require("../../utils/ErrorFormat.js");
 const { SanitizeInput } = require("../../utils/SanitizeInput.js");
 
 // *************** QUERY ***************

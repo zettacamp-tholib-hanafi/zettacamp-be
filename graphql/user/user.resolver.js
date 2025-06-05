@@ -11,7 +11,7 @@ const {
 const {
   handleCaughtError,
   createAppError,
-} = require("../../utils/error.helper.js");
+} = require("../../utils/ErrorFormat.js");
 const { SanitizeInput } = require("../../utils/SanitizeInput.js");
 
 // *************** QUERY ***************

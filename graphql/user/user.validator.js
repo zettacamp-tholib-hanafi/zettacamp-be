@@ -1,5 +1,5 @@
-// *************** IMPORT HELPER FUNCTION ***************
-const { createAppError } = require("../../utils/error.helper.js");
+// *************** IMPORT UTILITIES ***************
+const { createAppError } = require("../../utils/ErrorFormat.js");
 
 // *************** Constant
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
