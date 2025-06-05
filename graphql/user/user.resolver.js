@@ -43,6 +43,10 @@ const GetOneUser = async (_, { id }) => {
 // *************** Create a new user
 const CreateUser = async (_, { input }) => {
   try {
+    // *************** Validate input payload
+    validateCreateUserInput(userInputSanitize);
+
+    // *************** allowed input fields
     const allowedFields = [
       "first_name",
       "last_name",
@@ -52,7 +56,7 @@ const CreateUser = async (_, { input }) => {
     ];
     const userInputSanitize = SanitizeInput(input, allowedFields);
 
-    validateCreateUserInput(userInputSanitize);
+    // *************** save to database
     const user = new User(userInputSanitize);
     return await user.save();
   } catch (error) {
@@ -63,6 +67,10 @@ const CreateUser = async (_, { input }) => {
 // *************** Update existing user by ID
 const UpdateUser = async (_, { id, input }) => {
   try {
+    // *************** Validate input payload
+    validateUpdateUserInput(input);
+
+    // *************** allowed input fields
     const allowedFields = [
       "first_name",
       "last_name",
@@ -71,7 +79,8 @@ const UpdateUser = async (_, { id, input }) => {
       "password",
     ];
     const userUpdateSanitize = SanitizeInput(input, allowedFields);
-    validateUpdateUserInput(userUpdateSanitize);
+    
+    // *************** update to database
     const updated = await User.findOneAndUpdate(
       { _id: id },
       { $set: userUpdateSanitize },
