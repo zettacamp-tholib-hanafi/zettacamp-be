@@ -44,7 +44,7 @@ const GetOneUser = async (_, { id }) => {
 const CreateUser = async (_, { input }) => {
   try {
     // *************** Validate input payload
-    validateCreateUserInput(userInputSanitize);
+    validateCreateUserInput(input);
 
     // *************** allowed input fields
     const allowedFields = [
