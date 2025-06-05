@@ -12,6 +12,7 @@ const {
   handleCaughtError,
   createAppError,
 } = require("../../utils/error.helper.js");
+const { SanitizeInput } = require("../../utils/SanitizeInput.js");
 
 // *************** QUERY ***************
 
@@ -42,8 +43,17 @@ const GetOneUser = async (_, { id }) => {
 // *************** Create a new user
 const CreateUser = async (_, { input }) => {
   try {
-    validateCreateUserInput(input);
-    const user = new User(input);
+    const allowedFields = [
+      "first_name",
+      "last_name",
+      "email",
+      "role",
+      "password",
+    ];
+    const userInputSanitize = SanitizeInput(input, allowedFields);
+
+    validateCreateUserInput(userInputSanitize);
+    const user = new User(userInputSanitize);
     return await user.save();
   } catch (error) {
     throw handleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
@@ -53,10 +63,18 @@ const CreateUser = async (_, { input }) => {
 // *************** Update existing user by ID
 const UpdateUser = async (_, { id, input }) => {
   try {
-    validateUpdateUserInput(input);
+    const allowedFields = [
+      "first_name",
+      "last_name",
+      "email",
+      "role",
+      "password",
+    ];
+    const userUpdateSanitize = SanitizeInput(input, allowedFields);
+    validateUpdateUserInput(userUpdateSanitize);
     const updated = await User.findOneAndUpdate(
       { _id: id },
-      { $set: input },
+      { $set: userUpdateSanitize },
       { new: true }
     );
     if (!updated) {
