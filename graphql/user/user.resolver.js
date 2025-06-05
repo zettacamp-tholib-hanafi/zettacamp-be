@@ -7,7 +7,7 @@ const {
   validateUpdateUserInput,
 } = require("./user.validator.js");
 
-// *************** IMPORT HELPER FUNCTION ***************
+// *************** IMPORT UTILITIES ***************
 const {
   handleCaughtError,
   createAppError,
