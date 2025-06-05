@@ -14,6 +14,7 @@ const {
 const ConnectDB = require("./utils/db");
 const { studentLoader } = require("./graphql/student/student.loader");
 const { schoolLoader } = require("./graphql/school/school.loader");
+const { formatError } = require("./utils/error.helper");
 
 // *************** Connect to MongoDB
 ConnectDB();
@@ -30,6 +31,7 @@ const resolvers = mergeResolvers(
 const apollo = new ApolloServer({
   typeDefs,
   resolvers,
+  formatError,
   plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
 });
 

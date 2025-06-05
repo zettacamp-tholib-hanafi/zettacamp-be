@@ -82,6 +82,35 @@ const handleCaughtError = (
 };
 
 /**
+ * Format GraphQL error response to exclude internal stacktrace.
+ *
+ * This function ensures a clean and predictable shape for errors
+ * returned to the client, including only relevant metadata.
+ *
+ * @param {import('graphql').GraphQLError} error - The original GraphQL error object.
+ * @returns {object} Cleaned error response with limited fields.
+ */
+const formatError = (error) => {
+  return {
+    message: error.message,
+
+    // *************** Path to field/mutation that caused the error
+    path: error.path,
+
+    extensions: {
+      // *************** GraphQL-compliant error code (for frontend handling)
+      code: error.extensions?.code || "INTERNAL_SERVER_ERROR",
+
+      // *************** Logical type of error for internal grouping
+      type: error.extensions?.type || "INTERNAL",
+
+      // *************** Optional metadata (e.g., field name)
+      metadata: error.extensions?.metadata || null,
+    },
+  };
+};
+
+/**
  * Capitalize the first letter of a string.
  *
  * @param {string} str
@@ -96,4 +125,5 @@ const capitalize = (str) =>
 module.exports = {
   createAppError,
   handleCaughtError,
+  formatError,
 };
