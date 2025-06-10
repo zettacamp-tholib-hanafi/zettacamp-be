@@ -5,7 +5,7 @@ const DataLoader = require("dataloader");
 const School = require("./school.model");
 
 // *************** Batch Load Function
-const batchSchoolsById = async (school_id) => {
+async function batchSchoolsById(school_id) {
   // *************** Find all schools with the given id
   const schools = await School.find({
     _id: { $in: school_id },
@@ -16,7 +16,7 @@ const batchSchoolsById = async (school_id) => {
     (id) =>
       schools.find((school) => school._id.toString() === id.toString()) || null
   );
-};
+}
 
 // *************** LOADER ***************
 function schoolLoader() {

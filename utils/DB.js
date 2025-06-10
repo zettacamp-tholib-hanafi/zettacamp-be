@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 
 // *************** Connect to MongoDB using mongoose with proper error handling for reliability
-const ConnectDB = async () => {
+async function ConnectDB() {
   try {
     await mongoose.connect("mongodb://localhost:27017/zettacamp-be-tholib-v1");
     console.log("MongoDB connected");
@@ -12,7 +12,7 @@ const ConnectDB = async () => {
     // *************** Exit the process if connection fails to avoid undefined behavior
     process.exit(1);
   }
-};
+}
 
 // *************** EXPORT MODULE ***************
 module.exports = ConnectDB;

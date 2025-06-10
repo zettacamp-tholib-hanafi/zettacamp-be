@@ -17,7 +17,7 @@ const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
 
-const GetAllStudents = async (_, { filter }) => {
+async function GetAllStudents(_, { filter }) {
   try {
     const query = {};
 
@@ -38,9 +38,9 @@ const GetAllStudents = async (_, { filter }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to fetch students");
   }
-};
+}
 
-const GetOneStudent = async (_, { id, filter }) => {
+async function GetOneStudent(_, { id, filter }) {
   try {
     const query = { _id: id };
 
@@ -66,11 +66,11 @@ const GetOneStudent = async (_, { id, filter }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to fetch student", "INTERNAL");
   }
-};
+}
 
 // *************** MUTATION ***************
 
-const CreateStudent = async (_, { input }) => {
+async function CreateStudent(_, { input }) {
   try {
     validateCreateStudentInput(input);
 
@@ -112,9 +112,9 @@ const CreateStudent = async (_, { input }) => {
       "VALIDATION_ERROR"
     );
   }
-};
+}
 
-const UpdateStudent = async (_, { id, input }) => {
+async function UpdateStudent(_, { id, input }) {
   try {
     validateUpdateStudentInput(input);
 
@@ -174,9 +174,9 @@ const UpdateStudent = async (_, { id, input }) => {
       "VALIDATION_ERROR"
     );
   }
-};
+}
 
-const DeleteStudent = async (_, { id, input }) => {
+async function DeleteStudent(_, { id, input }) {
   try {
     const deleted = await Student.findOneAndUpdate(
       { _id: id },
@@ -197,16 +197,16 @@ const DeleteStudent = async (_, { id, input }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to delete student");
   }
-};
+}
 
 // *************** Field resolver: Get school of a student
-const schools = (student, _, context) => {
+function schools(student, _, context) {
   if (!context?.loaders?.school) {
     throw new Error("School loader not initialized");
   }
 
   return context.loaders.school.load(student.school_id.toString());
-};
+}
 
 // *************** EXPORT MODULE ***************
 module.exports = {

@@ -13,13 +13,12 @@ const {
   createAppError,
 } = require("../../utils/ErrorFormat.js");
 
-
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
 
 // *************** Get all users with explicit user_status filter
-const GetAllUsers = async (_, { filter }) => {
+async function GetAllUsers(_, { filter }) {
   try {
     // *************** Build query condition
     const query = {};
@@ -41,10 +40,10 @@ const GetAllUsers = async (_, { filter }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to fetch users");
   }
-};
+}
 
 // *************** Get a specific user by ID with explicit user_status filter
-const GetOneUser = async (_, { id, filter }) => {
+async function GetOneUser(_, { id, filter }) {
   try {
     // *************** Build query condition
     const query = { _id: id };
@@ -72,12 +71,12 @@ const GetOneUser = async (_, { id, filter }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to fetch user", "INTERNAL");
   }
-};
+}
 
 // *************** MUTATION ***************
 
 // *************** Create a new user
-const CreateUser = async (_, { input }) => {
+async function CreateUser(_, { input }) {
   try {
     // *************** Validate input payload
     validateCreateUserInput(input);
@@ -112,10 +111,10 @@ const CreateUser = async (_, { input }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
   }
-};
+}
 
 // *************** Update existing user by ID
-const UpdateUser = async (_, { id, input }) => {
+async function UpdateUser(_, { id, input }) {
   try {
     // *************** Validate input payload
     validateUpdateUserInput(input);
@@ -164,10 +163,10 @@ const UpdateUser = async (_, { id, input }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to update user", "VALIDATION_ERROR");
   }
-};
+}
 
 // *************** Soft delete a user by ID
-const DeleteUser = async (_, { id }) => {
+async function DeleteUser(_, { id }) {
   try {
     const deleted = await User.findOneAndUpdate(
       { _id: id },
@@ -187,7 +186,7 @@ const DeleteUser = async (_, { id }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to delete user");
   }
-};
+}
 
 // *************** EXPORT MODULE ***************
 module.exports = {

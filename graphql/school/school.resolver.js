@@ -18,7 +18,7 @@ const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 // *************** QUERY ***************
 
 // *************** Get all schools (default to ACTIVE only)
-const GetAllSchools = async (_, { filter }) => {
+async function GetAllSchools(_, { filter }) {
   try {
     const query = {};
 
@@ -39,10 +39,10 @@ const GetAllSchools = async (_, { filter }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to fetch schools");
   }
-};
+}
 
 // *************** Get one school by ID (default to ACTIVE only)
-const GetOneSchool = async (_, { id, filter }) => {
+async function GetOneSchool(_, { id, filter }) {
   try {
     const query = { _id: id };
 
@@ -68,12 +68,12 @@ const GetOneSchool = async (_, { id, filter }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to fetch school");
   }
-};
+}
 
 // *************** MUTATION ***************
 
 // *************** Create new School
-const CreateSchool = async (_, { input }) => {
+async function CreateSchool(_, { input }) {
   try {
     validateCreateSchoolInput(input);
 
@@ -131,10 +131,10 @@ const CreateSchool = async (_, { input }) => {
       "VALIDATION_ERROR"
     );
   }
-};
+}
 
 // *************** Update existing School
-const UpdateSchool = async (_, { id, input }) => {
+async function UpdateSchool(_, { id, input }) {
   try {
     validateUpdateSchoolInput(input);
 
@@ -226,10 +226,10 @@ const UpdateSchool = async (_, { id, input }) => {
       "VALIDATION_ERROR"
     );
   }
-};
+}
 
 // *************** Soft delete a school
-const DeleteSchool = async (_, { id, input }) => {
+async function DeleteSchool(_, { id, input }) {
   try {
     const deleted = await School.findOneAndUpdate(
       { _id: id },
@@ -250,16 +250,16 @@ const DeleteSchool = async (_, { id, input }) => {
   } catch (error) {
     throw handleCaughtError(error, "Failed to delete school");
   }
-};
+}
 
 // *************** Field resolver: Get all students in a school
-const students = (school, _, context) => {
+function students(school, _, context) {
   if (!context?.loaders?.student) {
     throw new Error("studentLoader loader not initialized");
   }
 
   return context.loaders.student.load(school._id.toString());
-};
+}
 
 // *************** EXPORT MODULE ***************
 module.exports = {
