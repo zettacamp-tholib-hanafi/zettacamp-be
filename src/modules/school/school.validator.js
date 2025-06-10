@@ -4,14 +4,17 @@ const { isValidObjectId } = require("mongoose");
 // *************** IMPORT UTILITIES ***************
 const { createAppError } = require("../../core/error.js");
 
-// *************** REGEX VALIDATORS ***************
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_REGEX = /^(https?:\/\/)?[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
 
 /**
- * Validate address input.
+ * Validates the address object to ensure all required fields are present and are strings.
+ *
+ * @param {object} address - The address object to validate.
+ * @throws {AppError} If the address is missing, not an object, or contains invalid/missing fields.
  */
+
 function validateAddress(address) {
   const requiredFields = [
     "street_name",
@@ -51,8 +54,12 @@ function validateAddress(address) {
 }
 
 /**
- * Validate contact input.
+ * Validates the contact object fields like phone, email, and website.
+ *
+ * @param {object} contact - The contact object to validate.
+ * @throws {AppError} If the contact fields are invalid or in incorrect format.
  */
+
 function validateContact(contact) {
   if (!contact || typeof contact !== "object") return;
 
@@ -91,8 +98,13 @@ function validateContact(contact) {
 }
 
 /**
- * Validate verified info array.
+ * Validates the verified array to ensure each item has a boolean `status_verified`
+ * and an optional string `verified_by` field.
+ *
+ * @param {Array<object>} verified - The array of verification objects to validate.
+ * @throws {AppError} If the input is not a non-empty array or contains invalid fields.
  */
+
 function validateVerified(verified) {
   if (!Array.isArray(verified) || verified.length === 0) {
     throw createAppError(
@@ -122,8 +134,12 @@ function validateVerified(verified) {
 }
 
 /**
- * Validate admin_user array.
+ * Validates the admin user array, checking that each object contains valid fields.
+ *
+ * @param {Array<object>} adminUsers - The array of admin user objects to validate.
+ * @throws {AppError} If any admin user field has an invalid format or type.
  */
+
 function validateAdminUser(adminUsers) {
   if (!Array.isArray(adminUsers)) return;
 
@@ -155,8 +171,18 @@ function validateAdminUser(adminUsers) {
 }
 
 /**
- * Validate input payload for creating a school.
+ * Validates input payload for creating a school.
+ *
+ * @param {object} input - The input object for school creation.
+ * @param {string} input.short_name - Required short name of the school.
+ * @param {string} input.long_name - Required long name of the school.
+ * @param {string} [input.logo_url] - Optional logo URL of the school.
+ * @param {string} input.school_status - Status of the school: PENDING, ACTIVE, or DELETED.
+ * @param {string} input.created_by - User ID of the creator.
+ * @param {string} input.updated_by - User ID of the updater.
+ * @throws {AppError} If any required field is missing or has an invalid format.
  */
+
 function validateCreateSchoolInput(input) {
   const {
     short_name,
@@ -218,8 +244,18 @@ function validateCreateSchoolInput(input) {
 }
 
 /**
- * Validate input payload for updating a school.
+ * Validates input payload for updating a school.
+ *
+ * @param {object} input - The input object for school update.
+ * @param {string} [input.short_name] - Optional short name of the school.
+ * @param {string} [input.long_name] - Optional long name of the school.
+ * @param {string} [input.logo_url] - Optional logo URL of the school.
+ * @param {string} [input.school_status] - Optional status of the school: PENDING, ACTIVE, or DELETED.
+ * @param {string} [input.created_by] - Optional ID of the user who originally created the record.
+ * @param {string} [input.updated_by] - Optional ID of the user performing the update.
+ * @throws {AppError} If any provided field has an invalid format.
  */
+
 function validateUpdateSchoolInput(input) {
   const {
     short_name,

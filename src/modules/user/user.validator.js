@@ -12,6 +12,7 @@ const VALID_DEPARTMENTS = ["ACADEMIC", "ADMISSIONS"];
  * Validate input payload for creating a user.
  *
  * @param {Object} input - User input object.
+ * @throws {AppError} If any validation fails.
  */
 function validateCreateUserInput(input) {
   const {
@@ -112,6 +113,7 @@ function validateCreateUserInput(input) {
  * Validate input payload for updating a user.
  *
  * @param {Object} input - Partial user input object.
+ * @throws {AppError} If any validation fails.
  */
 function validateUpdateUserInput(input) {
   const {

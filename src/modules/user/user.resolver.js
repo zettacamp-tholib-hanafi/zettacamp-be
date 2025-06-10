@@ -8,19 +8,24 @@ const {
 } = require("./user.validator.js");
 
 // *************** IMPORT UTILITIES ***************
-const {
-  handleCaughtError,
-  createAppError,
-} = require("../../core/error.js");
+const { handleCaughtError, createAppError } = require("../../core/error.js");
 
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
 
-// *************** Get all users with explicit user_status filter
+/**
+ * Get all users based on filter criteria.
+ *
+ * @param {Object} _ - Unused first resolver argument.
+ * @param {Object} args - Resolver arguments.
+ * @param {Object} [args.filter] - Optional filter object.
+ * @param {string} [args.filter.user_status] - Filter by user status.
+ * @returns {Promise<Array>} List of users matching the criteria.
+ */
+
 async function GetAllUsers(_, { filter }) {
   try {
-    // *************** Build query condition
     const query = {};
 
     if (filter && filter.user_status) {
@@ -42,10 +47,19 @@ async function GetAllUsers(_, { filter }) {
   }
 }
 
-// *************** Get a specific user by ID with explicit user_status filter
+/**
+ * Get a single user by ID and optional status filter.
+ *
+ * @param {Object} _ - Unused first resolver argument.
+ * @param {Object} args - Resolver arguments.
+ * @param {string} args.id - User ID.
+ * @param {Object} [args.filter] - Optional filter object.
+ * @param {string} [args.filter.user_status] - Filter by user status.
+ * @returns {Promise<Object>} The user document.
+ */
+
 async function GetOneUser(_, { id, filter }) {
   try {
-    // *************** Build query condition
     const query = { _id: id };
 
     if (filter && filter.user_status) {
@@ -61,7 +75,6 @@ async function GetOneUser(_, { id, filter }) {
       query.user_status = "ACTIVE";
     }
 
-    // *************** Fetch user
     const user = await User.findOne(query);
     if (!user) {
       throw createAppError("User not found", "NOT_FOUND", { id });
@@ -74,14 +87,19 @@ async function GetOneUser(_, { id, filter }) {
 }
 
 // *************** MUTATION ***************
+/**
+ * Create a new user.
+ *
+ * @param {Object} _ - Unused first resolver argument.
+ * @param {Object} args - Resolver arguments.
+ * @param {Object} args.input - User input data.
+ * @returns {Promise<Object>} The created user document.
+ */
 
-// *************** Create a new user
 async function CreateUser(_, { input }) {
   try {
-    // *************** Validate input payload
     validateCreateUserInput(input);
 
-    // *************** Check if email already exists
     const existing = await User.findOne({ email: input.email });
     if (existing) {
       throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
@@ -89,7 +107,6 @@ async function CreateUser(_, { input }) {
       });
     }
 
-    // *************** make variable to hold user document
     const userInputPayload = {
       first_name: input.first_name,
       last_name: input.last_name,
@@ -104,7 +121,6 @@ async function CreateUser(_, { input }) {
       preferences: input.preferences,
     };
 
-    // *************** Save to database
     const user = new User(userInputPayload);
 
     return await user.save();
@@ -113,13 +129,19 @@ async function CreateUser(_, { input }) {
   }
 }
 
-// *************** Update existing user by ID
+/**
+ * Update an existing user by ID.
+ *
+ * @param {Object} _ - Unused first resolver argument.
+ * @param {Object} args - Resolver arguments.
+ * @param {string} args.id - User ID.
+ * @param {Object} args.input - Updated user data.
+ * @returns {Promise<Object>} The updated user document.
+ */
 async function UpdateUser(_, { id, input }) {
   try {
-    // *************** Validate input payload
     validateUpdateUserInput(input);
 
-    // *************** Check if email already exists
     const currentUser = await User.findById(id);
     if (!currentUser) {
       throw createAppError("User not found", "NOT_FOUND", { id });
@@ -134,7 +156,6 @@ async function UpdateUser(_, { id, input }) {
       }
     }
 
-    // *************** Update to database
     const userUpdatePayload = {
       first_name: input.first_name,
       last_name: input.last_name,
@@ -165,7 +186,15 @@ async function UpdateUser(_, { id, input }) {
   }
 }
 
-// *************** Soft delete a user by ID
+/**
+ * Soft delete a user by setting status to "DELETED" and timestamp.
+ *
+ * @param {Object} _ - Unused first resolver argument.
+ * @param {Object} args - Resolver arguments.
+ * @param {string} args.id - User ID.
+ * @returns {Promise<Object>} The deleted (soft) user document.
+ */
+
 async function DeleteUser(_, { id }) {
   try {
     const deleted = await User.findOneAndUpdate(

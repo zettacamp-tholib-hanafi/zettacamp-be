@@ -1,7 +1,7 @@
 // *************** IMPORT LIBRARY ***************
 const express = require("express");
 const cors = require("cors");
-require('dotenv').config();
+require("dotenv").config();
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
 const path = require("path");
@@ -36,14 +36,27 @@ const apollo = new ApolloServer({
   plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
 });
 
-// *************** Start Express and Apollo
+/**
+ * Initialize and start the Express server with Apollo GraphQL middleware.
+ *
+ * - Starts Apollo Server instance.
+ * - Configures Express with `/graphql` route and applies middleware:
+ *   - `cors()` for CORS handling.
+ *   - `express.json()` for JSON body parsing.
+ *   - `expressMiddleware()` for Apollo integration with custom context.
+ * - Context includes DataLoader instances for student and school batching.
+ * - Server listens on the configured PORT from environment variables.
+ *
+ * @async
+ * @returns {Promise<void>} Resolves when server is successfully started.
+ */
+
 async function start() {
   await apollo.start();
 
   const app = express();
   const PORT = process.env.PORT;
 
-  // *************** Define GraphQL endpoint
   app.use(
     "/graphql",
     cors(),

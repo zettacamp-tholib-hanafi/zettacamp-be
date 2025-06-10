@@ -1,12 +1,10 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model } = require("mongoose");
 
-// *************** CONSTANTS
 const ROLE_ENUM = ["ACADEMIC_DIRECTOR", "ACADEMIC_ADMIN", "CORRECTOR"];
 const STATUS_ENUM = ["ACTIVE", "PENDING", "DELETED"];
 const DEPARTMENT_ENUM = ["ACADEMIC", "ADMISSIONS"];
 
-// *************** Define the User schema representing user data in the system
 const userSchema = new Schema(
   {
     // First name of the user

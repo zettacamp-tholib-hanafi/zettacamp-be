@@ -8,14 +8,22 @@ const {
 } = require("./student.validator.js");
 
 // *************** IMPORT UTILITIES ***************
-const {
-  handleCaughtError,
-  createAppError,
-} = require("../../core/error.js");
+const { handleCaughtError, createAppError } = require("../../core/error.js");
 
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
+/**
+ * Retrieves all students with optional filtering by student_status.
+ *
+ * @async
+ * @function GetAllStudents
+ * @param {object} _ - Unused root resolver parameter.
+ * @param {object} args - The arguments object.
+ * @param {object} args.filter - Optional filter object.
+ * @param {string} args.filter.student_status - Status to filter students (ACTIVE, PENDING, DELETED).
+ * @returns {Promise<Array<object>>} List of students matching the filter.
+ */
 
 async function GetAllStudents(_, { filter }) {
   try {
@@ -39,6 +47,19 @@ async function GetAllStudents(_, { filter }) {
     throw handleCaughtError(error, "Failed to fetch students");
   }
 }
+
+/**
+ * Retrieves a single student by ID with optional filtering by student_status.
+ *
+ * @async
+ * @function GetOneStudent
+ * @param {object} _ - Unused root resolver parameter.
+ * @param {object} args - The arguments object.
+ * @param {string} args.id - The student ID.
+ * @param {object} args.filter - Optional filter object.
+ * @param {string} args.filter.student_status - Status to filter student (ACTIVE, PENDING, DELETED).
+ * @returns {Promise<object>} The student object if found.
+ */
 
 async function GetOneStudent(_, { id, filter }) {
   try {
@@ -69,6 +90,16 @@ async function GetOneStudent(_, { id, filter }) {
 }
 
 // *************** MUTATION ***************
+/**
+ * Creates a new student after validating the input.
+ *
+ * @async
+ * @function CreateStudent
+ * @param {object} _ - Unused root resolver parameter.
+ * @param {object} args - The arguments object.
+ * @param {object} args.input - Input data for creating the student.
+ * @returns {Promise<object>} The created student object.
+ */
 
 async function CreateStudent(_, { input }) {
   try {
@@ -113,6 +144,18 @@ async function CreateStudent(_, { input }) {
     );
   }
 }
+
+/**
+ * Updates an existing student by ID after validating the input.
+ *
+ * @async
+ * @function UpdateStudent
+ * @param {object} _ - Unused root resolver parameter.
+ * @param {object} args - The arguments object.
+ * @param {string} args.id - The ID of the student to update.
+ * @param {object} args.input - Input data for updating the student.
+ * @returns {Promise<object>} The updated student object.
+ */
 
 async function UpdateStudent(_, { id, input }) {
   try {
@@ -176,6 +219,18 @@ async function UpdateStudent(_, { id, input }) {
   }
 }
 
+/**
+ * Soft deletes a student by setting status to "DELETED" and saving deleted metadata.
+ *
+ * @async
+ * @function DeleteStudent
+ * @param {object} _ - Unused root resolver parameter.
+ * @param {object} args - The arguments object.
+ * @param {string} args.id - The ID of the student to delete.
+ * @param {object} args.input - Optional input containing deleted_by field.
+ * @returns {Promise<object>} The soft-deleted student object.
+ */
+
 async function DeleteStudent(_, { id, input }) {
   try {
     const deleted = await Student.findOneAndUpdate(
@@ -199,7 +254,16 @@ async function DeleteStudent(_, { id, input }) {
   }
 }
 
-// *************** Field resolver: Get school of a student
+/**
+ * Resolves the school associated with a student using DataLoader.
+ *
+ * @function schools
+ * @param {object} student - The student object.
+ * @param {object} _ - Unused resolver parameter.
+ * @param {object} context - The Apollo context containing loaders.
+ * @returns {Promise<object>} The resolved school object.
+ */
+
 function schools(student, _, context) {
   if (!context?.loaders?.school) {
     throw new Error("School loader not initialized");

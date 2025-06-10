@@ -4,7 +4,6 @@ const { Schema, model } = require("mongoose");
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 const DEFALUT_VALID_STATUS = "PENDING";
 
-// *************** DEFINE SCHOOL SCHEMA ***************
 const schoolSchema = new Schema(
   {
     // Short Name of the school

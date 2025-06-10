@@ -4,7 +4,6 @@ const { isValidObjectId } = require("mongoose");
 // *************** IMPORT UTILITIES ***************
 const { createAppError } = require("../../core/error.js");
 
-// *************** CONSTANTS
 const VALID_GENDERS = ["MALE", "FEMALE"];
 const VALID_STATUSES = ["ACTIVE", "PENDING", "DELETED"];
 const VALID_ACADEMIC_STATUS = [
@@ -14,13 +13,41 @@ const VALID_ACADEMIC_STATUS = [
   "TRANSFERRED",
 ];
 
-// *************** REGEX VALIDATORS ***************
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
 const URL_REGEX =
   /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/;
 
-// *************** VALIDATE CREATE STUDENT INPUT ***************
+/**
+ * Validates input for creating a new student.
+ *
+ * This function checks for the presence and validity of required fields like
+ * first name, last name, email, gender, birth info, student status, and school ID.
+ * It also validates optional fields like phone number, profile picture URL, and
+ * academic status-related dates. Throws descriptive errors if any validations fail.
+ *
+ * @param {Object} input - The input data for creating a student.
+ * @param {string} input.first_name - Required. First name of the student.
+ * @param {string} input.last_name - Required. Last name of the student.
+ * @param {string} input.email - Required. Must be a valid email.
+ * @param {string} [input.phone] - Optional. Must be a valid phone number.
+ * @param {string} [input.profile_picture_url] - Optional. Must be a valid URL.
+ * @param {string} input.gender - Required. Must be one of the valid gender options.
+ * @param {Object} input.birth - Required. Contains place and date of birth.
+ * @param {string} input.birth.place - Required. Birth place as a string.
+ * @param {string|Date} input.birth.date - Required. Must be a valid date.
+ * @param {string} input.student_status - Required. Must be one of the allowed statuses.
+ * @param {boolean} input.scholarship - Required. Must be a boolean.
+ * @param {string} [input.academic_status] - Optional. Must be a valid academic status.
+ * @param {string} input.school_id - Required. Must be a valid MongoDB ObjectId.
+ * @param {string} [input.enrollment_date] - Conditionally required based on academic_status.
+ * @param {string} [input.graduation_date] - Conditionally required based on academic_status.
+ * @param {string} [input.dropped_out_date] - Conditionally required based on academic_status.
+ * @param {string} [input.transferred_date] - Conditionally required based on academic_status.
+ *
+ * @throws {AppError} If any validation fails.
+ */
+
 function validateCreateStudentInput(input) {
   const {
     first_name,
@@ -170,7 +197,35 @@ function validateCreateStudentInput(input) {
   }
 }
 
-// *************** VALIDATE UPDATE STUDENT INPUT ***************
+/**
+ * Validates input for updating an existing student.
+ *
+ * This function checks each optional field if present and validates them accordingly.
+ * Fields include names, email, phone, profile picture, gender, birth, student status,
+ * scholarship, and academic status. It also ensures academic date fields are used properly.
+ *
+ * @param {Object} input - The input data for updating a student.
+ * @param {string} [input.first_name] - Optional. Must be a string.
+ * @param {string} [input.last_name] - Optional. Must be a string.
+ * @param {string} [input.email] - Optional. Must be a valid email format.
+ * @param {string} [input.phone] - Optional. Must be a valid phone number.
+ * @param {string} [input.profile_picture_url] - Optional. Must be a valid URL.
+ * @param {string} [input.gender] - Optional. Must be one of the valid gender options.
+ * @param {Object} [input.birth] - Optional. Contains optional place and/or date.
+ * @param {string} [input.birth.place] - Optional. Must be a string.
+ * @param {string|Date} [input.birth.date] - Optional. Must be a valid date.
+ * @param {string} [input.student_status] - Optional. Must be a valid status.
+ * @param {boolean} [input.scholarship] - Optional. Must be a boolean if present.
+ * @param {string} [input.academic_status] - Optional. Must be a valid academic status.
+ * @param {string} [input.school_id] - Optional. Must be a valid MongoDB ObjectId.
+ * @param {string} [input.enrollment_date] - Conditionally required based on academic_status.
+ * @param {string} [input.graduation_date] - Conditionally required based on academic_status.
+ * @param {string} [input.dropped_out_date] - Conditionally required based on academic_status.
+ * @param {string} [input.transferred_date] - Conditionally required based on academic_status.
+ *
+ * @throws {AppError} If any validation fails.
+ */
+
 function validateUpdateStudentInput(input) {
   const {
     first_name,

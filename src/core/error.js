@@ -1,6 +1,3 @@
-/**
- * Mapping of custom error types to standardized GraphQL codes.
- */
 const ERROR_CODES = {
   VALIDATION_ERROR: "BAD_USER_INPUT",
   DUPLICATE_KEY: "BAD_USER_INPUT",
