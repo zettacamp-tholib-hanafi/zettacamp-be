@@ -220,6 +220,6 @@ module.exports = {
     DeleteStudent,
   },
   Student: {
-    schools,
+    school: schools,
   },
 };
