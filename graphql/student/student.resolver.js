@@ -9,138 +9,203 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const {
-  createAppError,
   handleCaughtError,
+  createAppError,
 } = require("../../utils/ErrorFormat.js");
-const { SanitizeInput } = require("../../utils/SanitizeInput.js");
+
+const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
 
-// *************** Get all students (excluding soft-deleted)
-const GetAllStudents = async () => {
+const GetAllStudents = async (_, { filter }) => {
   try {
-    return await Student.find({ deleted_at: null });
+    const query = {};
+
+    if (filter && filter.student_status) {
+      if (!VALID_STATUS.includes(filter.student_status)) {
+        throw createAppError(
+          "Invalid student_status filter value",
+          "BAD_REQUEST",
+          { student_status: filter.student_status }
+        );
+      }
+      query.student_status = filter.student_status;
+    } else {
+      query.student_status = "ACTIVE";
+    }
+
+    return await Student.find(query);
   } catch (error) {
-    // *************** Handle unexpected error
-    throw handleCaughtError(error, "Failed to retrieve students.");
+    throw handleCaughtError(error, "Failed to fetch students");
   }
 };
 
-// *************** Get a specific student by ID (if not deleted)
-const GetOneStudent = async (_, { id }) => {
+const GetOneStudent = async (_, { id, filter }) => {
   try {
-    const student = await Student.findOne({ _id: id, deleted_at: null });
-    if (!student) {
-      // *************** If student is not found
-      throw createAppError("Student not found.", "NOT_FOUND", { field: "id" });
+    const query = { _id: id };
+
+    if (filter && filter.student_status) {
+      if (!VALID_STATUS.includes(filter.student_status)) {
+        throw createAppError(
+          "Invalid student_status filter value",
+          "BAD_REQUEST",
+          { student_status: filter.student_status }
+        );
+      }
+      query.student_status = filter.student_status;
+    } else {
+      query.student_status = "ACTIVE";
     }
+
+    const student = await Student.findOne(query);
+    if (!student) {
+      throw createAppError("Student not found", "NOT_FOUND", { id });
+    }
+
     return student;
   } catch (error) {
-    // *************** Handle unexpected error
-    throw handleCaughtError(error, "Failed to retrieve student.");
+    throw handleCaughtError(error, "Failed to fetch student", "INTERNAL");
   }
 };
 
 // *************** MUTATION ***************
 
-// *************** Create new student
 const CreateStudent = async (_, { input }) => {
   try {
-    // *************** Validate input payload
     validateCreateStudentInput(input);
 
-    // *************** allowed input fields
-    const allowedFields = [
-      "first_name",
-      "last_name",
-      "email",
-      "date_of_birth",
-      "school_id",
-    ];
-    const studentInputSanitize = SanitizeInput(input, allowedFields);
+    const existing = await Student.findOne({ email: input.email });
+    if (existing) {
+      throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
+        field: "email",
+      });
+    }
 
-    // *************** save to database
-    const student = new Student(studentInputSanitize);
+    const studentInputPayload = {
+      first_name: input.first_name,
+      last_name: input.last_name,
+      email: input.email,
+      phone: input.phone,
+      profile_picture_url: input.profile_picture_url,
+      school_id: input.school_id,
+      student_number: input.student_number,
+      gender: input.gender,
+      birth: {
+        place: input.birth.place,
+        date: input.birth.date,
+      },
+      student_status: input.student_status,
+      scholarship: input.scholarship,
+      academic_status: input.academic_status,
+      enrollment_date: input.enrollment_date,
+      graduation_date: input.graduation_date,
+      dropped_out_date: input.dropped_out_date,
+      transferred_date: input.transferred_date,
+    };
+
+    const student = new Student(studentInputPayload);
     return await student.save();
   } catch (error) {
-    // *************** Handle creation error
-    throw handleCaughtError(error, "Failed to create student.");
+    throw handleCaughtError(
+      error,
+      "Failed to create student",
+      "VALIDATION_ERROR"
+    );
   }
 };
 
-// *************** Update existing student by ID
 const UpdateStudent = async (_, { id, input }) => {
   try {
-    // *************** Validate input payload
     validateUpdateStudentInput(input);
 
-    // *************** allowed input fields
-    const allowedFields = [
-      "first_name",
-      "last_name",
-      "email",
-      "date_of_birth",
-      "school_id",
-    ];
-    const studentUpdateSanitize = SanitizeInput(input, allowedFields);
+    const currentStudent = await Student.findById(id);
+    if (!currentStudent) {
+      throw createAppError("Student not found", "NOT_FOUND", { id });
+    }
 
-    // *************** update to database
+    if (input.email && input.email !== currentStudent.email) {
+      const existing = await Student.findOne({ email: input.email });
+      if (existing) {
+        throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
+          field: "email",
+        });
+      }
+    }
+
+    const studentUpdatePayload = {
+      first_name: input.first_name,
+      last_name: input.last_name,
+      email: input.email,
+      phone: input.phone,
+      profile_picture_url: input.profile_picture_url,
+      school_id: input.school_id,
+      student_number: input.student_number,
+      gender: input.gender,
+      birth: input.birth
+        ? {
+            place: input.birth.place,
+            date: input.birth.date,
+          }
+        : undefined,
+      student_status: input.student_status,
+      scholarship: input.scholarship,
+      academic_status: input.academic_status,
+      enrollment_date: input.enrollment_date,
+      graduation_date: input.graduation_date,
+      dropped_out_date: input.dropped_out_date,
+      transferred_date: input.transferred_date,
+      updated_at: new Date(),
+    };
+
     const updated = await Student.findOneAndUpdate(
-      { _id: id, deleted_at: null },
-      { $set: studentUpdateSanitize },
-      { new: true }
+      { _id: id },
+      { $set: studentUpdatePayload }
     );
 
     if (!updated) {
-      // *************** If student not found or deleted
-      throw createAppError(
-        "Student not found or already deleted.",
-        "NOT_FOUND",
-        { field: "id" }
-      );
+      throw createAppError("Student not found", "NOT_FOUND", { id });
     }
 
     return updated;
   } catch (error) {
-    // *************** Handle update error
-    throw handleCaughtError(error, "Failed to update student.");
+    throw handleCaughtError(
+      error,
+      "Failed to update student",
+      "VALIDATION_ERROR"
+    );
   }
 };
 
-// *************** Soft delete a student by ID
-const DeleteStudent = async (_, { id }) => {
+const DeleteStudent = async (_, { id, input }) => {
   try {
-    // *************** softdelete by adding deleted_at timestamp
     const deleted = await Student.findOneAndUpdate(
-      { _id: id, deleted_at: null },
-      { $set: { deleted_at: new Date() } },
-      { new: true }
+      { _id: id },
+      {
+        $set: {
+          student_status: "DELETED",
+          deleted_at: new Date(),
+          deleted_by: input?.deleted_by || null,
+        },
+      }
     );
 
     if (!deleted) {
-      // *************** If already deleted or not found
-      throw createAppError(
-        "Student not found or already deleted.",
-        "NOT_FOUND",
-        { field: "id" }
-      );
+      throw createAppError("Student not found", "NOT_FOUND", { id });
     }
 
     return deleted;
   } catch (error) {
-    // *************** Handle delete error
-    throw handleCaughtError(error, "Failed to delete student.");
+    throw handleCaughtError(error, "Failed to delete student");
   }
 };
 
-// *************** Resolve school relation
-const school = async (student, _, { loaders }) => {
-  try {
-    return await loaders.school.load(student.school_id.toString());
-  } catch (error) {
-    // *************** Handle loader error
-    throw handleCaughtError(error, "Failed to load related school.");
+// *************** Field resolver: Get school of a student
+const schools = (student, _, context) => {
+  if (!context?.loaders?.school) {
+    throw new Error("School loader not initialized");
   }
+
+  return context.loaders.school.load(student.school_id.toString());
 };
 
 // *************** EXPORT MODULE ***************
@@ -155,6 +220,6 @@ module.exports = {
     DeleteStudent,
   },
   Student: {
-    school,
+    schools,
   },
 };
