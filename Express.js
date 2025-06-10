@@ -21,7 +21,7 @@ ConnectDB();
 
 // *************** Load GraphQL schema and resolvers
 const typeDefs = mergeTypeDefs(
-  loadFilesSync(path.join(__dirname, "graphql/**/*.graphql"))
+  loadFilesSync(path.join(__dirname, "graphql/**/*.typedef.js"))
 );
 const resolvers = mergeResolvers(
   loadFilesSync(path.join(__dirname, "graphql/**/*.resolver.js"))

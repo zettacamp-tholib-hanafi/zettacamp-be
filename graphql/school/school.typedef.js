@@ -1,11 +1,13 @@
-# ************ Enums ************
+// *************** IMPORT LIBRARY ***************
+const gql = require("graphql-tag");
+
+module.exports = gql`
+scalar Date
 enum SchoolStatus {
   PENDING
   ACTIVE
   DELETED
 }
-
-# ************ Types ************
 
 type VerifiedInfo {
   status_verified: Boolean!
@@ -55,8 +57,6 @@ type School {
   updated_by: String!
   students: [Student]
 }
-
-# ************ Input Types ************
 
 input VerifiedInfoInput {
   status_verified: Boolean!
@@ -127,20 +127,14 @@ input FilterSchoolStatus {
   school_status: SchoolStatus
 }
 
-# ************ Query ************
-
 extend type Query {
   GetAllSchools(filter: FilterSchoolStatus): [School!]!
   GetOneSchool(id: ID!, filter: FilterSchoolStatus): School
 }
-
-# ************ Mutation ************
 
 extend type Mutation {
   CreateSchool(input: CreateSchoolInput!): School!
   UpdateSchool(id: ID!, input: UpdateSchoolInput!): School!
   DeleteSchool(id: ID!): School!
 }
-
-# ************ Custom Scalars
-scalar Date
+`;
