@@ -82,10 +82,10 @@ const CreateSchool = async (_, { input }) => {
       long_name: input.long_name,
       logo_url: input.logo_url,
       verified:
-        input.verified?.map((v) => ({
-          status_verified: v.status_verified,
-          verified_by: v.verified_by,
-          verified_at: v.verified_at,
+        input.verified?.map((verified) => ({
+          status_verified: verified.status_verified,
+          verified_by: verified.verified_by,
+          verified_at: verified.verified_at,
         })) || [],
       address: input.address
         ? {
@@ -155,10 +155,10 @@ const UpdateSchool = async (_, { id, input }) => {
       schoolUpdatePayload.logo_url = input.logo_url;
     }
     if (input.verified !== undefined) {
-      schoolUpdatePayload.verified = input.verified.map((v) => ({
-        status_verified: v.status_verified,
-        verified_by: v.verified_by,
-        verified_at: v.verified_at,
+      schoolUpdatePayload.verified = input.verified.map((verified) => ({
+        status_verified: verified.status_verified,
+        verified_by: verified.verified_by,
+        verified_at: verified.verified_at,
       }));
     }
     if (input.address !== undefined) {
@@ -260,7 +260,6 @@ const students = (school, _, context) => {
 
   return context.loaders.student.load(school._id.toString());
 };
-
 
 // *************** EXPORT MODULE ***************
 module.exports = {
