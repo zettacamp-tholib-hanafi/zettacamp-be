@@ -12,26 +12,62 @@ const {
   handleCaughtError,
   createAppError,
 } = require("../../utils/ErrorFormat.js");
-const { SanitizeInput } = require("../../utils/SanitizeInput.js");
+
+
+const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
 
-// *************** Get all users (excluding soft-deleted)
-const GetAllUsers = async () => {
+// *************** Get all users with explicit user_status filter
+const GetAllUsers = async (_, { filter }) => {
   try {
-    return await User.find({ deleted_at: null });
+    // *************** Build query condition
+    const query = {};
+
+    if (filter && filter.user_status) {
+      if (!VALID_STATUS.includes(filter.user_status)) {
+        throw createAppError(
+          "Invalid user_status filter value",
+          "BAD_REQUEST",
+          { user_status: filter.user_status }
+        );
+      }
+      query.user_status = filter.user_status;
+    } else {
+      query.user_status = "ACTIVE";
+    }
+
+    return await User.find(query);
   } catch (error) {
     throw handleCaughtError(error, "Failed to fetch users");
   }
 };
 
-// *************** Get a specific user by ID (if not deleted)
-const GetOneUser = async (_, { id }) => {
+// *************** Get a specific user by ID with explicit user_status filter
+const GetOneUser = async (_, { id, filter }) => {
   try {
-    const user = await User.findOne({ _id: id, deleted_at: null });
+    // *************** Build query condition
+    const query = { _id: id };
+
+    if (filter && filter.user_status) {
+      if (!VALID_STATUS.includes(filter.user_status)) {
+        throw createAppError(
+          "Invalid user_status filter value",
+          "BAD_REQUEST",
+          { user_status: filter.user_status }
+        );
+      }
+      query.user_status = filter.user_status;
+    } else {
+      query.user_status = "ACTIVE";
+    }
+
+    // *************** Fetch user
+    const user = await User.findOne(query);
     if (!user) {
       throw createAppError("User not found", "NOT_FOUND", { id });
     }
+
     return user;
   } catch (error) {
     throw handleCaughtError(error, "Failed to fetch user", "INTERNAL");
@@ -46,18 +82,32 @@ const CreateUser = async (_, { input }) => {
     // *************** Validate input payload
     validateCreateUserInput(input);
 
-    // *************** allowed input fields
-    const allowedFields = [
-      "first_name",
-      "last_name",
-      "email",
-      "role",
-      "password",
-    ];
-    const userInputSanitize = SanitizeInput(input, allowedFields);
+    // *************** Check if email already exists
+    const existing = await User.findOne({ email: input.email });
+    if (existing) {
+      throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
+        field: "email",
+      });
+    }
 
-    // *************** save to database
-    const user = new User(userInputSanitize);
+    // *************** make variable to hold user document
+    const userInputPayload = {
+      first_name: input.first_name,
+      last_name: input.last_name,
+      email: input.email,
+      password: input.password,
+      role: input.role,
+      user_status: input.user_status,
+      phone: input.phone,
+      profile_picture_url: input.profile_picture_url,
+      department: input.department,
+      permissions: input.permissions,
+      preferences: input.preferences,
+    };
+
+    // *************** Save to database
+    const user = new User(userInputPayload);
+
     return await user.save();
   } catch (error) {
     throw handleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
@@ -70,25 +120,46 @@ const UpdateUser = async (_, { id, input }) => {
     // *************** Validate input payload
     validateUpdateUserInput(input);
 
-    // *************** allowed input fields
-    const allowedFields = [
-      "first_name",
-      "last_name",
-      "email",
-      "role",
-      "password",
-    ];
-    const userUpdateSanitize = SanitizeInput(input, allowedFields);
-    
-    // *************** update to database
+    // *************** Check if email already exists
+    const currentUser = await User.findById(id);
+    if (!currentUser) {
+      throw createAppError("User not found", "NOT_FOUND", { id });
+    }
+
+    if (input.email && input.email !== currentUser.email) {
+      const existing = await User.findOne({ email: input.email });
+      if (existing) {
+        throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
+          field: "email",
+        });
+      }
+    }
+
+    // *************** Update to database
+    const userUpdatePayload = {
+      first_name: input.first_name,
+      last_name: input.last_name,
+      email: input.email,
+      password: input.password,
+      role: input.role,
+      user_status: input.user_status,
+      phone: input.phone,
+      profile_picture_url: input.profile_picture_url,
+      department: input.department,
+      permissions: input.permissions,
+      preferences: input.preferences,
+      updated_by: input.updated_by,
+    };
+
     const updated = await User.findOneAndUpdate(
       { _id: id },
-      { $set: userUpdateSanitize },
-      { new: true }
+      { $set: userUpdatePayload }
     );
+
     if (!updated) {
       throw createAppError("User not found", "NOT_FOUND", { id });
     }
+
     return updated;
   } catch (error) {
     throw handleCaughtError(error, "Failed to update user", "VALIDATION_ERROR");
@@ -100,12 +171,18 @@ const DeleteUser = async (_, { id }) => {
   try {
     const deleted = await User.findOneAndUpdate(
       { _id: id },
-      { $set: { deleted_at: new Date() } },
-      { new: true }
+      {
+        $set: {
+          user_status: "DELETED",
+          deleted_at: new Date(),
+        },
+      }
     );
+
     if (!deleted) {
       throw createAppError("User not found", "NOT_FOUND", { id });
     }
+
     return deleted;
   } catch (error) {
     throw handleCaughtError(error, "Failed to delete user");
