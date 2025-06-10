@@ -239,7 +239,7 @@ async function DeleteStudent(_, { id, input }) {
         $set: {
           student_status: "DELETED",
           deleted_at: new Date(),
-          deleted_by: input?.deleted_by || null,
+          deleted_by: input ? input.deleted_by : null,
         },
       }
     );
@@ -265,7 +265,7 @@ async function DeleteStudent(_, { id, input }) {
  */
 
 function schools(student, _, context) {
-  if (!context?.loaders?.school) {
+  if (context && context.loaders && !context.loaders.schools) {
     throw new Error("School loader not initialized");
   }
 

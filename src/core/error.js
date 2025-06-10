@@ -50,10 +50,10 @@ const handleCaughtError = (
   type = "INTERNAL"
 ) => {
   // *************** Use fallback if error has no message
-  const message = originalError?.message || fallbackMessage;
+  const message = originalError ? originalError.message : fallbackMessage;
 
   // *************** Already formatted, return as-is
-  if (originalError?.extensions?.code) {
+  if (originalError && originalError.extensions && !originalError.extensions.code) {
     return originalError;
   }
 
@@ -64,7 +64,7 @@ const handleCaughtError = (
   if (originalError.code === 11000) {
     // *************** Extract duplicated field name from error object
     const duplicatedField =
-      Object.keys(originalError.keyPattern || {})[0] || "Field";
+      Object.keys(originalError.keyPattern ? originalError.keyPattern : {})[0] || "Field";
 
     // *************** Return structured duplicate key error
     return createAppError(
@@ -96,13 +96,13 @@ const formatError = (error) => {
 
     extensions: {
       // *************** GraphQL-compliant error code (for frontend handling)
-      code: error.extensions?.code || "INTERNAL_SERVER_ERROR",
+      code: error.extensions? error.extensions.code : "INTERNAL_SERVER_ERROR",
 
       // *************** Logical type of error for internal grouping
-      type: error.extensions?.type || "INTERNAL",
+      type: error.extensions ? error.extensions.type : "INTERNAL",
 
       // *************** Optional metadata (e.g., field name)
-      metadata: error.extensions?.metadata || null,
+      metadata: error.extensions ? error.extensions.metadata : null,
     },
   };
 };
