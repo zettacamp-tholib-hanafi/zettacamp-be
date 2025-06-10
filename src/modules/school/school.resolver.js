@@ -15,7 +15,7 @@ const {
 const {
   handleCaughtError,
   createAppError,
-} = require("../../utils/ErrorFormat.js");
+} = require("../../core/error.js");
 
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 

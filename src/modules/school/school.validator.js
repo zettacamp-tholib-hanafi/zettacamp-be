@@ -2,7 +2,7 @@
 const { isValidObjectId } = require("mongoose");
 
 // *************** IMPORT UTILITIES ***************
-const { createAppError } = require("../../utils/ErrorFormat.js");
+const { createAppError } = require("../../core/error.js");
 
 // *************** REGEX VALIDATORS ***************
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;

@@ -1,5 +1,5 @@
 // *************** IMPORT UTILITIES ***************
-const { createAppError } = require("../../utils/ErrorFormat.js");
+const { createAppError } = require("../../core/error.js");
 
 // *************** CONSTANTS ***************
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

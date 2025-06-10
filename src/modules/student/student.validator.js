@@ -2,7 +2,7 @@
 const { isValidObjectId } = require("mongoose");
 
 // *************** IMPORT UTILITIES ***************
-const { createAppError } = require("../../utils/ErrorFormat.js");
+const { createAppError } = require("../../core/error.js");
 
 // *************** CONSTANTS
 const VALID_GENDERS = ["MALE", "FEMALE"];

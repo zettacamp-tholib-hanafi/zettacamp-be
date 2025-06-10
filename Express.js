@@ -1,6 +1,7 @@
 // *************** IMPORT LIBRARY ***************
 const express = require("express");
 const cors = require("cors");
+require('dotenv').config();
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
 const path = require("path");
@@ -11,20 +12,20 @@ const {
 } = require("@apollo/server/plugin/landingPage/default");
 
 // *************** IMPORT UTILITIES ***************
-const ConnectDB = require("./utils/db");
-const { studentLoader } = require("./graphql/student/student.loader");
-const { schoolLoader } = require("./graphql/school/school.loader");
-const { formatError } = require("./utils/ErrorFormat");
+const ConnectDB = require("./src/core/db");
+const { studentLoader } = require("./src/modules/student/student.loader");
+const { schoolLoader } = require("./src/modules/school/school.loader");
+const { formatError } = require("./src/core/error");
 
 // *************** Connect to MongoDB
 ConnectDB();
 
 // *************** Load GraphQL schema and resolvers
 const typeDefs = mergeTypeDefs(
-  loadFilesSync(path.join(__dirname, "graphql/**/*.typedef.js"))
+  loadFilesSync(path.join(__dirname, "src/modules/**/*.typedef.js"))
 );
 const resolvers = mergeResolvers(
-  loadFilesSync(path.join(__dirname, "graphql/**/*.resolver.js"))
+  loadFilesSync(path.join(__dirname, "src/modules/**/*.resolver.js"))
 );
 
 // *************** Configure Apollo Server
@@ -40,7 +41,7 @@ async function start() {
   await apollo.start();
 
   const app = express();
-  const PORT = process.env.PORT || 4000;
+  const PORT = process.env.PORT;
 
   // *************** Define GraphQL endpoint
   app.use(
