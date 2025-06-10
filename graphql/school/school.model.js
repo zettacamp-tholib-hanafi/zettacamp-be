@@ -1,6 +1,9 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model } = require("mongoose");
 
+const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
+const DEFALUT_VALID_STATUS = "PENDING";
+
 // *************** DEFINE SCHOOL SCHEMA ***************
 const schoolSchema = new Schema(
   {
@@ -75,8 +78,8 @@ const schoolSchema = new Schema(
     // School status: PENDING, ACTIVE, DELETED
     school_status: {
       type: String,
-      enum: ["PENDING", "ACTIVE", "DELETED"],
-      default: "PENDING",
+      enum: VALID_STATUS,
+      default: DEFALUT_VALID_STATUS,
       required: true,
       trim: true,
     },

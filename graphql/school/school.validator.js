@@ -162,10 +162,6 @@ function validateCreateSchoolInput(input) {
     short_name,
     long_name,
     logo_url,
-    verified,
-    address,
-    contact,
-    admin_user,
     school_status,
     created_by,
     updated_by,
@@ -192,11 +188,6 @@ function validateCreateSchoolInput(input) {
       field: "logo_url",
     });
   }
-
-  validateVerified(verified);
-  validateAddress(address);
-  validateContact(contact);
-  validateAdminUser(admin_user);
 
   if (
     !school_status ||
@@ -234,10 +225,6 @@ function validateUpdateSchoolInput(input) {
     short_name,
     long_name,
     logo_url,
-    verified,
-    address,
-    contact,
-    admin_user,
     school_status,
     created_by,
     updated_by,
@@ -260,11 +247,6 @@ function validateUpdateSchoolInput(input) {
       field: "logo_url",
     });
   }
-
-  if (verified) validateVerified(verified);
-  if (address) validateAddress(address);
-  if (contact) validateContact(contact);
-  if (admin_user) validateAdminUser(admin_user);
 
   if (
     school_status &&
@@ -294,4 +276,8 @@ function validateUpdateSchoolInput(input) {
 module.exports = {
   validateCreateSchoolInput,
   validateUpdateSchoolInput,
+  validateAddress,
+  validateContact,
+  validateVerified,
+  validateAdminUser,
 };

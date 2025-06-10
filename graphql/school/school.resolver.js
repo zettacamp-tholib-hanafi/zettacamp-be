@@ -5,6 +5,10 @@ const School = require("./school.model.js");
 const {
   validateCreateSchoolInput,
   validateUpdateSchoolInput,
+  validateAddress,
+  validateContact,
+  validateVerified,
+  validateAdminUser,
 } = require("./school.validator.js");
 
 // *************** IMPORT UTILITIES ***************
@@ -76,6 +80,10 @@ async function GetOneSchool(_, { id, filter }) {
 async function CreateSchool(_, { input }) {
   try {
     validateCreateSchoolInput(input);
+    validateVerified(input.verified);
+    validateAddress(input.address);
+    validateContact(input.contact);
+    validateAdminUser(input.admin_user);
 
     const schoolInputPayload = {
       short_name: input.short_name,
@@ -137,6 +145,10 @@ async function CreateSchool(_, { input }) {
 async function UpdateSchool(_, { id, input }) {
   try {
     validateUpdateSchoolInput(input);
+    if (input.verified) validateVerified(input.verified);
+    if (input.address) validateAddress(input.address);
+    if (input.contact) validateContact(input.contact);
+    if (input.admin_user) validateAdminUser(input.admin_user);
 
     const currentSchool = await School.findById(id);
     if (!currentSchool) {
