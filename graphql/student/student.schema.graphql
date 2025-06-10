@@ -1,87 +1,243 @@
+# ************ Enum
+
+# ************ Enum for gender options
+enum StudentGender {
+  MALE
+  FEMALE
+}
+
+# ************ Enum for student status
+enum StudentStatus {
+  PENDING
+  ACTIVE
+  DELETED
+}
+
+# ************ Enum for academic status
+enum AcademicStatus {
+  ENROLLED
+  GRADUATED
+  DROPPED_OUT
+  TRANSFERRED
+}
+
 # ************ Type
 
+# ************ Represents a student's birth information
+type StudentBirth {
+  # ************ Place of birth
+  place: String!
+
+  # ************ Date of birth
+  date: Date!
+}
+
+# ************ Represents a student in the system
 type Student {
-  # Unique identifier for the student
   id: ID!
 
-  # Student's first name
   first_name: String!
 
-  # Student's last name
   last_name: String!
 
-  # Student's email address
   email: String!
 
-  # Student's date of birth
-  date_of_birth: Date
+  phone: String
 
-  # Reference to the associated school
+  profile_picture_url: String
+
   school_id: ID!
 
-  # Resolved school object based on school_id
   school: School
 
-  # Soft deletion timestamp; null if active
+  student_number: String
+
+  gender: StudentGender!
+
+  birth: StudentBirth!
+
+  student_status: StudentStatus!
+
+  scholarship: Boolean!
+
+  academic_status: AcademicStatus
+
+  enrollment_date: Date
+
+  graduation_date: Date
+
+  dropped_out_date: Date
+
+  transferred_date: Date
+
+  updated_at: Date
+
+  updated_by: String
+
+  created_at: Date
+
+  created_by: String
+
   deleted_at: Date
+
+  deleted_by: String
 }
 
 # ************ Input
 
-input CreateStudentInput {
-  # Required first name
-  first_name: String!
+# ************ Input for student birth
+input StudentBirthInput {
+  # ************ Place of birth
+  place: String!
 
-  # Required last name
-  last_name: String!
-
-  # Required email address
-  email: String!
-
-  # Required date of birth
-  date_of_birth: Date!
-
-  # Required associated school ID
-  school_id: ID!
+  # ************ Date of birth
+  date: Date!
 }
 
+# ************ Input to create a new student
+input CreateStudentInput {
+  # ************ Required first name
+  first_name: String!
+
+  # ************ Required last name
+  last_name: String!
+
+  # ************ Required email address
+  email: String!
+
+  # ************ Optional phone number
+  phone: String
+
+  # ************ Optional profile picture URL
+  profile_picture_url: String
+
+  # ************ Required school ID
+  school_id: ID!
+
+  # ************ Optional student number
+  student_number: String
+
+  # ************ Required gender
+  gender: StudentGender!
+
+  # ************ Required birth data
+  birth: StudentBirthInput!
+
+  # ************ Required student status
+  student_status: StudentStatus!
+
+  # ************ Required scholarship flag
+  scholarship: Boolean!
+
+  # ************ Optional academic status
+  academic_status: AcademicStatus
+
+  # ************ Optional enrollment date
+  enrollment_date: Date
+
+  # ************ Optional graduation date
+  graduation_date: Date
+
+  # ************ Optional dropped out date
+  dropped_out_date: Date
+
+  # ************ Optional transferred date
+  transferred_date: Date
+
+  # ************ Required created timestamp
+  created_at: Date
+
+  # ************ Required creator ID
+  created_by: String
+
+  # ************ Optional last updated timestamp
+  updated_at: Date
+
+  # ************ Optional updater ID
+  updated_by: String
+}
+
+# ************ Input to update an existing student
 input UpdateStudentInput {
-  # Optional new first name
+  # ************ Optional new first name
   first_name: String
 
-  # Optional new last name
+  # ************ Optional new last name
   last_name: String
 
-  # Optional new email address
+  # ************ Optional new email
   email: String
 
-  # Optional new date of birth
-  date_of_birth: Date
+  # ************ Optional phone number
+  phone: String
 
-  # Optional new associated school ID
+  # ************ Optional profile picture URL
+  profile_picture_url: String
+
+  # ************ Optional new school ID
   school_id: ID
+
+  # ************ Optional student number
+  student_number: String
+
+  # ************ Optional gender
+  gender: StudentGender
+
+  # ************ Optional birth input
+  birth: StudentBirthInput
+
+  # ************ Optional student status
+  student_status: StudentStatus
+
+  # ************ Optional scholarship flag
+  scholarship: Boolean
+
+  # ************ Optional academic status
+  academic_status: AcademicStatus
+
+  # ************ Optional enrollment date
+  enrollment_date: Date
+
+  # ************ Optional graduation date
+  graduation_date: Date
+
+  # ************ Optional dropped out date
+  dropped_out_date: Date
+
+  # ************ Optional transferred date
+  transferred_date: Date
+
+  # ************ Optional updated timestamp
+  updated_at: Date
+
+  # ************ Required updater ID
+  updated_by: String
+}
+
+input StudentFilterInput {
+  student_status: StudentStatus
 }
 
 # ************ QUERY ************
 
 extend type Query {
-  # Get all students (excluding soft-deleted)
-  GetAllStudents: [Student!]!
+  # ************ Get all students (excluding soft-deleted)
+  GetAllStudents(filter: StudentFilterInput): [Student!]!
 
-  # Get a specific student by ID
-  GetOneStudent(id: ID!): Student
+  # ************ Get a specific student by ID
+  GetOneStudent(id: ID!, filter: StudentFilterInput): Student
 }
 
 # ************ MUTATION ************
 
 extend type Mutation {
-  # Create a new student
+  # ************ Create a new student
   CreateStudent(input: CreateStudentInput!): Student!
 
-  # Update student data by ID
+  # ************ Update student data by ID
   UpdateStudent(id: ID!, input: UpdateStudentInput!): Student!
 
-  # Soft delete a student by ID
+  # ************ Soft delete a student by ID
   DeleteStudent(id: ID!): Student!
 }
 

@@ -1,59 +1,146 @@
-# ************ Type
+# ************ Enums ************
+enum SchoolStatus {
+  PENDING
+  ACTIVE
+  DELETED
+}
+
+# ************ Types ************
+
+type VerifiedInfo {
+  status_verified: Boolean!
+  verified_by: String
+  verified_at: Date
+}
+
+type Address {
+  street_name: String!
+  street_number: String!
+  city: String!
+  state: String!
+  postal_code: String!
+  country: String!
+  address_line1: String!
+  address_line2: String
+}
+
+type Contact {
+  phone: String
+  email: String
+  website: String
+}
+
+type AdminUser {
+  id: String
+  role: String
+  assigned_at: String
+}
 
 type School {
-  # Unique identifier for the school
   id: ID!
-
-  # Name of the school
-  name: String!
-
-  # Optional address of the school
-  address: String
-
-  # List of students associated with the school
+  short_name: String!
+  long_name: String!
+  logo_url: String
+  verified: [VerifiedInfo!]!
+  address: Address!
+  contact: Contact
+  admin_user: [AdminUser]
+  school_status: SchoolStatus!
+  student_id: String
+  deleted_at: Date
+  deleted_by: String
+  created_at: Date!
+  created_by: String!
+  updated_at: Date
+  updated_by: String!
   students: [Student]
 }
 
-# ************ Input
+# ************ Input Types ************
+
+input VerifiedInfoInput {
+  status_verified: Boolean!
+  verified_by: String
+  verified_at: Date
+}
+
+input AddressInput {
+  street_name: String!
+  street_number: String!
+  city: String!
+  state: String!
+  postal_code: String!
+  country: String!
+  address_line1: String!
+  address_line2: String
+}
+
+input ContactInput {
+  phone: String
+  email: String
+  website: String
+}
+
+input AdminUserInput {
+  id: String
+  role: String
+  assigned_at: String
+}
 
 input CreateSchoolInput {
-  # Required name of the school
-  name: String!
-
-  # Optional school address
-  address: String
+  short_name: String!
+  long_name: String!
+  logo_url: String
+  verified: [VerifiedInfoInput!]!
+  address: AddressInput!
+  contact: ContactInput
+  admin_user: [AdminUserInput]
+  school_status: SchoolStatus!
+  student_id: String
+  deleted_at: Date
+  deleted_by: String
+  created_at: Date!
+  created_by: String!
+  updated_at: Date
+  updated_by: String!
 }
 
 input UpdateSchoolInput {
-  # Optional new school name
-  name: String
-
-  # Optional new address
-  address: String
+  short_name: String
+  long_name: String
+  logo_url: String
+  verified: [VerifiedInfoInput!]
+  address: AddressInput
+  contact: ContactInput
+  admin_user: [AdminUserInput]
+  school_status: SchoolStatus
+  student_id: String
+  deleted_at: Date
+  deleted_by: String
+  created_at: Date
+  created_by: String
+  updated_at: Date
+  updated_by: String
 }
 
-# ************ QUERY ************
+input FilterSchoolStatus {
+  school_status: SchoolStatus
+}
+
+# ************ Query ************
 
 extend type Query {
-  # Get all schools
-  GetAllSchools: [School!]!
-
-  # Get a specific school by ID
-  GetOneSchool(id: ID!): School
+  GetAllSchools(filter: FilterSchoolStatus): [School!]!
+  GetOneSchool(id: ID!, filter: FilterSchoolStatus): School
 }
 
-# ************ MUTATION ************
+# ************ Mutation ************
 
 extend type Mutation {
-  # Create a new school
   CreateSchool(input: CreateSchoolInput!): School!
-
-  # Update school data by ID
   UpdateSchool(id: ID!, input: UpdateSchoolInput!): School!
-
-  # Soft delete a school by ID
   DeleteSchool(id: ID!): School!
 }
 
-# ************ Custom Scalar
+# ************ Custom Scalars
 scalar Date
