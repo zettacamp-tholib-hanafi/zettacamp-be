@@ -6,10 +6,9 @@ const School = require("./school.model");
 
 // *************** Batch Load Function
 const batchSchoolsById = async (school_id) => {
-  // *************** Find all schools with the given id and not soft-deleted
+  // *************** Find all schools with the given id
   const schools = await School.find({
     _id: { $in: school_id },
-    deleted_at: null,
   });
 
   // *************** Return schools in the same order as requested IDs
