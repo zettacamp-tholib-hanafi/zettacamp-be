@@ -3,9 +3,10 @@ const { createAppError } = require("../../utils/ErrorFormat.js");
 
 // *************** CONSTANTS ***************
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const URL_REGEX = /^https?:\/\/.+\..+/;
 const VALID_ROLES = ["ACADEMIC_DIRECTOR", "ACADEMIC_ADMIN", "CORRECTOR"];
 const VALID_STATUSES = ["ACTIVE", "PENDING", "DELETED"];
-const VALID_DEPARTMENTS = ["academic", "admissions"];
+const VALID_DEPARTMENTS = ["ACADEMIC", "ADMISSIONS"];
 
 /**
  * Validate input payload for creating a user.
@@ -52,7 +53,7 @@ function validateCreateUserInput(input) {
       { field: "password" }
     );
   }
-  const invalidRoles = input.role.filter((r) => !VALID_ROLES.includes(r));
+  const invalidRoles = input.role.filter((role) => !VALID_ROLES.includes(role));
   if (invalidRoles.length > 0) {
     throw createAppError("Invalid role value.", "VALIDATION_ERROR", {
       field: "role",
@@ -76,7 +77,7 @@ function validateCreateUserInput(input) {
   if (
     profile_picture_url &&
     (typeof profile_picture_url !== "string" ||
-      !/^https?:\/\/.+\..+/.test(profile_picture_url))
+      !URL_REGEX.test(profile_picture_url))
   ) {
     throw createAppError(
       "Invalid profile_picture_url format.",
