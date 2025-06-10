@@ -1,6 +1,11 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
+// *************** CONSTANTS
+const ACADEMIC_STATUS = ["ENROLLED", "GRADUATED", "DROPPED_OUT", "TRANSFERRED"];
+const STATUS_ENUM = ["ACTIVE", "PENDING", "DELETED"];
+const GENDER = ["MALE", "FEMALE"];
+
 // *************** Defines the Student schema representing student data in the system
 const StudentSchema = new Schema(
   {
@@ -26,6 +31,20 @@ const StudentSchema = new Schema(
       trim: true,
     },
 
+    // Phone number of the student (optional)
+    phone: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+
+    // URL of the student's profile picture (optional)
+    profile_picture_url: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+
     // Reference to the associated school
     school_id: {
       type: Types.ObjectId,
@@ -33,9 +52,98 @@ const StudentSchema = new Schema(
       required: true,
     },
 
-    // Student's date of birth (optional)
-    date_of_birth: {
+    // Student number (optional)
+    student_number: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+
+    // Gender of the student (required enum: MALE, FEMALE)
+    gender: {
+      type: String,
+      enum: GENDER,
+      required: true,
+    },
+
+    // Birth information of the student (place and date)
+    birth: {
+      place: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      date: {
+        type: Date,
+        required: true,
+      },
+    },
+
+    // Current status of the student (required enum: PENDING, ACTIVE, DELETED)
+    student_status: {
+      type: String,
+      enum: STATUS_ENUM,
+      required: true,
+    },
+
+    // Indicates whether the student has a scholarship (required boolean)
+    scholarship: {
+      type: Boolean,
+      required: true,
+    },
+
+    // Academic status of the student (optional enum: ENROLLED, GRADUATED, DROPPED_OUT, TRANSFERRED)
+    academic_status: {
+      type: String,
+      enum: ACADEMIC_STATUS,
+      default: null,
+    },
+
+    // Enrollment date (optional)
+    enrollment_date: {
       type: Date,
+      default: null,
+    },
+
+    // Graduation date (optional)
+    graduation_date: {
+      type: Date,
+      default: null,
+    },
+
+    // Dropped out date (optional)
+    dropped_out_date: {
+      type: Date,
+      default: null,
+    },
+
+    // Transferred date (optional)
+    transferred_date: {
+      type: Date,
+      default: null,
+    },
+
+    // Last update timestamp (optional, managed manually)
+    updated_at: {
+      type: Date,
+      default: null,
+    },
+
+    // User ID of the last updater (optional)
+    updated_by: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+
+    // Creation timestamp (required)
+    created_at: {
+      type: Date,
+    },
+
+    // User ID of the creator (required)
+    created_by: {
+      type: String,
     },
 
     // Marks soft deletion timestamp (null if not deleted)
@@ -43,10 +151,16 @@ const StudentSchema = new Schema(
       type: Date,
       default: null,
     },
+
+    // User ID of the person who deleted the record (optional)
+    deleted_by: {
+      type: String,
+      default: null,
+      trim: true,
+    },
   },
   {
-    // Automatically adds createdAt and updatedAt fields
-    timestamps: true,
+    timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
   }
 );
 
