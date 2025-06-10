@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 // *************** Connect to MongoDB using mongoose with proper error handling for reliability
 const ConnectDB = async () => {
   try {
-    await mongoose.connect("mongodb://localhost:27017/zettacamp-be-tholib");
+    await mongoose.connect("mongodb://localhost:27017/zettacamp-be-tholib-v1");
     console.log("MongoDB connected");
   } catch (err) {
     console.error("MongoDB connection error:", err.message);
