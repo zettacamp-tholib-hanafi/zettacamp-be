@@ -1,5 +1,6 @@
 // *************** IMPORT MODULE ***************
 const Student = require("./student.model.js");
+const School = require("../school/school.model.js");
 
 // *************** IMPORT VALIDATOR ***************
 const {
@@ -181,8 +182,20 @@ async function CreateStudent(_, { input }) {
       dropped_out_date: input.dropped_out_date,
       transferred_date: input.transferred_date,
     };
-
-    return await Student.create(studentInputPayload);
+    const createStudentProcess = await Student.create(studentInputPayload);
+    if (createStudentProcess) {
+      await School.updateOne(
+        { _id: createStudentProcess.school_id },
+        {
+          $addToSet: {
+            students: [createStudentProcess._id],
+          },
+        }
+      );
+    } else {
+      throw CreateAppError("Failed to create student", "CREATE_FAILED");
+    }
+    return createStudentProcess;
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -247,13 +260,37 @@ async function UpdateStudent(_, { id, input }) {
       updated_at: new Date(),
     };
 
-    const updated = await Student.updateOne(
+    const updatedStudent = await Student.findOneAndUpdate(
       { _id: id },
       { $set: studentUpdatePayload }
     );
 
-    if (!updated) {
+    if (!updatedStudent) {
       throw CreateAppError("Student not found", "NOT_FOUND", { id });
+    }
+
+    const oldSchoolId = String(updatedStudent.school_id);
+    const newSchoolId = String(input.school_id);
+
+    // *************** transfer student by change school_id
+    if (oldSchoolId !== newSchoolId) {
+      if (oldSchoolId) {
+        await School.updateOne(
+          { _id: oldSchoolId },
+          { $pull: { students: id } }
+        );
+      }
+
+      if (newSchoolId) {
+        await School.updateOne(
+          { _id: newSchoolId },
+          { $addToSet: { students: id } }
+        );
+      }
+      await Student.updateOne(
+        { _id: id },
+        { $set: { transferred_date: new Date() } }
+      );
     }
 
     return { id };
@@ -316,7 +353,7 @@ function schools(student, _, context) {
     throw new Error("School loader not initialized");
   }
 
-  return context.loaders.school.load(student.school_id.toString());
+  return context.loaders.school.load(String(student.school_id));
 }
 
 // *************** EXPORT MODULE ***************
