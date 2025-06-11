@@ -6,7 +6,7 @@ const { CreateAppError } = require("../../core/error.js");
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_REGEX = /^https?:\/\/.+\..+/;
 const VALID_ROLES = ["ACADEMIC_DIRECTOR", "ACADEMIC_ADMIN", "CORRECTOR"];
-const VALID_STATUSES = ["ACTIVE", "PENDING", "DELETED"];
+const VALID_STATUSES = ["ACTIVE", "PENDING"];
 const VALID_DEPARTMENTS = ["ACADEMIC", "ADMISSIONS"];
 
 /**

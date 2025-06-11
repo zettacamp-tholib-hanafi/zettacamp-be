@@ -5,7 +5,7 @@ const { isValidObjectId } = require("mongoose");
 const { CreateAppError } = require("../../core/error.js");
 
 const VALID_GENDERS = ["MALE", "FEMALE"];
-const VALID_STATUSES = ["ACTIVE", "PENDING", "DELETED"];
+const VALID_STATUSES = ["ACTIVE", "PENDING"];
 const VALID_ACADEMIC_STATUS = [
   "ENROLLED",
   "GRADUATED",

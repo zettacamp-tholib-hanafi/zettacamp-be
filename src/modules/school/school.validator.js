@@ -4,10 +4,13 @@ const { isValidObjectId } = require("mongoose");
 // *************** IMPORT CORE ***************
 const { CreateAppError } = require("../../core/error.js");
 
-// *************** Constant Regex
+// *************** Constant
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_REGEX = /^(https?:\/\/)?[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
+
+const VALID_STATUSES = ["ACTIVE", "PENDING"];
+
 
 /**
  * Validates the address object to ensure all required fields are present and are strings.
@@ -218,10 +221,10 @@ function ValidateCreateSchoolInput(input) {
 
   if (
     !school_status ||
-    !["PENDING", "ACTIVE", "DELETED"].includes(school_status)
+    !VALID_STATUSES.includes(school_status)
   ) {
     throw CreateAppError(
-      "School status is required and must be one of: PENDING, ACTIVE, DELETED.",
+      "School status is required and must be one of: PENDING, ACTIVE.",
       "VALIDATION_ERROR",
       { field: "school_status" }
     );
@@ -287,10 +290,10 @@ function ValidateUpdateSchoolInput(input) {
 
   if (
     school_status &&
-    !["PENDING", "ACTIVE", "DELETED"].includes(school_status)
+    !VALID_STATUSES.includes(school_status)
   ) {
     throw CreateAppError(
-      "School status must be one of: PENDING, ACTIVE, DELETED.",
+      "School status must be one of: PENDING, ACTIVE.",
       "VALIDATION_ERROR",
       { field: "school_status" }
     );
