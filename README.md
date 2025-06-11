@@ -33,7 +33,7 @@ http://localhost:4000/graphql
 3. Input is validated using functions in `*.validator.js`.
 4. The resolver interacts with the Mongoose model to query or mutate the database.
 5. Relationships like `student -> school` are optimized using DataLoader (`*.loader.js`).
-6. Errors are handled using helper functions (e.g., `createAppError`, `handleCaughtError`), ensuring structured responses.
+6. Errors are handled using helper functions (e.g., `CreateAppError`, `HandleCaughtError`), ensuring structured responses.
 
 ---
 

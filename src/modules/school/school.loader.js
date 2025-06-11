@@ -16,7 +16,7 @@ const School = require("./school.model");
  *          each corresponding to the requested IDs' order.
  */
 
-async function batchSchoolsById(school_id) {
+async function BatchSchoolsById(school_id) {
   const schools = await School.find({
     _id: { $in: school_id },
   });
@@ -28,9 +28,9 @@ async function batchSchoolsById(school_id) {
 }
 
 // *************** LOADER ***************
-function schoolLoader() {
-  return new DataLoader(batchSchoolsById);
+function SchoolLoader() {
+  return new DataLoader(BatchSchoolsById);
 }
 
 // *************** EXPORT MODULE ***************
-module.exports = { schoolLoader };
+module.exports = { SchoolLoader };

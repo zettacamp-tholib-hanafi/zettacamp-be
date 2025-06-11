@@ -3,13 +3,14 @@ const Student = require("./student.model.js");
 
 // *************** IMPORT VALIDATOR ***************
 const {
-  validateCreateStudentInput,
-  validateUpdateStudentInput,
+  ValidateCreateStudentInput,
+  ValidateUpdateStudentInput,
 } = require("./student.validator.js");
 
-// *************** IMPORT UTILITIES ***************
-const { handleCaughtError, createAppError } = require("../../core/error.js");
+// *************** IMPORT CORE ***************
+const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
+// *************** Constant Enum
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
@@ -31,7 +32,7 @@ async function GetAllStudents(_, { filter }) {
 
     if (filter && filter.student_status) {
       if (!VALID_STATUS.includes(filter.student_status)) {
-        throw createAppError(
+        throw CreateAppError(
           "Invalid student_status filter value",
           "BAD_REQUEST",
           { student_status: filter.student_status }
@@ -44,7 +45,7 @@ async function GetAllStudents(_, { filter }) {
 
     return await Student.find(query);
   } catch (error) {
-    throw handleCaughtError(error, "Failed to fetch students");
+    throw HandleCaughtError(error, "Failed to fetch students");
   }
 }
 
@@ -67,7 +68,7 @@ async function GetOneStudent(_, { id, filter }) {
 
     if (filter && filter.student_status) {
       if (!VALID_STATUS.includes(filter.student_status)) {
-        throw createAppError(
+        throw CreateAppError(
           "Invalid student_status filter value",
           "BAD_REQUEST",
           { student_status: filter.student_status }
@@ -80,12 +81,12 @@ async function GetOneStudent(_, { id, filter }) {
 
     const student = await Student.findOne(query);
     if (!student) {
-      throw createAppError("Student not found", "NOT_FOUND", { id });
+      throw CreateAppError("Student not found", "NOT_FOUND", { id });
     }
 
     return student;
   } catch (error) {
-    throw handleCaughtError(error, "Failed to fetch student", "INTERNAL");
+    throw HandleCaughtError(error, "Failed to fetch student", "INTERNAL");
   }
 }
 
@@ -103,11 +104,11 @@ async function GetOneStudent(_, { id, filter }) {
 
 async function CreateStudent(_, { input }) {
   try {
-    validateCreateStudentInput(input);
+    ValidateCreateStudentInput(input);
 
     const existing = await Student.findOne({ email: input.email });
     if (existing) {
-      throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
+      throw CreateAppError("Email is already in use", "DUPLICATE_FIELD", {
         field: "email",
       });
     }
@@ -137,7 +138,7 @@ async function CreateStudent(_, { input }) {
     const student = new Student(studentInputPayload);
     return await student.save();
   } catch (error) {
-    throw handleCaughtError(
+    throw HandleCaughtError(
       error,
       "Failed to create student",
       "VALIDATION_ERROR"
@@ -159,17 +160,17 @@ async function CreateStudent(_, { input }) {
 
 async function UpdateStudent(_, { id, input }) {
   try {
-    validateUpdateStudentInput(input);
+    ValidateUpdateStudentInput(input);
 
     const currentStudent = await Student.findById(id);
     if (!currentStudent) {
-      throw createAppError("Student not found", "NOT_FOUND", { id });
+      throw CreateAppError("Student not found", "NOT_FOUND", { id });
     }
 
     if (input.email && input.email !== currentStudent.email) {
       const existing = await Student.findOne({ email: input.email });
       if (existing) {
-        throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
+        throw CreateAppError("Email is already in use", "DUPLICATE_FIELD", {
           field: "email",
         });
       }
@@ -206,12 +207,12 @@ async function UpdateStudent(_, { id, input }) {
     );
 
     if (!updated) {
-      throw createAppError("Student not found", "NOT_FOUND", { id });
+      throw CreateAppError("Student not found", "NOT_FOUND", { id });
     }
 
     return updated;
   } catch (error) {
-    throw handleCaughtError(
+    throw HandleCaughtError(
       error,
       "Failed to update student",
       "VALIDATION_ERROR"
@@ -245,12 +246,12 @@ async function DeleteStudent(_, { id, input }) {
     );
 
     if (!deleted) {
-      throw createAppError("Student not found", "NOT_FOUND", { id });
+      throw CreateAppError("Student not found", "NOT_FOUND", { id });
     }
 
     return deleted;
   } catch (error) {
-    throw handleCaughtError(error, "Failed to delete student");
+    throw HandleCaughtError(error, "Failed to delete student");
   }
 }
 

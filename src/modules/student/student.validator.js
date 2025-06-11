@@ -1,8 +1,8 @@
 // *************** IMPORT LIBRARY ***************
 const { isValidObjectId } = require("mongoose");
 
-// *************** IMPORT UTILITIES ***************
-const { createAppError } = require("../../core/error.js");
+// *************** IMPORT CORE ***************
+const { CreateAppError } = require("../../core/error.js");
 
 const VALID_GENDERS = ["MALE", "FEMALE"];
 const VALID_STATUSES = ["ACTIVE", "PENDING", "DELETED"];
@@ -13,6 +13,7 @@ const VALID_ACADEMIC_STATUS = [
   "TRANSFERRED",
 ];
 
+// *************** Constant Regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
 const URL_REGEX =
@@ -48,7 +49,7 @@ const URL_REGEX =
  * @throws {AppError} If any validation fails.
  */
 
-function validateCreateStudentInput(input) {
+function ValidateCreateStudentInput(input) {
   const {
     first_name,
     last_name,
@@ -64,7 +65,7 @@ function validateCreateStudentInput(input) {
   } = input;
 
   if (!first_name || typeof first_name !== "string") {
-    throw createAppError(
+    throw CreateAppError(
       "First name is required and must be a string.",
       "VALIDATION_ERROR",
       { field: "first_name" }
@@ -72,7 +73,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (!last_name || typeof last_name !== "string") {
-    throw createAppError(
+    throw CreateAppError(
       "Last name is required and must be a string.",
       "VALIDATION_ERROR",
       { field: "last_name" }
@@ -80,7 +81,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email)) {
-    throw createAppError(
+    throw CreateAppError(
       "Email is required and must be a valid format.",
       "VALIDATION_ERROR",
       { field: "email" }
@@ -88,7 +89,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (!school_id || !isValidObjectId(school_id)) {
-    throw createAppError(
+    throw CreateAppError(
       "School ID is required and must be a valid ObjectId.",
       "VALIDATION_ERROR",
       { field: "school_id" }
@@ -96,7 +97,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (!gender || !VALID_GENDERS.includes(gender)) {
-    throw createAppError(
+    throw CreateAppError(
       `Gender must be one of: ${VALID_GENDERS.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "gender" }
@@ -104,7 +105,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (!birth || typeof birth !== "object") {
-    throw createAppError(
+    throw CreateAppError(
       "Birth is required and must be an object with place and date.",
       "VALIDATION_ERROR",
       { field: "birth" }
@@ -112,7 +113,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (!birth.place || typeof birth.place !== "string") {
-    throw createAppError(
+    throw CreateAppError(
       "Birth place is required and must be a string.",
       "VALIDATION_ERROR",
       { field: "birth.place" }
@@ -120,7 +121,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (!birth.date || isNaN(new Date(birth.date).getTime())) {
-    throw createAppError(
+    throw CreateAppError(
       "Birth date is required and must be a valid date.",
       "VALIDATION_ERROR",
       { field: "birth.date" }
@@ -128,7 +129,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (!student_status || !VALID_STATUSES.includes(student_status)) {
-    throw createAppError(
+    throw CreateAppError(
       `Student status must be one of: ${VALID_STATUSES.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "student_status" }
@@ -136,7 +137,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (typeof scholarship !== "boolean") {
-    throw createAppError(
+    throw CreateAppError(
       "Scholarship is required and must be a boolean.",
       "VALIDATION_ERROR",
       { field: "scholarship" }
@@ -144,7 +145,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (phone && !PHONE_REGEX.test(phone + "")) {
-    throw createAppError(
+    throw CreateAppError(
       "Phone must be a valid mobile number.",
       "VALIDATION_ERROR",
       { field: "phone" }
@@ -152,7 +153,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (profile_picture_url && !URL_REGEX.test(profile_picture_url)) {
-    throw createAppError(
+    throw CreateAppError(
       "Profile picture URL must be a valid URL.",
       "VALIDATION_ERROR",
       { field: "profile_picture_url" }
@@ -160,7 +161,7 @@ function validateCreateStudentInput(input) {
   }
 
   if (academic_status && !VALID_ACADEMIC_STATUS.includes(academic_status)) {
-    throw createAppError(
+    throw CreateAppError(
       `Academic status must be one of: ${VALID_ACADEMIC_STATUS.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "academic_status" }
@@ -178,7 +179,7 @@ function validateCreateStudentInput(input) {
     const requiredField = academicDateFields[academic_status];
     const dateValue = input[requiredField];
     if (!dateValue || isNaN(new Date(dateValue).getTime())) {
-      throw createAppError(
+      throw CreateAppError(
         `${requiredField} must be a valid date when academic_status is '${academic_status}'.`,
         "VALIDATION_ERROR",
         { field: requiredField }
@@ -187,7 +188,7 @@ function validateCreateStudentInput(input) {
 
     Object.entries(academicDateFields).forEach(([status, field]) => {
       if (status !== academic_status && input[field]) {
-        throw createAppError(
+        throw CreateAppError(
           `${field} must not be provided when academic_status is '${academic_status}'.`,
           "VALIDATION_ERROR",
           { field }
@@ -226,7 +227,7 @@ function validateCreateStudentInput(input) {
  * @throws {AppError} If any validation fails.
  */
 
-function validateUpdateStudentInput(input) {
+function ValidateUpdateStudentInput(input) {
   const {
     first_name,
     last_name,
@@ -242,20 +243,20 @@ function validateUpdateStudentInput(input) {
   } = input;
 
   if (first_name && typeof first_name !== "string") {
-    throw createAppError("First name must be a string.", "VALIDATION_ERROR", {
+    throw CreateAppError("First name must be a string.", "VALIDATION_ERROR", {
       field: "first_name",
     });
   }
 
   if (last_name && typeof last_name !== "string") {
-    throw createAppError("Last name must be a string.", "VALIDATION_ERROR", {
+    throw CreateAppError("Last name must be a string.", "VALIDATION_ERROR", {
       field: "last_name",
     });
   }
 
   if (email) {
     if (typeof email !== "string" || !EMAIL_REGEX.test(email)) {
-      throw createAppError(
+      throw CreateAppError(
         "Email must be a valid format.",
         "VALIDATION_ERROR",
         { field: "email" }
@@ -264,7 +265,7 @@ function validateUpdateStudentInput(input) {
   }
 
   if (school_id && !isValidObjectId(school_id)) {
-    throw createAppError(
+    throw CreateAppError(
       "School ID must be a valid ObjectId.",
       "VALIDATION_ERROR",
       { field: "school_id" }
@@ -272,7 +273,7 @@ function validateUpdateStudentInput(input) {
   }
 
   if (gender && !VALID_GENDERS.includes(gender)) {
-    throw createAppError(
+    throw CreateAppError(
       `Gender must be one of: ${VALID_GENDERS.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "gender" }
@@ -281,13 +282,13 @@ function validateUpdateStudentInput(input) {
 
   if (birth) {
     if (typeof birth !== "object") {
-      throw createAppError("Birth must be an object.", "VALIDATION_ERROR", {
+      throw CreateAppError("Birth must be an object.", "VALIDATION_ERROR", {
         field: "birth",
       });
     }
 
     if (birth.place && typeof birth.place !== "string") {
-      throw createAppError(
+      throw CreateAppError(
         "Birth place must be a string.",
         "VALIDATION_ERROR",
         { field: "birth.place" }
@@ -295,7 +296,7 @@ function validateUpdateStudentInput(input) {
     }
 
     if (birth.date && isNaN(new Date(birth.date).getTime())) {
-      throw createAppError(
+      throw CreateAppError(
         "Birth date must be a valid date.",
         "VALIDATION_ERROR",
         { field: "birth.date" }
@@ -304,7 +305,7 @@ function validateUpdateStudentInput(input) {
   }
 
   if (student_status && !VALID_STATUSES.includes(student_status)) {
-    throw createAppError(
+    throw CreateAppError(
       `Student status must be one of: ${VALID_STATUSES.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "student_status" }
@@ -312,13 +313,13 @@ function validateUpdateStudentInput(input) {
   }
 
   if (scholarship !== undefined && typeof scholarship !== "boolean") {
-    throw createAppError("Scholarship must be a boolean.", "VALIDATION_ERROR", {
+    throw CreateAppError("Scholarship must be a boolean.", "VALIDATION_ERROR", {
       field: "scholarship",
     });
   }
 
   if (phone && !PHONE_REGEX.test(phone + "")) {
-    throw createAppError(
+    throw CreateAppError(
       "Phone must be a valid mobile number.",
       "VALIDATION_ERROR",
       { field: "phone" }
@@ -326,7 +327,7 @@ function validateUpdateStudentInput(input) {
   }
 
   if (profile_picture_url && !URL_REGEX.test(profile_picture_url)) {
-    throw createAppError(
+    throw CreateAppError(
       "Profile picture URL must be a valid URL.",
       "VALIDATION_ERROR",
       { field: "profile_picture_url" }
@@ -334,7 +335,7 @@ function validateUpdateStudentInput(input) {
   }
 
   if (academic_status && !VALID_ACADEMIC_STATUS.includes(academic_status)) {
-    throw createAppError(
+    throw CreateAppError(
       `Academic status must be one of: ${VALID_ACADEMIC_STATUS.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "academic_status" }
@@ -352,7 +353,7 @@ function validateUpdateStudentInput(input) {
     const requiredField = academicDateFields[academic_status];
     const dateValue = input[requiredField];
     if (!dateValue || isNaN(new Date(dateValue).getTime())) {
-      throw createAppError(
+      throw CreateAppError(
         `${requiredField} must be a valid date when academic_status is '${academic_status}'.`,
         "VALIDATION_ERROR",
         { field: requiredField }
@@ -361,7 +362,7 @@ function validateUpdateStudentInput(input) {
 
     Object.entries(academicDateFields).forEach(([status, field]) => {
       if (status !== academic_status && input[field]) {
-        throw createAppError(
+        throw CreateAppError(
           `${field} must not be provided when academic_status is '${academic_status}'.`,
           "VALIDATION_ERROR",
           { field }
@@ -373,6 +374,6 @@ function validateUpdateStudentInput(input) {
 
 // *************** EXPORT MODULE ***************
 module.exports = {
-  validateCreateStudentInput,
-  validateUpdateStudentInput,
+  ValidateCreateStudentInput,
+  ValidateUpdateStudentInput,
 };

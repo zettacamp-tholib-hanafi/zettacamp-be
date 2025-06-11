@@ -13,7 +13,7 @@ const Student = require("./student.model");
  * each sub-array containing students belonging to the corresponding school ID.
  */
 
-async function batchStudentsBySchoolId(school_id) {
+async function BatchStudentsBySchoolId(school_id) {
   const students = await Student.find({
     school_id: { $in: school_id },
   });
@@ -24,9 +24,9 @@ async function batchStudentsBySchoolId(school_id) {
 }
 
 // *************** LOADER ***************
-function studentLoader() {
-  return new DataLoader(batchStudentsBySchoolId);
+function StudentLoader() {
+  return new DataLoader(BatchStudentsBySchoolId);
 }
 
 // *************** EXPORT MODULE ***************
-module.exports = { studentLoader };
+module.exports = { StudentLoader };

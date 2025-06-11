@@ -3,18 +3,18 @@ const School = require("./school.model.js");
 
 // *************** IMPORT VALIDATOR ***************
 const {
-  validateCreateSchoolInput,
-  validateUpdateSchoolInput,
-  validateAddress,
-  validateContact,
-  validateVerified,
-  validateAdminUser,
+  ValidateCreateSchoolInput,
+  ValidateUpdateSchoolInput,
+  ValidateAddress,
+  ValidateContact,
+  ValidateVerified,
+  ValidateAdminUser,
 } = require("./school.validator.js");
 
-// *************** IMPORT UTILITIES ***************
+// *************** IMPORT CORE ***************
 const {
-  handleCaughtError,
-  createAppError,
+  HandleCaughtError,
+  CreateAppError,
 } = require("../../core/error.js");
 
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
@@ -41,7 +41,7 @@ async function GetAllSchools(_, { filter }) {
 
     if (filter && filter.school_status) {
       if (!VALID_STATUS.includes(filter.school_status)) {
-        throw createAppError(
+        throw CreateAppError(
           "Invalid school_status filter value",
           "BAD_REQUEST",
           { school_status: filter.school_status }
@@ -54,7 +54,7 @@ async function GetAllSchools(_, { filter }) {
 
     return await School.find(query);
   } catch (error) {
-    throw handleCaughtError(error, "Failed to fetch schools");
+    throw HandleCaughtError(error, "Failed to fetch schools");
   }
 }
 
@@ -80,7 +80,7 @@ async function GetOneSchool(_, { id, filter }) {
 
     if (filter && filter.school_status) {
       if (!VALID_STATUS.includes(filter.school_status)) {
-        throw createAppError(
+        throw CreateAppError(
           "Invalid school_status filter value",
           "BAD_REQUEST",
           { school_status: filter.school_status }
@@ -93,12 +93,12 @@ async function GetOneSchool(_, { id, filter }) {
 
     const school = await School.findOne(query);
     if (!school) {
-      throw createAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { id });
     }
 
     return school;
   } catch (error) {
-    throw handleCaughtError(error, "Failed to fetch school");
+    throw HandleCaughtError(error, "Failed to fetch school");
   }
 }
 
@@ -152,11 +152,11 @@ async function GetOneSchool(_, { id, filter }) {
 
 async function CreateSchool(_, { input }) {
   try {
-    validateCreateSchoolInput(input);
-    validateVerified(input.verified);
-    validateAddress(input.address);
-    validateContact(input.contact);
-    validateAdminUser(input.admin_user);
+    ValidateCreateSchoolInput(input);
+    ValidateVerified(input.verified);
+    ValidateAddress(input.address);
+    ValidateContact(input.contact);
+    ValidateAdminUser(input.admin_user);
 
     const schoolInputPayload = {
       short_name: input.short_name,
@@ -208,7 +208,7 @@ async function CreateSchool(_, { input }) {
     const school = new School(schoolInputPayload);
     return await school.save();
   } catch (error) {
-    throw handleCaughtError(
+    throw HandleCaughtError(
       error,
       "Failed to create school",
       "VALIDATION_ERROR"
@@ -267,15 +267,15 @@ async function CreateSchool(_, { input }) {
 
 async function UpdateSchool(_, { id, input }) {
   try {
-    validateUpdateSchoolInput(input);
-    if (input.verified) validateVerified(input.verified);
-    if (input.address) validateAddress(input.address);
-    if (input.contact) validateContact(input.contact);
-    if (input.admin_user) validateAdminUser(input.admin_user);
+    ValidateUpdateSchoolInput(input);
+    if (input.verified) ValidateVerified(input.verified);
+    if (input.address) ValidateAddress(input.address);
+    if (input.contact) ValidateContact(input.contact);
+    if (input.admin_user) ValidateAdminUser(input.admin_user);
 
     const currentSchool = await School.findById(id);
     if (!currentSchool) {
-      throw createAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { id });
     }
 
     const schoolUpdatePayload = {};
@@ -350,12 +350,12 @@ async function UpdateSchool(_, { id, input }) {
     );
 
     if (!updated) {
-      throw createAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { id });
     }
 
     return updated;
   } catch (error) {
-    throw handleCaughtError(
+    throw HandleCaughtError(
       error,
       "Failed to update school",
       "VALIDATION_ERROR"
@@ -398,12 +398,12 @@ async function DeleteSchool(_, { id, input }) {
     );
 
     if (!deleted) {
-      throw createAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { id });
     }
 
     return deleted;
   } catch (error) {
-    throw handleCaughtError(error, "Failed to delete school");
+    throw HandleCaughtError(error, "Failed to delete school");
   }
 }
 

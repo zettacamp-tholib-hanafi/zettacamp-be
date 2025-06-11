@@ -1,6 +1,7 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model } = require("mongoose");
 
+// *************** Constant Enum
 const ROLE_ENUM = ["ACADEMIC_DIRECTOR", "ACADEMIC_ADMIN", "CORRECTOR"];
 const STATUS_ENUM = ["ACTIVE", "PENDING", "DELETED"];
 const DEPARTMENT_ENUM = ["ACADEMIC", "ADMISSIONS"];

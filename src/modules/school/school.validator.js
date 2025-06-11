@@ -1,9 +1,10 @@
 // *************** IMPORT LIBRARY ***************
 const { isValidObjectId } = require("mongoose");
 
-// *************** IMPORT UTILITIES ***************
-const { createAppError } = require("../../core/error.js");
+// *************** IMPORT CORE ***************
+const { CreateAppError } = require("../../core/error.js");
 
+// *************** Constant Regex
 const PHONE_REGEX = /^\+?[0-9]{7,15}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_REGEX = /^(https?:\/\/)?[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
@@ -15,7 +16,7 @@ const URL_REGEX = /^(https?:\/\/)?[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
  * @throws {AppError} If the address is missing, not an object, or contains invalid/missing fields.
  */
 
-function validateAddress(address) {
+function ValidateAddress(address) {
   const requiredFields = [
     "street_name",
     "street_number",
@@ -27,7 +28,7 @@ function validateAddress(address) {
   ];
 
   if (!address || typeof address !== "object") {
-    throw createAppError(
+    throw CreateAppError(
       "Address is required and must be an object.",
       "VALIDATION_ERROR",
       { field: "address" }
@@ -36,7 +37,7 @@ function validateAddress(address) {
 
   requiredFields.forEach((field) => {
     if (!address[field] || typeof address[field] !== "string") {
-      throw createAppError(
+      throw CreateAppError(
         `Address.${field} is required and must be a string.`,
         "VALIDATION_ERROR",
         { field: `address.${field}` }
@@ -45,7 +46,7 @@ function validateAddress(address) {
   });
 
   if (address.address_line2 && typeof address.address_line2 !== "string") {
-    throw createAppError(
+    throw CreateAppError(
       "Address.address_line2 must be a string.",
       "VALIDATION_ERROR",
       { field: "address.address_line2" }
@@ -60,11 +61,11 @@ function validateAddress(address) {
  * @throws {AppError} If the contact fields are invalid or in incorrect format.
  */
 
-function validateContact(contact) {
+function ValidateContact(contact) {
   if (!contact || typeof contact !== "object") return;
 
   if (contact.phone && !PHONE_REGEX.test(contact.phone + "")) {
-    throw createAppError(
+    throw CreateAppError(
       "Contact phone must be a valid phone number.",
       "VALIDATION_ERROR",
       { field: "contact.phone" }
@@ -73,14 +74,14 @@ function validateContact(contact) {
 
   if (contact.email) {
     if (typeof contact.email !== "string") {
-      throw createAppError(
+      throw CreateAppError(
         "Contact email must be a string.",
         "VALIDATION_ERROR",
         { field: "contact.email" }
       );
     }
     if (!EMAIL_REGEX.test(contact.email)) {
-      throw createAppError(
+      throw CreateAppError(
         "Contact email must be in a valid format.",
         "VALIDATION_ERROR",
         { field: "contact.email" }
@@ -89,7 +90,7 @@ function validateContact(contact) {
   }
 
   if (contact.website && !URL_REGEX.test(contact.website)) {
-    throw createAppError(
+    throw CreateAppError(
       "Contact website must be a valid URL.",
       "VALIDATION_ERROR",
       { field: "contact.website" }
@@ -105,9 +106,9 @@ function validateContact(contact) {
  * @throws {AppError} If the input is not a non-empty array or contains invalid fields.
  */
 
-function validateVerified(verified) {
+function ValidateVerified(verified) {
   if (!Array.isArray(verified) || verified.length === 0) {
-    throw createAppError(
+    throw CreateAppError(
       "Verified is required and must be a non-empty array.",
       "VALIDATION_ERROR",
       { field: "verified" }
@@ -116,7 +117,7 @@ function validateVerified(verified) {
 
   verified.forEach((item, index) => {
     if (typeof item.status_verified !== "boolean") {
-      throw createAppError(
+      throw CreateAppError(
         "Each verified.status_verified must be a boolean.",
         "VALIDATION_ERROR",
         { field: `verified[${index}].status_verified` }
@@ -124,7 +125,7 @@ function validateVerified(verified) {
     }
 
     if (item.verified_by && typeof item.verified_by !== "string") {
-      throw createAppError(
+      throw CreateAppError(
         "Each verified.verified_by must be a string.",
         "VALIDATION_ERROR",
         { field: `verified[${index}].verified_by` }
@@ -140,12 +141,12 @@ function validateVerified(verified) {
  * @throws {AppError} If any admin user field has an invalid format or type.
  */
 
-function validateAdminUser(adminUsers) {
+function ValidateAdminUser(adminUsers) {
   if (!Array.isArray(adminUsers)) return;
 
   adminUsers.forEach((admin, index) => {
     if (admin.id && !isValidObjectId(admin.id)) {
-      throw createAppError(
+      throw CreateAppError(
         "Each admin_user.id must be a valid ObjectId.",
         "VALIDATION_ERROR",
         { field: `admin_user[${index}].id` }
@@ -153,7 +154,7 @@ function validateAdminUser(adminUsers) {
     }
 
     if (admin.role && typeof admin.role !== "string") {
-      throw createAppError(
+      throw CreateAppError(
         "Each admin_user.role must be a string.",
         "VALIDATION_ERROR",
         { field: `admin_user[${index}].role` }
@@ -161,7 +162,7 @@ function validateAdminUser(adminUsers) {
     }
 
     if (admin.assigned_at && typeof admin.assigned_at !== "string") {
-      throw createAppError(
+      throw CreateAppError(
         "Each admin_user.assigned_at must be a string.",
         "VALIDATION_ERROR",
         { field: `admin_user[${index}].assigned_at` }
@@ -183,7 +184,7 @@ function validateAdminUser(adminUsers) {
  * @throws {AppError} If any required field is missing or has an invalid format.
  */
 
-function validateCreateSchoolInput(input) {
+function ValidateCreateSchoolInput(input) {
   const {
     short_name,
     long_name,
@@ -194,7 +195,7 @@ function validateCreateSchoolInput(input) {
   } = input;
 
   if (!short_name || typeof short_name !== "string") {
-    throw createAppError(
+    throw CreateAppError(
       "Short name is required and must be a string.",
       "VALIDATION_ERROR",
       { field: "short_name" }
@@ -202,7 +203,7 @@ function validateCreateSchoolInput(input) {
   }
 
   if (!long_name || typeof long_name !== "string") {
-    throw createAppError(
+    throw CreateAppError(
       "Long name is required and must be a string.",
       "VALIDATION_ERROR",
       { field: "long_name" }
@@ -210,7 +211,7 @@ function validateCreateSchoolInput(input) {
   }
 
   if (logo_url && !URL_REGEX.test(logo_url)) {
-    throw createAppError("Logo URL must be a valid URL.", "VALIDATION_ERROR", {
+    throw CreateAppError("Logo URL must be a valid URL.", "VALIDATION_ERROR", {
       field: "logo_url",
     });
   }
@@ -219,7 +220,7 @@ function validateCreateSchoolInput(input) {
     !school_status ||
     !["PENDING", "ACTIVE", "DELETED"].includes(school_status)
   ) {
-    throw createAppError(
+    throw CreateAppError(
       "School status is required and must be one of: PENDING, ACTIVE, DELETED.",
       "VALIDATION_ERROR",
       { field: "school_status" }
@@ -227,7 +228,7 @@ function validateCreateSchoolInput(input) {
   }
 
   if (!created_by || typeof created_by !== "string") {
-    throw createAppError(
+    throw CreateAppError(
       "Created_by is required and must be a string.",
       "VALIDATION_ERROR",
       { field: "created_by" }
@@ -235,7 +236,7 @@ function validateCreateSchoolInput(input) {
   }
 
   if (!updated_by || typeof updated_by !== "string") {
-    throw createAppError(
+    throw CreateAppError(
       "Updated_by is required and must be a string.",
       "VALIDATION_ERROR",
       { field: "updated_by" }
@@ -256,7 +257,7 @@ function validateCreateSchoolInput(input) {
  * @throws {AppError} If any provided field has an invalid format.
  */
 
-function validateUpdateSchoolInput(input) {
+function ValidateUpdateSchoolInput(input) {
   const {
     short_name,
     long_name,
@@ -267,19 +268,19 @@ function validateUpdateSchoolInput(input) {
   } = input;
 
   if (short_name && typeof short_name !== "string") {
-    throw createAppError("Short name must be a string.", "VALIDATION_ERROR", {
+    throw CreateAppError("Short name must be a string.", "VALIDATION_ERROR", {
       field: "short_name",
     });
   }
 
   if (long_name && typeof long_name !== "string") {
-    throw createAppError("Long name must be a string.", "VALIDATION_ERROR", {
+    throw CreateAppError("Long name must be a string.", "VALIDATION_ERROR", {
       field: "long_name",
     });
   }
 
   if (logo_url && !URL_REGEX.test(logo_url)) {
-    throw createAppError("Logo URL must be a valid URL.", "VALIDATION_ERROR", {
+    throw CreateAppError("Logo URL must be a valid URL.", "VALIDATION_ERROR", {
       field: "logo_url",
     });
   }
@@ -288,7 +289,7 @@ function validateUpdateSchoolInput(input) {
     school_status &&
     !["PENDING", "ACTIVE", "DELETED"].includes(school_status)
   ) {
-    throw createAppError(
+    throw CreateAppError(
       "School status must be one of: PENDING, ACTIVE, DELETED.",
       "VALIDATION_ERROR",
       { field: "school_status" }
@@ -296,13 +297,13 @@ function validateUpdateSchoolInput(input) {
   }
 
   if (created_by && typeof created_by !== "string") {
-    throw createAppError("Created_by must be a string.", "VALIDATION_ERROR", {
+    throw CreateAppError("Created_by must be a string.", "VALIDATION_ERROR", {
       field: "created_by",
     });
   }
 
   if (updated_by && typeof updated_by !== "string") {
-    throw createAppError("Updated_by must be a string.", "VALIDATION_ERROR", {
+    throw CreateAppError("Updated_by must be a string.", "VALIDATION_ERROR", {
       field: "updated_by",
     });
   }
@@ -310,10 +311,10 @@ function validateUpdateSchoolInput(input) {
 
 // *************** EXPORT MODULE ***************
 module.exports = {
-  validateCreateSchoolInput,
-  validateUpdateSchoolInput,
-  validateAddress,
-  validateContact,
-  validateVerified,
-  validateAdminUser,
+  ValidateCreateSchoolInput,
+  ValidateUpdateSchoolInput,
+  ValidateAddress,
+  ValidateContact,
+  ValidateVerified,
+  ValidateAdminUser,
 };

@@ -1,13 +1,13 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-// *************** CONSTANTS
+// *************** Constant Enum
 const ACADEMIC_STATUS = ["ENROLLED", "GRADUATED", "DROPPED_OUT", "TRANSFERRED"];
 const STATUS_ENUM = ["ACTIVE", "PENDING", "DELETED"];
 const GENDER = ["MALE", "FEMALE"];
 
 // *************** Defines the Student schema representing student data in the system
-const StudentSchema = new Schema(
+const studentSchema = new Schema(
   {
     // First name of the student
     first_name: {
@@ -165,4 +165,4 @@ const StudentSchema = new Schema(
 );
 
 // *************** EXPORT MODULE ***************
-module.exports = model("Student", StudentSchema);
+module.exports = model("Student", studentSchema);

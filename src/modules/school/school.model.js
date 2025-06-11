@@ -1,6 +1,7 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model } = require("mongoose");
 
+// *************** Constant Enum
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 const DEFALUT_VALID_STATUS = "PENDING";
 

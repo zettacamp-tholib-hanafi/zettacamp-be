@@ -15,24 +15,18 @@ const ERROR_CODES = {
  * @param {object} [metadata={}] - Extra metadata (e.g., field name).
  * @returns {Error} AppError instance with GraphQL-compatible structure.
  */
-const createAppError = (message, type = "INTERNAL", metadata = {}) => {
+const CreateAppError = (message, type = "INTERNAL", metadata = {}) => {
   const code = ERROR_CODES[type] || ERROR_CODES.INTERNAL;
 
   const error = new Error(message);
   error.name = "AppError";
 
   error.extensions = {
-    // *************** GraphQL-compliant code for frontend interpretation
     code,
-
-    // *************** Logical type useful for internal debugging and filtering
     type,
-
-    // *************** Metadata helps identify source (e.g., field, ID)
     metadata,
   };
 
-  // *************** Return custom error object
   return error;
 };
 
@@ -44,38 +38,37 @@ const createAppError = (message, type = "INTERNAL", metadata = {}) => {
  * @param {string} [type='INTERNAL'] - Logical error type.
  * @returns {Error} AppError (or passthrough if already structured).
  */
-const handleCaughtError = (
+const HandleCaughtError = (
   originalError,
   fallbackMessage,
   type = "INTERNAL"
 ) => {
-  // *************** Use fallback if error has no message
   const message = originalError ? originalError.message : fallbackMessage;
 
-  // *************** Already formatted, return as-is
-  if (originalError && originalError.extensions && !originalError.extensions.code) {
+  if (
+    originalError &&
+    originalError.extensions &&
+    !originalError.extensions.code
+  ) {
     return originalError;
   }
 
-  // *************** Log original error for backend inspection
   console.error("[ERROR]", originalError);
 
-  // *************** Special handling for MongoDB duplicate key error
   if (originalError.code === 11000) {
-    // *************** Extract duplicated field name from error object
     const duplicatedField =
-      Object.keys(originalError.keyPattern ? originalError.keyPattern : {})[0] || "Field";
+      Object.keys(
+        originalError.keyPattern ? originalError.keyPattern : {}
+      )[0] || "Field";
 
-    // *************** Return structured duplicate key error
-    return createAppError(
+    return CreateAppError(
       `${capitalize(duplicatedField)} already exists.`,
       "DUPLICATE_KEY",
       { field: duplicatedField }
     );
   }
 
-  // *************** Default fallback to internal error
-  return createAppError(message, type);
+  return CreateAppError(message, type);
 };
 
 /**
@@ -87,21 +80,13 @@ const handleCaughtError = (
  * @param {import('graphql').GraphQLError} error - The original GraphQL error object.
  * @returns {object} Cleaned error response with limited fields.
  */
-const formatError = (error) => {
+const FormatError = (error) => {
   return {
     message: error.message,
-
-    // *************** Path to field/mutation that caused the error
     path: error.path,
-
     extensions: {
-      // *************** GraphQL-compliant error code (for frontend handling)
-      code: error.extensions? error.extensions.code : "INTERNAL_SERVER_ERROR",
-
-      // *************** Logical type of error for internal grouping
+      code: error.extensions ? error.extensions.code : "INTERNAL_SERVER_ERROR",
       type: error.extensions ? error.extensions.type : "INTERNAL",
-
-      // *************** Optional metadata (e.g., field name)
       metadata: error.extensions ? error.extensions.metadata : null,
     },
   };
@@ -114,13 +99,12 @@ const formatError = (error) => {
  * @returns {string}
  */
 const capitalize = (str) =>
-  // *************** Title-case utility for field names in messages
   str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
 
 // *************** EXPORT MODULE ***************
 
 module.exports = {
-  createAppError,
-  handleCaughtError,
-  formatError,
+  CreateAppError,
+  HandleCaughtError,
+  FormatError,
 };

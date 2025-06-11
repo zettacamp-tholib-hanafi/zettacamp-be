@@ -11,11 +11,16 @@ const {
   ApolloServerPluginLandingPageLocalDefault,
 } = require("@apollo/server/plugin/landingPage/default");
 
-// *************** IMPORT UTILITIES ***************
+// *************** IMPORT CORE ***************
 const ConnectDB = require("./src/core/db");
-const { studentLoader } = require("./src/modules/student/student.loader");
-const { schoolLoader } = require("./src/modules/school/school.loader");
-const { formatError } = require("./src/core/error");
+
+// *************** IMPORT MODULE ***************
+const { StudentLoader } = require("./src/modules/student/student.loader");
+const { SchoolLoader } = require("./src/modules/school/school.loader");
+const { FormatError } = require("./src/core/error");
+
+// *************** Constant
+const PORT = process.env.PORT;
 
 // *************** Connect to MongoDB
 ConnectDB();
@@ -32,7 +37,7 @@ const resolvers = mergeResolvers(
 const apollo = new ApolloServer({
   typeDefs,
   resolvers,
-  formatError,
+  FormatError,
   plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
 });
 
@@ -50,25 +55,24 @@ const apollo = new ApolloServer({
  * @async
  * @returns {Promise<void>} Resolves when server is successfully started.
  */
-
+const contextApollo = {
+  context: async () => ({
+    loaders: {
+      student: StudentLoader(),
+      school: SchoolLoader(),
+    },
+  }),
+};
 async function start() {
   await apollo.start();
 
   const app = express();
-  const PORT = process.env.PORT;
 
   app.use(
     "/graphql",
     cors(),
     express.json(),
-    expressMiddleware(apollo, {
-      context: async ({ req }) => ({
-        loaders: {
-          student: studentLoader(),
-          school: schoolLoader(),
-        },
-      }),
-    })
+    expressMiddleware(apollo, contextApollo)
   );
 
   app.listen(PORT, () => {

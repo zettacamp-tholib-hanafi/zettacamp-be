@@ -1,7 +1,8 @@
-// *************** IMPORT UTILITIES ***************
-const { createAppError } = require("../../core/error.js");
+// *************** IMPORT CORE ***************
+const { CreateAppError } = require("../../core/error.js");
 
-// *************** CONSTANTS ***************
+// *************** Constant Regex & Enum
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_REGEX = /^https?:\/\/.+\..+/;
 const VALID_ROLES = ["ACADEMIC_DIRECTOR", "ACADEMIC_ADMIN", "CORRECTOR"];
@@ -14,7 +15,7 @@ const VALID_DEPARTMENTS = ["ACADEMIC", "ADMISSIONS"];
  * @param {Object} input - User input object.
  * @throws {AppError} If any validation fails.
  */
-function validateCreateUserInput(input) {
+function ValidateCreateUserInput(input) {
   const {
     first_name,
     last_name,
@@ -30,25 +31,25 @@ function validateCreateUserInput(input) {
 
   // *************** Basic required string fields
   if (typeof first_name !== "string" || !first_name.trim()) {
-    throw createAppError("First name is required.", "VALIDATION_ERROR", {
+    throw CreateAppError("First name is required.", "VALIDATION_ERROR", {
       field: "first_name",
     });
   }
 
   if (typeof last_name !== "string" || !last_name.trim()) {
-    throw createAppError("Last name is required.", "VALIDATION_ERROR", {
+    throw CreateAppError("Last name is required.", "VALIDATION_ERROR", {
       field: "last_name",
     });
   }
 
   if (typeof email !== "string" || !email.trim() || !EMAIL_REGEX.test(email)) {
-    throw createAppError("Email is invalid.", "VALIDATION_ERROR", {
+    throw CreateAppError("Email is invalid.", "VALIDATION_ERROR", {
       field: "email",
     });
   }
 
   if (typeof password !== "string" || password.length < 8) {
-    throw createAppError(
+    throw CreateAppError(
       "Password must be at least 8 characters long.",
       "VALIDATION_ERROR",
       { field: "password" }
@@ -56,7 +57,7 @@ function validateCreateUserInput(input) {
   }
   const invalidRoles = input.role.filter((role) => !VALID_ROLES.includes(role));
   if (invalidRoles.length > 0) {
-    throw createAppError("Invalid role value.", "VALIDATION_ERROR", {
+    throw CreateAppError("Invalid role value.", "VALIDATION_ERROR", {
       field: "role",
       invalidValues: invalidRoles,
     });
@@ -64,13 +65,13 @@ function validateCreateUserInput(input) {
 
   // *************** Optional / enum validation
   if (user_status && !VALID_STATUSES.includes(user_status)) {
-    throw createAppError("Invalid user_status value.", "VALIDATION_ERROR", {
+    throw CreateAppError("Invalid user_status value.", "VALIDATION_ERROR", {
       field: "user_status",
     });
   }
 
   if (phone && (typeof phone !== "string" || !phone.trim())) {
-    throw createAppError("Phone must be a valid string.", "VALIDATION_ERROR", {
+    throw CreateAppError("Phone must be a valid string.", "VALIDATION_ERROR", {
       field: "phone",
     });
   }
@@ -80,7 +81,7 @@ function validateCreateUserInput(input) {
     (typeof profile_picture_url !== "string" ||
       !URL_REGEX.test(profile_picture_url))
   ) {
-    throw createAppError(
+    throw CreateAppError(
       "Invalid profile_picture_url format.",
       "VALIDATION_ERROR",
       {
@@ -90,19 +91,19 @@ function validateCreateUserInput(input) {
   }
 
   if (department && !VALID_DEPARTMENTS.includes(department)) {
-    throw createAppError("Invalid department.", "VALIDATION_ERROR", {
+    throw CreateAppError("Invalid department.", "VALIDATION_ERROR", {
       field: "department",
     });
   }
 
   if (preferences) {
     if (preferences.language && typeof preferences.language !== "string") {
-      throw createAppError("Invalid preferences.language", "VALIDATION_ERROR", {
+      throw CreateAppError("Invalid preferences.language", "VALIDATION_ERROR", {
         field: "preferences.language",
       });
     }
     if (preferences.timezone && typeof preferences.timezone !== "string") {
-      throw createAppError("Invalid preferences.timezone", "VALIDATION_ERROR", {
+      throw CreateAppError("Invalid preferences.timezone", "VALIDATION_ERROR", {
         field: "preferences.timezone",
       });
     }
@@ -115,7 +116,7 @@ function validateCreateUserInput(input) {
  * @param {Object} input - Partial user input object.
  * @throws {AppError} If any validation fails.
  */
-function validateUpdateUserInput(input) {
+function ValidateUpdateUserInput(input) {
   const {
     first_name,
     last_name,
@@ -131,7 +132,7 @@ function validateUpdateUserInput(input) {
 
   if (first_name !== undefined) {
     if (typeof first_name !== "string" || !first_name.trim()) {
-      throw createAppError(
+      throw CreateAppError(
         "First name must be a non-empty string.",
         "VALIDATION_ERROR",
         {
@@ -143,7 +144,7 @@ function validateUpdateUserInput(input) {
 
   if (last_name !== undefined) {
     if (typeof last_name !== "string" || !last_name.trim()) {
-      throw createAppError(
+      throw CreateAppError(
         "Last name must be a non-empty string.",
         "VALIDATION_ERROR",
         {
@@ -155,7 +156,7 @@ function validateUpdateUserInput(input) {
 
   if (email !== undefined) {
     if (typeof email !== "string" || !EMAIL_REGEX.test(email)) {
-      throw createAppError("Email is invalid.", "VALIDATION_ERROR", {
+      throw CreateAppError("Email is invalid.", "VALIDATION_ERROR", {
         field: "email",
       });
     }
@@ -163,7 +164,7 @@ function validateUpdateUserInput(input) {
 
   if (password !== undefined) {
     if (typeof password !== "string" || password.length < 8) {
-      throw createAppError(
+      throw CreateAppError(
         "Password must be at least 8 characters long.",
         "VALIDATION_ERROR",
         {
@@ -175,7 +176,7 @@ function validateUpdateUserInput(input) {
 
   if (role !== undefined) {
     if (!Array.isArray(role) || role.length === 0) {
-      throw createAppError(
+      throw CreateAppError(
         "Role must be a non-empty array.",
         "VALIDATION_ERROR",
         {
@@ -186,7 +187,7 @@ function validateUpdateUserInput(input) {
 
     const invalidRoles = role.filter((r) => !VALID_ROLES.includes(r));
     if (invalidRoles.length > 0) {
-      throw createAppError("Invalid role value.", "VALIDATION_ERROR", {
+      throw CreateAppError("Invalid role value.", "VALIDATION_ERROR", {
         field: "role",
         invalidValues: invalidRoles,
       });
@@ -194,13 +195,13 @@ function validateUpdateUserInput(input) {
   }
 
   if (user_status !== undefined && !VALID_STATUSES.includes(user_status)) {
-    throw createAppError("Invalid user_status value.", "VALIDATION_ERROR", {
+    throw CreateAppError("Invalid user_status value.", "VALIDATION_ERROR", {
       field: "user_status",
     });
   }
 
   if (phone !== undefined && (typeof phone !== "string" || !phone.trim())) {
-    throw createAppError("Phone must be a valid string.", "VALIDATION_ERROR", {
+    throw CreateAppError("Phone must be a valid string.", "VALIDATION_ERROR", {
       field: "phone",
     });
   }
@@ -210,7 +211,7 @@ function validateUpdateUserInput(input) {
     (typeof profile_picture_url !== "string" ||
       !/^https?:\/\/.+\..+/.test(profile_picture_url))
   ) {
-    throw createAppError(
+    throw CreateAppError(
       "Invalid profile_picture_url format.",
       "VALIDATION_ERROR",
       {
@@ -220,19 +221,19 @@ function validateUpdateUserInput(input) {
   }
 
   if (department !== undefined && !VALID_DEPARTMENTS.includes(department)) {
-    throw createAppError("Invalid department.", "VALIDATION_ERROR", {
+    throw CreateAppError("Invalid department.", "VALIDATION_ERROR", {
       field: "department",
     });
   }
 
   if (preferences !== undefined) {
     if (preferences.language && typeof preferences.language !== "string") {
-      throw createAppError("Invalid preferences.language", "VALIDATION_ERROR", {
+      throw CreateAppError("Invalid preferences.language", "VALIDATION_ERROR", {
         field: "preferences.language",
       });
     }
     if (preferences.timezone && typeof preferences.timezone !== "string") {
-      throw createAppError("Invalid preferences.timezone", "VALIDATION_ERROR", {
+      throw CreateAppError("Invalid preferences.timezone", "VALIDATION_ERROR", {
         field: "preferences.timezone",
       });
     }
@@ -241,6 +242,6 @@ function validateUpdateUserInput(input) {
 
 // *************** EXPORT MODULE ***************
 module.exports = {
-  validateCreateUserInput,
-  validateUpdateUserInput,
+  ValidateCreateUserInput,
+  ValidateUpdateUserInput,
 };

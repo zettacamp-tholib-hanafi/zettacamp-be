@@ -3,13 +3,14 @@ const User = require("./user.model.js");
 
 // *************** IMPORT VALIDATOR ***************
 const {
-  validateCreateUserInput,
-  validateUpdateUserInput,
+  ValidateCreateUserInput,
+  ValidateUpdateUserInput,
 } = require("./user.validator.js");
 
-// *************** IMPORT UTILITIES ***************
-const { handleCaughtError, createAppError } = require("../../core/error.js");
+// *************** IMPORT CORE ***************
+const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
+// *************** Constant Enum
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
@@ -30,7 +31,7 @@ async function GetAllUsers(_, { filter }) {
 
     if (filter && filter.user_status) {
       if (!VALID_STATUS.includes(filter.user_status)) {
-        throw createAppError(
+        throw CreateAppError(
           "Invalid user_status filter value",
           "BAD_REQUEST",
           { user_status: filter.user_status }
@@ -43,7 +44,7 @@ async function GetAllUsers(_, { filter }) {
 
     return await User.find(query);
   } catch (error) {
-    throw handleCaughtError(error, "Failed to fetch users");
+    throw HandleCaughtError(error, "Failed to fetch users");
   }
 }
 
@@ -64,7 +65,7 @@ async function GetOneUser(_, { id, filter }) {
 
     if (filter && filter.user_status) {
       if (!VALID_STATUS.includes(filter.user_status)) {
-        throw createAppError(
+        throw CreateAppError(
           "Invalid user_status filter value",
           "BAD_REQUEST",
           { user_status: filter.user_status }
@@ -77,12 +78,12 @@ async function GetOneUser(_, { id, filter }) {
 
     const user = await User.findOne(query);
     if (!user) {
-      throw createAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("User not found", "NOT_FOUND", { id });
     }
 
     return user;
   } catch (error) {
-    throw handleCaughtError(error, "Failed to fetch user", "INTERNAL");
+    throw HandleCaughtError(error, "Failed to fetch user", "INTERNAL");
   }
 }
 
@@ -98,11 +99,11 @@ async function GetOneUser(_, { id, filter }) {
 
 async function CreateUser(_, { input }) {
   try {
-    validateCreateUserInput(input);
+    ValidateCreateUserInput(input);
 
     const existing = await User.findOne({ email: input.email });
     if (existing) {
-      throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
+      throw CreateAppError("Email is already in use", "DUPLICATE_FIELD", {
         field: "email",
       });
     }
@@ -125,7 +126,7 @@ async function CreateUser(_, { input }) {
 
     return await user.save();
   } catch (error) {
-    throw handleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
+    throw HandleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
   }
 }
 
@@ -140,17 +141,17 @@ async function CreateUser(_, { input }) {
  */
 async function UpdateUser(_, { id, input }) {
   try {
-    validateUpdateUserInput(input);
+    ValidateUpdateUserInput(input);
 
     const currentUser = await User.findById(id);
     if (!currentUser) {
-      throw createAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("User not found", "NOT_FOUND", { id });
     }
 
     if (input.email && input.email !== currentUser.email) {
       const existing = await User.findOne({ email: input.email });
       if (existing) {
-        throw createAppError("Email is already in use", "DUPLICATE_FIELD", {
+        throw CreateAppError("Email is already in use", "DUPLICATE_FIELD", {
           field: "email",
         });
       }
@@ -177,12 +178,12 @@ async function UpdateUser(_, { id, input }) {
     );
 
     if (!updated) {
-      throw createAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("User not found", "NOT_FOUND", { id });
     }
 
     return updated;
   } catch (error) {
-    throw handleCaughtError(error, "Failed to update user", "VALIDATION_ERROR");
+    throw HandleCaughtError(error, "Failed to update user", "VALIDATION_ERROR");
   }
 }
 
@@ -208,12 +209,12 @@ async function DeleteUser(_, { id }) {
     );
 
     if (!deleted) {
-      throw createAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("User not found", "NOT_FOUND", { id });
     }
 
     return deleted;
   } catch (error) {
-    throw handleCaughtError(error, "Failed to delete user");
+    throw HandleCaughtError(error, "Failed to delete user");
   }
 }
 
