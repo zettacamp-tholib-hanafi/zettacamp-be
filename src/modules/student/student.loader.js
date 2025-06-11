@@ -19,7 +19,7 @@ async function BatchStudentsBySchoolId(school_id) {
   });
 
   return school_id.map((id) =>
-    students.filter((student) => student.school_id.toString() === id.toString())
+    students.filter((student) => String(student.school_id) === String(id))
   );
 }
 

@@ -22,8 +22,7 @@ async function BatchSchoolsById(school_id) {
   });
 
   return school_id.map(
-    (id) =>
-      schools.find((school) => school._id.toString() === id.toString()) || null
+    (id) => schools.find((school) => String(school._id) === String(id)) || null
   );
 }
 
