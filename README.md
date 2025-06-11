@@ -4,7 +4,14 @@ Backend service for **Zettacamp**, built with Node.js, GraphQL, and MongoDB. Thi
 
 ## Getting Started
 
-### 1. Install Dependencies
+### 1. Configure environtment
+
+```bash
+cp .env.example .env
+```
+
+This will install all required Node.js modules listed in `package.json`.
+### 2. Install Dependencies
 
 ```bash
 npm install
@@ -12,7 +19,7 @@ npm install
 
 This will install all required Node.js modules listed in `package.json`.
 
-### 2. Start the Development Server
+### 3. Start the Development Server
 
 ```bash
 npm run dev
@@ -50,10 +57,10 @@ http://localhost:4000/graphql
 
 ## Scripts
 
-| Command       | Description                        |
-| ------------- | ---------------------------------- |
-| `npm install` | Install all project dependencies   |
-| `npm run dev` | Run the server in development mode |
-
+| Command                | Description                                                 |
+| ---------------------- | -------------------------------------------------- |
+| `cp .env.example .env` | Copy environment variables template to actual file |
+| `npm install`          | Install all project dependencies                   |
+| `npm run dev`          | Run the server in development mode                 |
 
 ---
