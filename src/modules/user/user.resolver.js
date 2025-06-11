@@ -122,9 +122,7 @@ async function CreateUser(_, { input }) {
       preferences: input.preferences,
     };
 
-    const user = new User(userInputPayload);
-
-    return await user.save();
+    return await User.create(userInputPayload);
   } catch (error) {
     throw HandleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
   }
@@ -172,7 +170,7 @@ async function UpdateUser(_, { id, input }) {
       updated_by: input.updated_by,
     };
 
-    const updated = await User.findOneAndUpdate(
+    const updated = await User.updateOne(
       { _id: id },
       { $set: userUpdatePayload }
     );
@@ -181,7 +179,7 @@ async function UpdateUser(_, { id, input }) {
       throw CreateAppError("User not found", "NOT_FOUND", { id });
     }
 
-    return updated;
+    return { id };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to update user", "VALIDATION_ERROR");
   }
@@ -198,7 +196,7 @@ async function UpdateUser(_, { id, input }) {
 
 async function DeleteUser(_, { id }) {
   try {
-    const deleted = await User.findOneAndUpdate(
+    const deleted = await User.updateOne(
       { _id: id, user_status: { $ne: "DELETED" } },
       {
         $set: {
@@ -212,7 +210,7 @@ async function DeleteUser(_, { id }) {
       throw CreateAppError("User not found", "NOT_FOUND", { id });
     }
 
-    return deleted;
+    return { id };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete user");
   }
