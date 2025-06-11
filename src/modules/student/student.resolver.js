@@ -12,6 +12,13 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 // *************** Constant Enum
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
+const VALID_GENDERS = ["MALE", "FEMALE"];
+const VALID_ACADEMIC_STATUS = [
+  "ENROLLED",
+  "GRADUATED",
+  "DROPPED_OUT",
+  "TRANSFERRED",
+];
 
 // *************** QUERY ***************
 /**
@@ -30,17 +37,37 @@ async function GetAllStudents(_, { filter }) {
   try {
     const query = {};
 
-    if (filter && filter.student_status) {
-      if (!VALID_STATUS.includes(filter.student_status)) {
-        throw CreateAppError(
-          "Invalid student_status filter value",
-          "BAD_REQUEST",
-          { student_status: filter.student_status }
-        );
+    if (filter) {
+      if (filter.student_status) {
+        if (!VALID_STATUS.includes(filter.student_status)) {
+          throw CreateAppError(
+            "Invalid student_status filter value",
+            "BAD_REQUEST",
+            { student_status: filter.student_status }
+          );
+        }
+        query.student_status = filter.student_status;
+      } else {
+        query.student_status = "ACTIVE";
       }
-      query.student_status = filter.student_status;
-    } else {
-      query.student_status = "ACTIVE";
+      if (filter.academic_status) {
+        if (!VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
+          throw CreateAppError(
+            "Invalid academic_status filter value",
+            "BAD_REQUEST",
+            { academic_status: filter.academic_status }
+          );
+        }
+        query.academic_status = filter.academic_status;
+      }
+      if (filter.gender) {
+        if (!VALID_GENDERS.includes(filter.gender)) {
+          throw CreateAppError("Invalid gender filter value", "BAD_REQUEST", {
+            gender: filter.gender,
+          });
+        }
+        query.gender = filter.gender;
+      }
     }
 
     return await Student.find(query);
@@ -66,17 +93,37 @@ async function GetOneStudent(_, { id, filter }) {
   try {
     const query = { _id: id };
 
-    if (filter && filter.student_status) {
-      if (!VALID_STATUS.includes(filter.student_status)) {
-        throw CreateAppError(
-          "Invalid student_status filter value",
-          "BAD_REQUEST",
-          { student_status: filter.student_status }
-        );
+    if (filter) {
+      if (filter.student_status) {
+        if (!VALID_STATUS.includes(filter.student_status)) {
+          throw CreateAppError(
+            "Invalid student_status filter value",
+            "BAD_REQUEST",
+            { student_status: filter.student_status }
+          );
+        }
+        query.student_status = filter.student_status;
+      } else {
+        query.student_status = "ACTIVE";
       }
-      query.student_status = filter.student_status;
-    } else {
-      query.student_status = "ACTIVE";
+      if (filter.academic_status) {
+        if (!VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
+          throw CreateAppError(
+            "Invalid academic_status filter value",
+            "BAD_REQUEST",
+            { academic_status: filter.academic_status }
+          );
+        }
+        query.academic_status = filter.academic_status;
+      }
+      if (filter.gender) {
+        if (!VALID_GENDERS.includes(filter.gender)) {
+          throw CreateAppError("Invalid gender filter value", "BAD_REQUEST", {
+            gender: filter.gender,
+          });
+        }
+        query.gender = filter.gender;
+      }
     }
 
     const student = await Student.findOne(query);
@@ -266,7 +313,7 @@ async function DeleteStudent(_, { id, input }) {
  */
 
 function schools(student, _, context) {
-  if (context && context.loaders && !context.loaders.schools) {
+  if (!context && !context.loaders && !context.loaders.schools) {
     throw new Error("School loader not initialized");
   }
 

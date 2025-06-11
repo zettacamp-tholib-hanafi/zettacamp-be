@@ -30,51 +30,28 @@ module.exports = gql`
 
   type Student {
     id: ID!
-
     first_name: String!
-
     last_name: String!
-
     email: String!
-
     phone: String
-
     profile_picture_url: String
-
     school_id: ID!
-
     school: School
-
     student_number: String
-
     gender: StudentGender!
-
     birth: StudentBirth!
-
     student_status: StudentStatus!
-
     scholarship: Boolean!
-
     academic_status: AcademicStatus
-
     enrollment_date: Date
-
     graduation_date: Date
-
     dropped_out_date: Date
-
     transferred_date: Date
-
     updated_at: Date
-
     updated_by: String
-
     created_at: Date
-
     created_by: String
-
     deleted_at: Date
-
     deleted_by: String
   }
 
@@ -129,6 +106,8 @@ module.exports = gql`
 
   input StudentFilterInput {
     student_status: StudentStatus
+    academic_status: AcademicStatus
+    gender: StudentGender
   }
 
   extend type Query {

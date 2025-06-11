@@ -123,13 +123,13 @@ input UpdateSchoolInput {
   updated_by: String
 }
 
-input FilterSchoolStatus {
+input SchoolFilterInput {
   school_status: SchoolStatus
 }
 
 extend type Query {
-  GetAllSchools(filter: FilterSchoolStatus): [School!]!
-  GetOneSchool(id: ID!, filter: FilterSchoolStatus): School
+  GetAllSchools(filter: SchoolFilterInput): [School!]!
+  GetOneSchool(id: ID!, filter: SchoolFilterInput): School
 }
 
 extend type Mutation {
