@@ -182,8 +182,7 @@ async function CreateStudent(_, { input }) {
       transferred_date: input.transferred_date,
     };
 
-    const student = new Student(studentInputPayload);
-    return await student.save();
+    return await Student.create(studentInputPayload);
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -248,7 +247,7 @@ async function UpdateStudent(_, { id, input }) {
       updated_at: new Date(),
     };
 
-    const updated = await Student.findOneAndUpdate(
+    const updated = await Student.updateOne(
       { _id: id },
       { $set: studentUpdatePayload }
     );
@@ -257,7 +256,7 @@ async function UpdateStudent(_, { id, input }) {
       throw CreateAppError("Student not found", "NOT_FOUND", { id });
     }
 
-    return updated;
+    return { id };
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -281,7 +280,7 @@ async function UpdateStudent(_, { id, input }) {
 
 async function DeleteStudent(_, { id, input }) {
   try {
-    const deleted = await Student.findOneAndUpdate(
+    const deleted = await Student.updateOne(
       { _id: id, student_status: { $ne: "DELETED" } },
       {
         $set: {
@@ -296,7 +295,7 @@ async function DeleteStudent(_, { id, input }) {
       throw CreateAppError("Student not found", "NOT_FOUND", { id });
     }
 
-    return deleted;
+    return { id };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete student");
   }
