@@ -398,10 +398,13 @@ async function DeleteSchool(_, { id, input }) {
 
 function students(school, _, context) {
   if (!context && !context.loaders && !context.loaders.student) {
-    throw new Error("studentLoader loader not initialized");
+    throw new Error("Student loader not initialized");
   }
-  console.log("loader-school", school);
-  return context.loaders.student.load(String(school._id));
+
+  const studentIds = school.students
+    ? school.students.map((id) => String(id))
+    : [];
+  return context.loaders.student.loadMany(studentIds);
 }
 
 // *************** EXPORT MODULE ***************

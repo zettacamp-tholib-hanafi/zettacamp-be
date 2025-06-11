@@ -5,27 +5,27 @@ const DataLoader = require("dataloader");
 const Student = require("./student.model");
 
 /**
- * Batches students by their associated school IDs using a single database query.
+ * Batches students by their associated student IDs using a single database query.
  *
  * @async
- * @param {Array<string>} school_id - An array of school ObjectIds to group students by.
+ * @param {Array<string>} student_id - An array of student ObjectIds to group students by.
  * @returns {Promise<Array<Array<object>>>} A promise that resolves to an array of student arrays,
  * each sub-array containing students belonging to the corresponding school ID.
  */
 
-async function BatchStudentsBySchoolId(school_id) {
+async function BatchStudentsById(student_id) {
   const students = await Student.find({
-    school_id: { $in: school_id },
+    _id: { $in: student_id },
   });
 
-  return school_id.map((id) =>
-    students.filter((student) => String(student.school_id) === String(id))
+  return student_id.map((id) =>
+    students.find((student) => String(student._id) === String(id))
   );
 }
 
 // *************** LOADER ***************
 function StudentLoader() {
-  return new DataLoader(BatchStudentsBySchoolId);
+  return new DataLoader(BatchStudentsById);
 }
 
 // *************** EXPORT MODULE ***************

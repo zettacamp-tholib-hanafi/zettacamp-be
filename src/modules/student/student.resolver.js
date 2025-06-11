@@ -349,7 +349,7 @@ async function DeleteStudent(_, { id, input }) {
  */
 
 function schools(student, _, context) {
-  if (!context && !context.loaders && !context.loaders.schools) {
+  if (!context && !context.loaders && !context.loaders.school) {
     throw new Error("School loader not initialized");
   }
 
