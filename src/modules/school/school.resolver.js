@@ -274,71 +274,52 @@ async function UpdateSchool(_, { id, input }) {
       throw CreateAppError("School not found", "NOT_FOUND", { id });
     }
 
-    const schoolUpdatePayload = {};
-
-    if (input.short_name !== undefined) {
-      schoolUpdatePayload.short_name = input.short_name;
-    }
-    if (input.long_name !== undefined) {
-      schoolUpdatePayload.long_name = input.long_name;
-    }
-    if (input.logo_url !== undefined) {
-      schoolUpdatePayload.logo_url = input.logo_url;
-    }
-    if (input.verified !== undefined) {
-      schoolUpdatePayload.verified = input.verified.map((verified) => ({
-        status_verified: verified.status_verified,
-        verified_by: verified.verified_by,
-        verified_at: verified.verified_at,
-      }));
-    }
-    if (input.address !== undefined) {
-      schoolUpdatePayload.address = {
-        street_name: input.address.street_name,
-        street_number: input.address.street_number,
-        city: input.address.city,
-        state: input.address.state,
-        postal_code: input.address.postal_code,
-        country: input.address.country,
-        address_line1: input.address.address_line1,
-        address_line2: input.address.address_line2,
-      };
-    }
-    if (input.contact !== undefined) {
-      schoolUpdatePayload.contact = {
-        phone: input.contact.phone,
-        email: input.contact.email,
-        website: input.contact.website,
-      };
-    }
-    if (input.admin_user !== undefined) {
-      schoolUpdatePayload.admin_user = input.admin_user.map((user) => ({
-        id: user.id,
-        role: user.role,
-        assigned_at: user.assigned_at,
-      }));
-    }
-    if (input.school_status !== undefined) {
-      schoolUpdatePayload.school_status = input.school_status;
-    }
-    if (input.student_id !== undefined) {
-      schoolUpdatePayload.student_id = input.student_id;
-    }
-    if (input.deleted_at !== undefined) {
-      schoolUpdatePayload.deleted_at = input.deleted_at;
-    }
-    if (input.deleted_by !== undefined) {
-      schoolUpdatePayload.deleted_by = input.deleted_by;
-    }
-    if (input.created_at !== undefined) {
-      schoolUpdatePayload.created_at = input.created_at;
-    }
-    if (input.created_by !== undefined) {
-      schoolUpdatePayload.created_by = input.created_by;
-    }
-
-    schoolUpdatePayload.updated_at = input.updated_at || new Date();
-    schoolUpdatePayload.updated_by = input.updated_by;
+    const schoolUpdatePayload = {
+      short_name: input.short_name,
+      long_name: input.long_name,
+      logo_url: input.logo_url,
+      verified: input.verified
+        ? input.verified.map((verified) => ({
+            status_verified: verified.status_verified,
+            verified_by: verified.verified_by,
+            verified_at: verified.verified_at,
+          }))
+        : [],
+      address: input.address
+        ? {
+            street_name: input.address.street_name,
+            street_number: input.address.street_number,
+            city: input.address.city,
+            state: input.address.state,
+            postal_code: input.address.postal_code,
+            country: input.address.country,
+            address_line1: input.address.address_line1,
+            address_line2: input.address.address_line2,
+          }
+        : undefined,
+      contact: input.contact
+        ? {
+            phone: input.contact.phone,
+            email: input.contact.email,
+            website: input.contact.website,
+          }
+        : undefined,
+      admin_user: input.admin_user
+        ? input.admin_user.map((user) => ({
+            id: user.id,
+            role: user.role,
+            assigned_at: user.assigned_at,
+          }))
+        : [],
+      school_status: input.school_status,
+      student_id: input.student_id,
+      deleted_at: input.deleted_at,
+      deleted_by: input.deleted_by,
+      created_at: input.created_at ? input.created_at : new Date(),
+      created_by: input.created_by,
+      updated_at: input.updated_at ? input.updated_at : null,
+      updated_by: input.updated_by,
+    };
 
     const updated = await School.updateOne(
       { _id: id },
