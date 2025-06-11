@@ -10,7 +10,6 @@ Backend service for **Zettacamp**, built with Node.js, GraphQL, and MongoDB. Thi
 cp .env.example .env
 ```
 
-This will install all required Node.js modules listed in `package.json`.
 ### 2. Install Dependencies
 
 ```bash
