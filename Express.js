@@ -1,48 +1,32 @@
-// *************** IMPORT LIBRARY ***************
-const express = require("express");
-const cors = require("cors");
-const { expressMiddleware } = require("@apollo/server/express4");
-
 // *************** IMPORT CORE ***************
 const ConnectDB = require("./src/core/db");
-const { PORT } = require("./src/core/config");
 
 // *************** IMPORT MODULE ***************
-const { apollo, contextApollo } = require("./src/core/apollo");
+const { apollo } = require("./src/core/apollo");
+const { ExpressRun } = require("./src/core/express");
 
 /**
- * Initialize and start the Express server with Apollo GraphQL middleware.
+ * Initializes and starts the application server.
  *
- * - Starts Apollo Server instance.
- * - Configures Express with `/graphql` route and applies middleware:
- *   - `cors()` for CORS handling.
- *   - `express.json()` for JSON body parsing.
- *   - `expressMiddleware()` for Apollo integration with custom context.
- * - Context includes DataLoader instances for student and school batching.
- * - Server listens on the configured PORT from environment variables.
+ * This asynchronous function performs the following steps in sequence:
+ * 1. Connects to the MongoDB database.
+ * 2. Starts the Apollo Server instance.
+ * 3. Runs the Express server to begin handling HTTP requests.
  *
  * @async
- * @returns {Promise<void>} Resolves when server is successfully started.
+ * @function start
+ * @returns {Promise<void>} Resolves when all initialization steps are complete.
  */
+
 async function start() {
   // *************** Connect to MongoDB
   await ConnectDB();
-  
+
   // *************** Initialize Apollo Server
   await apollo.start();
 
-  const app = express();
-
-  app.use(
-    "/graphql",
-    cors(),
-    express.json(),
-    expressMiddleware(apollo, contextApollo)
-  );
-
-  app.listen(PORT, () => {
-    console.log(`GraphQL Playground ready at http://localhost:${PORT}/graphql`);
-  });
+  // *************** Run express
+  ExpressRun();
 }
 // *************** Call Apollo Server
 start();
