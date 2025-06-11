@@ -1,7 +1,6 @@
 // *************** IMPORT LIBRARY ***************
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
 const path = require("path");
@@ -13,14 +12,13 @@ const {
 
 // *************** IMPORT CORE ***************
 const ConnectDB = require("./src/core/db");
+const { PORT } = require("./src/core/config");
 
 // *************** IMPORT MODULE ***************
 const { StudentLoader } = require("./src/modules/student/student.loader");
 const { SchoolLoader } = require("./src/modules/school/school.loader");
 const { FormatError } = require("./src/core/error");
 
-// *************** Constant
-const PORT = process.env.PORT;
 
 // *************** Connect to MongoDB
 ConnectDB();
