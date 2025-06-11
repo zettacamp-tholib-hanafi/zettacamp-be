@@ -136,7 +136,6 @@ async function GetOneSchool(_, { id, filter }) {
  * @param {string} args.input.admin_user[].role - Assigned role.
  * @param {Date} args.input.admin_user[].assigned_at - Assignment timestamp.
  * @param {string} args.input.school_status - Status of the school.
- * @param {string[]} [args.input.student_id] - Optional array of associated student IDs.
  * @param {Date} [args.input.deleted_at] - Deletion timestamp, if soft-deleted.
  * @param {string} [args.input.deleted_by] - User who marked as deleted.
  * @param {Date} [args.input.created_at] - Timestamp of creation (default: now).
@@ -193,7 +192,6 @@ async function CreateSchool(_, { input }) {
           }))
         : [],
       school_status: input.school_status,
-      student_id: input.student_id,
       deleted_at: input.deleted_at,
       deleted_by: input.deleted_by,
       created_at: input.created_at ? input.created_at : new Date(),
@@ -250,7 +248,6 @@ async function CreateSchool(_, { input }) {
  * @param {string} args.input.admin_user[].role - Role of the admin.
  * @param {Date} args.input.admin_user[].assigned_at - Assignment timestamp.
  * @param {string} [args.input.school_status] - Status of the school.
- * @param {string} [args.input.student_id] - Linked student ID.
  * @param {Date} [args.input.deleted_at] - Soft delete timestamp.
  * @param {string} [args.input.deleted_by] - User who deleted the record.
  * @param {Date} [args.input.created_at] - Creation timestamp (optional override).
@@ -403,8 +400,8 @@ function students(school, _, context) {
   if (!context && !context.loaders && !context.loaders.student) {
     throw new Error("studentLoader loader not initialized");
   }
-
-  return context.loaders.student.load(school._id.toString());
+  console.log("loader-school", school);
+  return context.loaders.student.load(String(school._id));
 }
 
 // *************** EXPORT MODULE ***************

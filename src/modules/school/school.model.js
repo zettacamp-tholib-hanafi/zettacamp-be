@@ -1,5 +1,5 @@
 // *************** IMPORT LIBRARY ***************
-const { Schema, model } = require("mongoose");
+const { Schema, model, Types } = require("mongoose");
 
 // *************** Constant Enum
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
@@ -84,12 +84,13 @@ const schoolSchema = new Schema(
       trim: true,
     },
 
-    // Reference to student ID (optional)
-    student_id: {
-      type: String,
-      default: null,
-      trim: true,
-    },
+    // Array of Student ID (optional)
+    students: [
+      {
+        type: Types.ObjectId,
+        ref: "Student",
+      },
+    ],
 
     // Soft delete fields
     deleted_at: {

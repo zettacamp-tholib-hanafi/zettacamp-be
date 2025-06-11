@@ -48,7 +48,6 @@ type School {
   contact: Contact
   admin_user: [AdminUser]
   school_status: SchoolStatus!
-  student_id: String
   deleted_at: Date
   deleted_by: String
   created_at: Date!
@@ -96,7 +95,6 @@ input CreateSchoolInput {
   contact: ContactInput
   admin_user: [AdminUserInput]
   school_status: SchoolStatus!
-  student_id: String
   deleted_at: Date
   deleted_by: String
   created_at: Date!
@@ -114,7 +112,6 @@ input UpdateSchoolInput {
   contact: ContactInput
   admin_user: [AdminUserInput]
   school_status: SchoolStatus
-  student_id: String
   deleted_at: Date
   deleted_by: String
   created_at: Date
