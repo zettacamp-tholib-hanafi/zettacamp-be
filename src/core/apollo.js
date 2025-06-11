@@ -3,9 +3,6 @@ const {
   ApolloServerPluginLandingPageLocalDefault,
 } = require("@apollo/server/plugin/landingPage/default");
 const { ApolloServer } = require("@apollo/server");
-const path = require("path");
-const { mergeResolvers, mergeTypeDefs } = require("@graphql-tools/merge");
-const { loadFilesSync } = require("@graphql-tools/load-files");
 
 // *************** IMPORT CORE ***************
 const { FormatError } = require("./error");
@@ -14,12 +11,17 @@ const { FormatError } = require("./error");
 const { SchoolLoader } = require("../modules/school/school.loader");
 const { StudentLoader } = require("../modules/student/student.loader");
 
-const typeDefs = mergeTypeDefs(
-  loadFilesSync(path.join(__dirname, "../modules/**/*.typedef.js"))
-);
-const resolvers = mergeResolvers(
-  loadFilesSync(path.join(__dirname, "../modules/**/*.resolver.js"))
-);
+const userTypeDefs = require("../modules/user/user.typedef");
+const studentTypeDefs = require("../modules/student/student.typedef");
+const schoolTypeDefs = require("../modules/school/school.typedef");
+
+const userResolvers = require("../modules/user/user.resolver");
+const studentResolvers = require("../modules/student/student.resolver");
+const schoolResolvers = require("../modules/school/school.resolver");
+
+const typeDefs = [userTypeDefs, studentTypeDefs, schoolTypeDefs];
+
+const resolvers = [userResolvers, studentResolvers, schoolResolvers];
 
 const apollo = new ApolloServer({
   typeDefs,
