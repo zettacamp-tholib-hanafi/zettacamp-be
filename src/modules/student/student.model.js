@@ -123,7 +123,7 @@ const studentSchema = new Schema(
       default: null,
     },
 
-    // Last update timestamp (optional, managed manually)
+    // Last update timestamp by system
     updated_at: {
       type: Date,
       default: null,
@@ -136,12 +136,12 @@ const studentSchema = new Schema(
       trim: true,
     },
 
-    // Creation timestamp (required)
+    // Creation timestamp by system
     created_at: {
       type: Date,
     },
 
-    // User ID of the creator (required)
+    // User ID of the creator
     created_by: {
       type: String,
     },
