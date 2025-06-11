@@ -282,7 +282,7 @@ async function UpdateStudent(_, { id, input }) {
 async function DeleteStudent(_, { id, input }) {
   try {
     const deleted = await Student.findOneAndUpdate(
-      { _id: id },
+      { _id: id, student_status: { $ne: "DELETED" } },
       {
         $set: {
           student_status: "DELETED",

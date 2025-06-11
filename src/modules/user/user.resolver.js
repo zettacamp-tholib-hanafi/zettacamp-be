@@ -199,7 +199,7 @@ async function UpdateUser(_, { id, input }) {
 async function DeleteUser(_, { id }) {
   try {
     const deleted = await User.findOneAndUpdate(
-      { _id: id },
+      { _id: id, user_status: { $ne: "DELETED" } },
       {
         $set: {
           user_status: "DELETED",
