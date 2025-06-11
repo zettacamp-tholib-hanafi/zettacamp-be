@@ -12,10 +12,7 @@ const {
 } = require("./school.validator.js");
 
 // *************** IMPORT CORE ***************
-const {
-  HandleCaughtError,
-  CreateAppError,
-} = require("../../core/error.js");
+const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
@@ -205,8 +202,7 @@ async function CreateSchool(_, { input }) {
       updated_by: input.updated_by,
     };
 
-    const school = new School(schoolInputPayload);
-    return await school.save();
+    return await School.create(schoolInputPayload);
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -344,7 +340,7 @@ async function UpdateSchool(_, { id, input }) {
     schoolUpdatePayload.updated_at = input.updated_at || new Date();
     schoolUpdatePayload.updated_by = input.updated_by;
 
-    const updated = await School.findOneAndUpdate(
+    const updated = await School.updateOne(
       { _id: id },
       { $set: schoolUpdatePayload }
     );
@@ -352,8 +348,7 @@ async function UpdateSchool(_, { id, input }) {
     if (!updated) {
       throw CreateAppError("School not found", "NOT_FOUND", { id });
     }
-
-    return updated;
+    return { id };
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -386,7 +381,7 @@ async function UpdateSchool(_, { id, input }) {
 
 async function DeleteSchool(_, { id, input }) {
   try {
-    const deleted = await School.findOneAndUpdate(
+    const deleted = await School.updateOne(
       { _id: id, school_status: { $ne: "DELETED" } },
       {
         $set: {
@@ -401,7 +396,7 @@ async function DeleteSchool(_, { id, input }) {
       throw CreateAppError("School not found", "NOT_FOUND", { id });
     }
 
-    return deleted;
+    return { id };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete school");
   }
