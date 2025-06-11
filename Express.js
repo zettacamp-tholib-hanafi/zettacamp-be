@@ -1,43 +1,14 @@
 // *************** IMPORT LIBRARY ***************
 const express = require("express");
 const cors = require("cors");
-const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
-const path = require("path");
-const { loadFilesSync } = require("@graphql-tools/load-files");
-const { mergeTypeDefs, mergeResolvers } = require("@graphql-tools/merge");
-const {
-  ApolloServerPluginLandingPageLocalDefault,
-} = require("@apollo/server/plugin/landingPage/default");
 
 // *************** IMPORT CORE ***************
 const ConnectDB = require("./src/core/db");
 const { PORT } = require("./src/core/config");
 
 // *************** IMPORT MODULE ***************
-const { StudentLoader } = require("./src/modules/student/student.loader");
-const { SchoolLoader } = require("./src/modules/school/school.loader");
-const { FormatError } = require("./src/core/error");
-
-
-// *************** Connect to MongoDB
-ConnectDB();
-
-// *************** Load GraphQL schema and resolvers
-const typeDefs = mergeTypeDefs(
-  loadFilesSync(path.join(__dirname, "src/modules/**/*.typedef.js"))
-);
-const resolvers = mergeResolvers(
-  loadFilesSync(path.join(__dirname, "src/modules/**/*.resolver.js"))
-);
-
-// *************** Configure Apollo Server
-const apollo = new ApolloServer({
-  typeDefs,
-  resolvers,
-  FormatError,
-  plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
-});
+const { apollo, contextApollo } = require("./src/core/apollo");
 
 /**
  * Initialize and start the Express server with Apollo GraphQL middleware.
@@ -53,15 +24,11 @@ const apollo = new ApolloServer({
  * @async
  * @returns {Promise<void>} Resolves when server is successfully started.
  */
-const contextApollo = {
-  context: async () => ({
-    loaders: {
-      student: StudentLoader(),
-      school: SchoolLoader(),
-    },
-  }),
-};
 async function start() {
+  // *************** Connect to MongoDB
+  await ConnectDB();
+  
+  // *************** Initialize Apollo Server
   await apollo.start();
 
   const app = express();
