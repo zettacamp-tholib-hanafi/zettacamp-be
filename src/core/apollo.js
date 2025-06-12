@@ -6,22 +6,11 @@ const { ApolloServer } = require("@apollo/server");
 
 // *************** IMPORT CORE ***************
 const { FormatError } = require("./error");
+const { typeDefs } = require("./typedef");
+const { resolvers } = require("./resolver");
+const { Loaders } = require("./loader");
 
 // *************** IMPORT MODULE ***************
-const { SchoolLoader } = require("../modules/school/school.loader");
-const { StudentLoader } = require("../modules/student/student.loader");
-
-const userTypeDefs = require("../modules/user/user.typedef");
-const studentTypeDefs = require("../modules/student/student.typedef");
-const schoolTypeDefs = require("../modules/school/school.typedef");
-
-const userResolvers = require("../modules/user/user.resolver");
-const studentResolvers = require("../modules/student/student.resolver");
-const schoolResolvers = require("../modules/school/school.resolver");
-
-const typeDefs = [userTypeDefs, studentTypeDefs, schoolTypeDefs];
-
-const resolvers = [userResolvers, studentResolvers, schoolResolvers];
 
 const apollo = new ApolloServer({
   typeDefs,
@@ -32,10 +21,7 @@ const apollo = new ApolloServer({
 
 const contextApollo = {
   context: async () => ({
-    loaders: {
-      student: StudentLoader(),
-      school: SchoolLoader(),
-    },
+    loaders: Loaders,
   }),
 };
 
