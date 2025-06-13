@@ -204,6 +204,46 @@ async function UpdateBlock(_, { id, input }) {
   }
 }
 
+/**
+ * Soft delete a block by marking its status as `DELETED`.
+ *
+ * This resolver performs a soft delete operation by updating the `block_status` to `DELETED`,
+ * along with setting the `deleted_at` timestamp and optionally the `deleted_by` user ID.
+ * It only applies the update if the block is not already marked as `DELETED`.
+ *
+ * @param {Object} _ - Unused parent resolver argument (GraphQL convention).
+ * @param {Object} args - Arguments passed to the mutation.
+ * @param {string} args.id - The ID of the block to soft delete.
+ * @param {string} [args.deleted_by] - Optional ID of the user performing the deletion.
+ *
+ * @returns {Promise<Object>} An object containing the ID of the deleted block.
+ *
+ * @throws {AppError} Throws `NOT_FOUND` if the block does not exist or is already deleted.
+ */
+
+async function DeleteBlock(_, { id, deleted_by }) {
+  try {
+    const deleted = await Block.updateOne(
+      { _id: id, block_status: { $ne: "DELETED" } },
+      {
+        $set: {
+          block_status: "DELETED",
+          deleted_at: new Date(),
+          deleted_by: deleted_by ? deleted_by : null,
+        },
+      }
+    );
+
+    if (!deleted) {
+      throw CreateAppError("Block not found", "NOT_FOUND", { id });
+    }
+
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to delete block");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -213,5 +253,6 @@ module.exports = {
   Mutation: {
     CreateBlock,
     UpdateBlock,
+    DeleteBlock,
   },
 };
