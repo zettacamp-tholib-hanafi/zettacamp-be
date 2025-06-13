@@ -305,6 +305,31 @@ async function DeleteTest(_, { id, deleted_by }) {
   }
 }
 
+/**
+ * Field resolver for fetching the subject associated with a test.
+ *
+ * This resolver uses a DataLoader (`context.loaders.subject`) to efficiently
+ * load the subject related to a given test, based on `subject_id`.
+ * It ensures that the loader is available in the context before attempting the lookup.
+ *
+ * @function subjects
+ * @param {Object} test - The parent test object, typically returned by a higher-level resolver.
+ * @param {Object} args - Unused in this resolver, included for GraphQL resolver signature compliance.
+ * @param {Object} context - The GraphQL execution context, expected to contain `loaders.subject`.
+ *
+ * @throws {Error} If the `context`, `context.loaders`, or `context.loaders.subject` is not properly initialized.
+ *
+ * @returns {Promise<Object>} A promise that resolves to the subject document corresponding to `test.subject_id`.
+ */
+
+function subjects(test, args, context) {
+  if (!context && !context.loaders && !context.loaders.test) {
+    throw new Error("Test loader not initialized");
+  }
+
+  return context.loaders.subject.load(String(test.subject_id));
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -315,5 +340,8 @@ module.exports = {
     CreateTest,
     UpdateTest,
     DeleteTest,
+  },
+  Test: {
+    subject: subjects,
   },
 };

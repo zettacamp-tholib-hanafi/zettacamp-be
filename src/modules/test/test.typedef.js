@@ -28,6 +28,7 @@ module.exports = gql`
     id: ID!
     name: String!
     subject_id: ID!
+    subject: Subject
     description: String
     weight: Float!
     notations: [Notation!]!
