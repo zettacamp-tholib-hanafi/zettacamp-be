@@ -2,6 +2,7 @@
 const Block = require("./block.model.js");
 
 // *************** IMPORT VALIDATOR ***************
+const { ValidateCreateBlock } = require("./block.validator.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -96,10 +97,66 @@ async function GetOneBlock(_, { id, filter }) {
   }
 }
 
+// *************** MUTATION ***************
+
+/**
+ * Create a new block with validated input data.
+ *
+ * This resolver handles the creation of a new block entity in the system.
+ * It first validates the input fields using `ValidateCreateBlock`, ensuring
+ * that all required data is present and properly formatted. If validation passes,
+ * it constructs the payload and stores the new block in the database.
+ *
+ * Optional fields like `description`, `end_date`, and `subjects` are defaulted to `null`
+ * or an empty array if not provided.
+ *
+ * @param {Object} _ - Unused parent resolver argument (per GraphQL convention).
+ * @param {Object} args - Arguments passed to the mutation.
+ * @param {Object} args.input - Input object for creating a new block.
+ * @param {string} args.input.name - Name of the block (required).
+ * @param {string} [args.input.description] - Optional block description.
+ * @param {string} args.input.block_status - Enum status of the block (ACTIVE, ARCHIVED, DELETED).
+ * @param {string|Date} args.input.start_date - Start date of the block (required).
+ * @param {string|Date} [args.input.end_date] - Optional end date of the block.
+ * @param {string[]} [args.input.subjects] - Optional array of subject ObjectIds.
+ * @param {string|Date} args.input.created_at - Creation timestamp (required).
+ *
+ * @returns {Promise<Object>} A promise that resolves to the newly created Block document.
+ *
+ * @throws {AppError} Throws `VALIDATION_ERROR` if input is invalid, or other error if creation fails.
+ */
+
+async function CreateBlock(_, { input }) {
+  try {
+    const { name, description, block_status, start_date, end_date, subjects } =
+      await ValidateCreateBlock(input);
+
+    const blockInputPayload = {
+      name,
+      description: description ? description : null,
+      block_status,
+      start_date,
+      end_date: end_date ? end_date : null,
+      subjects: Array.isArray(subjects) ? subjects : [],
+    };
+
+    return await Block.create(blockInputPayload);
+  } catch (error) {
+    throw HandleCaughtError(
+      error,
+      "Failed to create block",
+      "VALIDATION_ERROR"
+    );
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
     GetAllBlocks,
     GetOneBlock,
+  },
+  Mutation: {
+    CreateBlock,
   },
 };
