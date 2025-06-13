@@ -50,6 +50,24 @@ async function GetAllBlocks(_, { filter }) {
   }
 }
 
+/**
+ * Get a single block by ID with an optional status filter.
+ *
+ * This resolver fetches a single academic block from the database using its ID.
+ * If a `block_status` filter is provided, the query will only match blocks with that status.
+ * If no filter is specified, it defaults to querying blocks with status `ACTIVE`.
+ *
+ * @param {Object} _ - Unused parent resolver argument (per GraphQL convention).
+ * @param {Object} args - Arguments passed to the query.
+ * @param {string} args.id - The ID of the block to retrieve.
+ * @param {Object} args.filter - Optional filter object.
+ * @param {string} args.filter.block_status - Filter by block status (e.g., 'ACTIVE', 'ARCHIVED', 'DELETED').
+ *
+ * @returns {Promise<Object>} A promise resolving to the matched Block document.
+ *
+ * @throws {AppError} If the provided block_status is invalid or the block is not found.
+ */
+
 async function GetOneBlock(_, { id, filter }) {
   try {
     const query = { _id: id };
