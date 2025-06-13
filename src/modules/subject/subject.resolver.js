@@ -29,7 +29,7 @@ const VALID_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
  * Returns a list of matching subject documents from the `Subject` collection.
  *
  * @async
- * @function GetAllSubject
+ * @function GetAllSubjects
  * @param {Object} _ - Parent resolver context (unused).
  * @param {Object} args - Resolver arguments.
  * @param {Object} args.filter - Optional filter object.
@@ -43,7 +43,7 @@ const VALID_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
  * @throws {AppError} If any filter is invalid or if the database operation fails.
  */
 
-async function GetAllSubject(_, { filter }) {
+async function GetAllSubjects(_, { filter }) {
   try {
     const query = {};
 
@@ -399,7 +399,7 @@ function tests(subject, _, context) {
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
-    GetAllSubject,
+    GetAllSubjects,
     GetOneSubject,
   },
   Mutation: {
