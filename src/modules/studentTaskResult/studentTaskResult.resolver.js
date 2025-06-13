@@ -5,6 +5,9 @@ const StudentTaskResult = require("./studentTaskResult.model.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
+const {
+  ValidateCreateStudentTaskResult,
+} = require("./studentTaskResult.validator.js");
 
 // *************** Constant Enum
 const VALID_STUDENT_TASK_RESULT_STATUS = [
@@ -160,10 +163,71 @@ async function GetOneStudentTaskResult(_, { filter }) {
   }
 }
 
+// *************** MUTATION ***************
+/**
+ * Create a new StudentTaskResult record in the database.
+ *
+ * This mutation handles validation, average mark calculation, and timestamp assignment.
+ * All marks are processed in the backend to ensure integrity and accurate grading metadata.
+ *
+ * @async
+ * @function CreateStudentTaskResult
+ * @param {Object} _ - Unused GraphQL root argument.
+ * @param {Object} args - GraphQL arguments.
+ * @param {Object} args.input - Input object containing student task result data.
+ * @returns {Promise<Object>} The newly created StudentTaskResult document.
+ * @throws {AppError} If validation fails or creation encounters errors.
+ */
+
+async function CreateStudentTaskResult(_, { input }) {
+  try {
+    const {
+      student_id,
+      test_id,
+      marks,
+      graded_by,
+      remarks,
+      student_task_result_status,
+    } = await ValidateCreateStudentTaskResult(input);
+
+    // *************** Calculate Average Mark
+    let average_mark = 0;
+    if (Array.isArray(marks) && marks.length > 0) {
+      let total = 0;
+      for (let i = 0; i < marks.length; i++) {
+        total += marks[i].mark;
+      }
+      average_mark = total / marks.length;
+    }
+
+    const studentTaskResultPayload = {
+      student_id,
+      test_id,
+      marks,
+      average_mark,
+      mark_entry_date: new Date(),
+      graded_by: graded_by || null,
+      remarks: remarks || null,
+      student_task_result_status,
+    };
+
+    return await StudentTaskResult.create(studentTaskResultPayload);
+  } catch (error) {
+    throw HandleCaughtError(
+      error,
+      "Failed to create student_task_result",
+      "VALIDATION_ERROR"
+    );
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
     GetAllStudentTaskResults,
     GetOneStudentTaskResult,
+  },
+  Mutation: {
+    CreateStudentTaskResult,
   },
 };
