@@ -2,7 +2,10 @@
 const Block = require("./block.model.js");
 
 // *************** IMPORT VALIDATOR ***************
-const { ValidateCreateBlock } = require("./block.validator.js");
+const {
+  ValidateCreateBlock,
+  ValidateUpdateBlock,
+} = require("./block.validator.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -150,6 +153,57 @@ async function CreateBlock(_, { input }) {
   }
 }
 
+/**
+ * Update an existing block with new data.
+ *
+ * This resolver handles updating a block in the database based on the provided `id`.
+ * It first validates the input fields through `ValidateUpdateBlock`, builds a sanitized
+ * update payload, and applies the changes using MongoDB's `updateOne`. If the block is not found,
+ * an error is thrown. Fields like `description`, `end_date`, and `subjects` are optional.
+ *
+ * @param {Object} _ - Unused parent resolver argument (GraphQL convention).
+ * @param {Object} args - Arguments passed to the mutation.
+ * @param {string} args.id - The ID of the block to update.
+ * @param {Object} args.input - Input payload for updating the block.
+ *
+ * @returns {Promise<Object>} An object containing the updated block ID.
+ *
+ * @throws {AppError} Throws `NOT_FOUND` if the block is not found.
+ * @throws {AppError} Throws `VALIDATION_ERROR` if input validation fails.
+ */
+
+async function UpdateBlock(_, { id, input }) {
+  try {
+    const { name, description, block_status, start_date, end_date, subjects } =
+      await ValidateUpdateBlock(input);
+
+    const blockUpdatePayload = {
+      name,
+      description: description ? description : null,
+      block_status,
+      start_date,
+      end_date: end_date ? end_date : null,
+      subjects: Array.isArray(subjects) ? subjects : [],
+    };
+
+    const updated = await Block.updateOne(
+      { _id: id },
+      { $set: blockUpdatePayload }
+    );
+
+    if (!updated) {
+      throw CreateAppError("Block not found", "NOT_FOUND", { id });
+    }
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(
+      error,
+      "Failed to update block",
+      "VALIDATION_ERROR"
+    );
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -158,5 +212,6 @@ module.exports = {
   },
   Mutation: {
     CreateBlock,
+    UpdateBlock,
   },
 };
