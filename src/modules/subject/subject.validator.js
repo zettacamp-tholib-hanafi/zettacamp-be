@@ -2,7 +2,7 @@
 const { isValidObjectId } = require("mongoose");
 
 // *************** IMPORT HELPER ***************
-const { CreateAppError } = require("../../shared/helpers/createAppError");
+const { CreateAppError } = require("../../core/error");
 
 const {
   VALID_LEVEL,
