@@ -57,6 +57,6 @@ module.exports = gql`
   extend type Mutation {
     CreateBlock(input: CreateBlockInput!): Block!
     UpdateBlock(id: ID!, input: UpdateBlockInput!): Block!
-    DeleteBlock(id: ID!, deleted_by: String!): Block!
+    DeleteBlock(id: ID!, deleted_by: String): Block!
   }
 `;
