@@ -244,6 +244,15 @@ async function DeleteBlock(_, { id, deleted_by }) {
   }
 }
 
+function subjects(block, _, context) {
+  if (!context && !context.loaders && !context.loaders.block) {
+    throw new Error("Student loader not initialized");
+  }
+
+  const blockIds = block.subjects ? block.subjects.map((id) => String(id)) : [];
+  return context.loaders.block.loadMany(blockIds);
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -254,5 +263,8 @@ module.exports = {
     CreateBlock,
     UpdateBlock,
     DeleteBlock,
+  },
+  Block: {
+    subjects,
   },
 };
