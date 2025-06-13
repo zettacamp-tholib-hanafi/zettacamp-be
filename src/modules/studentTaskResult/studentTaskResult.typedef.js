@@ -64,8 +64,8 @@ module.exports = gql`
 
   input StudentTaskResultFilter {
     student_task_result_status: StudentTaskResultStatus
-    student_id: ID!
-    test_id: ID!
+    student_id: ID
+    test_id: ID
   }
 
   type Query {
@@ -83,6 +83,6 @@ module.exports = gql`
       id: ID!
       input: UpdateStudentTaskResultInput!
     ): StudentTaskResult!
-    DeleteStudentTaskResult(id: ID!, deleted_by: String!): StudentTaskResult!
+    DeleteStudentTaskResult(id: ID!, deleted_by: String): StudentTaskResult!
   }
 `;
