@@ -4,11 +4,9 @@ const { isValidObjectId } = require("mongoose");
 // *************** IMPORT HELPER ***************
 const { CreateAppError } = require("../../core/error");
 
-const {
-  VALID_LEVEL,
-  VALID_CATEGORY,
-  VALID_STATUS,
-} = require("./subject.constant");
+const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
+const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
+const VALID_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
 
 /**
  * Validates the input for creating a Subject.
