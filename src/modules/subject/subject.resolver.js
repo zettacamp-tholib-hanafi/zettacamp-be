@@ -322,6 +322,30 @@ async function UpdateSubject(_, { id, input }) {
   }
 }
 
+/**
+ * Soft-deletes a subject by updating its `subject_status` to "DELETED".
+ *
+ * This function performs a soft delete operation on a subject by setting
+ * `subject_status` to "DELETED", `deleted_at` to the current date, and
+ * optionally `deleted_by` if provided.
+ *
+ * If the subject does not exist or is already deleted, an error is thrown.
+ *
+ * @async
+ * @function DeleteSubject
+ *
+ * @param {Object} _ - Unused parent resolver argument (GraphQL standard).
+ * @param {Object} args - Arguments passed to the resolver.
+ * @param {string} args.id - The ID of the subject to soft delete.
+ * @param {string} [args.deleted_by] - Optional user ID performing the deletion.
+ *
+ * @returns {Promise<Object>} An object containing the ID of the deleted subject.
+ * @returns {string} returns.id - The ID of the soft-deleted subject.
+ *
+ * @throws {AppError} If the subject is not found or already deleted.
+ * @throws {AppError} If a database or unexpected error occurs.
+ */
+
 async function DeleteSubject(_, { id, deleted_by }) {
   try {
     const deleted = await Subject.updateOne(
