@@ -259,6 +259,52 @@ async function UpdateTest(_, { input }) {
   }
 }
 
+/**
+ * Soft deletes a Test by setting its `test_status` to "DELETED" and recording audit metadata.
+ *
+ * This mutation performs a soft delete by updating the `test_status` to `"DELETED"`,
+ * and setting `deleted_at` to the current timestamp. It also stores the `deleted_by` user ID
+ * if provided. If the test is already deleted or not found, it throws a `NOT_FOUND` error.
+ *
+ * @async
+ * @function DeleteTest
+ * @param {Object} _ - Unused parent resolver argument.
+ * @param {Object} args - GraphQL resolver arguments.
+ * @param {string} args.id - The ID of the test to delete.
+ * @param {string} [args.deleted_by] - The user ID performing the deletion (optional).
+ *
+ * @returns {Promise<Object>} An object containing the `id` of the deleted test.
+ *
+ * @throws {AppError} Throws `NOT_FOUND` if the test is not found or already deleted.
+ * @throws {AppError} Throws general error if the operation fails due to other reasons.
+ */
+
+async function DeleteTest(_, { id, deleted_by }) {
+  try {
+    const deleted = await Test.updateOne(
+      {
+        _id: id,
+        test_status: { $ne: "DELETED" },
+      },
+      {
+        $set: {
+          test_status: "DELETED",
+          deleted_at: new Date(),
+          deleted_by: deleted_by ? deleted_by : null,
+        },
+      }
+    );
+
+    if (!deleted) {
+      throw CreateAppError("Test Not Found!", "NOT_FOUND", { id });
+    }
+
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to delete test");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -268,5 +314,6 @@ module.exports = {
   Mutation: {
     CreateTest,
     UpdateTest,
+    DeleteTest,
   },
 };
