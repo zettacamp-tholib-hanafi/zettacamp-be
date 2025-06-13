@@ -1,5 +1,7 @@
 // *************** IMPORT HELPER ***************
-const createAppError = require("../../shared/helpers/createAppError");
+const { CreateAppError } = require("../../core/error");
+
+// *************** IMPORT LIBRARY ***************
 const mongoose = require("mongoose");
 
 const VALID_STATUSES = ["ACTIVE", "ARCHIVED", "DELETED"];
@@ -74,7 +76,7 @@ function ValidateCreateBlock(input) {
 
   // *************** Throw if validation failed
   if (errors.length > 0) {
-    throw createAppError("Invalid CreateBlock input", "VALIDATION_ERROR", {
+    throw CreateAppError("Invalid CreateBlock input", "VALIDATION_ERROR", {
       details: errors,
     });
   }
