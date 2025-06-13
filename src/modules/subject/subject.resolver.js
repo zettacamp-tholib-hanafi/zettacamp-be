@@ -313,6 +313,7 @@ async function UpdateSubject(_, { id, input }) {
     if (!updated) {
       throw CreateAppError("Subject not found", "NOT_FOUND", { id });
     }
+    return { id };
   } catch (error) {
     throw HandleCaughtError(
       error,
