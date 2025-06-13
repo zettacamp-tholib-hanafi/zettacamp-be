@@ -5,7 +5,10 @@ const Subject = require("./subject.model.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-const { ValidateCreateSubject } = require("./subject.validator.js");
+const {
+  ValidateCreateSubject,
+  ValidateUpdateSubject,
+} = require("./subject.validator.js");
 
 const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
 const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
@@ -245,6 +248,80 @@ async function CreateSubject(_, { input }) {
   }
 }
 
+/**
+ * Updates an existing Subject document by its ID with the provided input data.
+ *
+ * This resolver validates and sanitizes the input using `ValidateUpdateSubject`,
+ * builds the update payload, and performs an update operation on the Subject collection.
+ *
+ * If the subject is not found by the given `id`, it throws a NOT_FOUND error.
+ * On validation or update failure, a meaningful error is raised and caught with `HandleCaughtError`.
+ *
+ * @async
+ * @function UpdateSubject
+ *
+ * @param {Object} _ - Unused parent resolver argument (reserved by GraphQL spec).
+ * @param {Object} args - Arguments passed to the resolver.
+ * @param {string} args.id - The ID of the subject to update (must be a valid ObjectId).
+ * @param {Object} args.input - The input object for the update.
+ * @param {string} args.input.name - The updated subject name.
+ * @param {string} args.input.subject_code - The updated subject code.
+ * @param {string} [args.input.description] - Optional updated description.
+ * @param {string} args.input.level - The updated subject level.
+ * @param {string} [args.input.category] - Optional updated subject category.
+ * @param {string} args.input.block_id - The associated block ID.
+ * @param {number} args.input.coefficient - The subject coefficient.
+ * @param {string[]} [args.input.tests] - Optional updated array of test IDs.
+ * @param {string} [args.input.subject_status] - Optional subject status (defaults to ACTIVE).
+ *
+ * @returns {Promise<void>} Resolves on success, throws on failure. No return payload is expected.
+ *
+ * @throws {AppError} If input validation fails, subject not found, or database error occurs.
+ */
+
+async function UpdateSubject(_, { id, input }) {
+  try {
+    const {
+      name,
+      subject_code,
+      description,
+      level,
+      category,
+      block_id,
+      coefficient,
+      tests,
+      subject_status,
+    } = await ValidateUpdateSubject(input);
+
+    const subjectPayload = {
+      name,
+      subject_code,
+      description: description ? description : null,
+      level,
+      category: category ? description : null,
+      block_id,
+      coefficient,
+      tests: Array.isArray(tests) ? tests : [],
+      subject_status,
+    };
+
+    const updated = await Subject.updateOne(
+      { _id: id },
+      { $set: subjectPayload }
+    );
+
+    if (!updated) {
+      throw CreateAppError("Subject not found", "NOT_FOUND", { id });
+    }
+  } catch (error) {
+    throw HandleCaughtError(
+      error,
+      "Failed to create subject",
+      "VALIDATION_ERROR"
+    );
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -253,5 +330,6 @@ module.exports = {
   },
   Mutation: {
     CreateSubject,
+    UpdateSubject,
   },
 };
