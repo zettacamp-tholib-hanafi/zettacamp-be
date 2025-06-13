@@ -322,6 +322,29 @@ async function UpdateSubject(_, { id, input }) {
   }
 }
 
+async function DeleteSubject(_, { id, deleted_by }) {
+  try {
+    const deleted = await Subject.updateOne(
+      { _id: id, subject_status: { $ne: "DELETED" } },
+      {
+        $set: {
+          subject_status: "DELETED",
+          deleted_at: new Date(),
+          deleted_by: deleted_by ? deleted_by : null,
+        },
+      }
+    );
+
+    if (!deleted) {
+      throw CreateAppError("Subject not found", "NOT_FOUND", { id });
+    }
+
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to delete subject");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -331,5 +354,6 @@ module.exports = {
   Mutation: {
     CreateSubject,
     UpdateSubject,
+    DeleteSubject,
   },
 };
