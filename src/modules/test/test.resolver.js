@@ -2,7 +2,10 @@
 const Test = require("./test.model.js");
 
 // *************** IMPORT VALIDATOR ***************
-const { ValidateCreateTest } = require("./test.validator.js");
+const {
+  ValidateCreateTest,
+  ValidateUpdateTest,
+} = require("./test.validator.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -183,6 +186,79 @@ async function CreateTest(_, { input }) {
   }
 }
 
+/**
+ * Updates an existing Test entity in the database.
+ *
+ * This mutation validates the input payload using `ValidateUpdateTest` and constructs
+ * a test update payload. Optional fields like `description`, `passing_score`,
+ * `attachments`, and `published_date` are handled gracefully with fallback values.
+ *
+ * On validation or database failure, the error is caught and rethrown using `HandleCaughtError`.
+ *
+ * @async
+ * @function UpdateTest
+ * @param {Object} _ - Unused parent resolver argument.
+ * @param {Object} args - GraphQL resolver arguments.
+ * @param {Object} args.input - The input payload for updating a test.
+ * @param {string} args.input.id - The ID of the test to update.
+ * @param {string} [args.input.name] - Updated name of the test.
+ * @param {string} [args.input.subject_id] - Updated subject ID reference.
+ * @param {string} [args.input.description] - Updated description.
+ * @param {number} [args.input.weight] - Updated test weight (≥ 0).
+ * @param {Array<Object>} [args.input.notations] - Updated notations.
+ * @param {number} [args.input.total_score] - Updated total score.
+ * @param {string} [args.input.grading_method] - Grading method (MANUAL or AUTO_GRADED).
+ * @param {number} [args.input.passing_score] - Updated passing score.
+ * @param {string} [args.input.test_status] - Updated test status (DRAFT, PUBLISHED, ARCHIVED, DELETED).
+ * @param {string[]} [args.input.attachments] - Updated list of URL attachments.
+ * @param {string} [args.input.published_date] - Updated published date if status is PUBLISHED.
+ *
+ * @returns {Promise<Object>} The updated Test document.
+ *
+ * @throws {AppError} Throws when validation fails or the update operation encounters an error.
+ */
+
+async function UpdateTest(_, { input }) {
+  try {
+    const {
+      name,
+      subject_id,
+      description,
+      weight,
+      notations,
+      total_score,
+      grading_method,
+      passing_score,
+      test_status,
+      attachments,
+      published_date,
+    } = await ValidateUpdateTest(input);
+
+    const testPayload = {
+      name,
+      subject_id,
+      description: description ? description : null,
+      weight,
+      notations: Array.isArray(notations) ? notations : [],
+      total_score,
+      grading_method: grading_method ? grading_method : null,
+      passing_score: passing_score ? passing_score : null,
+      test_status,
+      attachments: Array.isArray(attachments) ? attachments : [],
+      published_date: published_date ? published_date : null,
+    };
+
+    const updated = await Test.updateOne({ _id: id }, { $set: testPayload });
+
+    if (!updated) {
+      throw CreateAppError("Test not found", "NOT_FOUND", { id });
+    }
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to create test", "VALIDATION_ERROR");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -191,5 +267,6 @@ module.exports = {
   },
   Mutation: {
     CreateTest,
+    UpdateTest,
   },
 };
