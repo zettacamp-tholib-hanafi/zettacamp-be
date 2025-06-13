@@ -5,6 +5,7 @@ const Subject = require("./subject.model.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
+const { ValidateCreateSubject } = require("./subject.validator.js");
 
 const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
 const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
@@ -189,10 +190,68 @@ async function GetOneSubject(_, { filter }) {
   }
 }
 
+// *************** MUTATION ***************
+
+/**
+ * Creates a new Subject document in the database after validating the input.
+ *
+ * This resolver validates the provided input using `ValidateCreateSubject`,
+ * then builds a sanitized payload for insertion into the database.
+ * Returns the newly created subject document.
+ *
+ * @async
+ * @function CreateSubject
+ * @param {Object} _ - Parent resolver context (unused).
+ * @param {Object} args - Resolver arguments.
+ * @param {Object} args.input - Input data for creating a subject.
+ *
+ * @returns {Promise<Object>} The newly created Subject document.
+ *
+ * @throws {AppError} If input validation fails or creation fails.
+ */
+async function CreateSubject(_, { input }) {
+  try {
+    const {
+      name,
+      subject_code,
+      description,
+      level,
+      category,
+      block_id,
+      coefficient,
+      tests,
+      subject_status,
+    } = await ValidateCreateSubject(input);
+
+    const subjectPayload = {
+      name,
+      subject_code,
+      description: description ? description : null,
+      level,
+      category: category ? description : null,
+      block_id,
+      coefficient,
+      tests: Array.isArray(tests) ? tests : [],
+      subject_status,
+    };
+
+    return await Subject.create(subjectPayload);
+  } catch (error) {
+    throw HandleCaughtError(
+      error,
+      "Failed to create subject",
+      "VALIDATION_ERROR"
+    );
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
     GetAllSubject,
     GetOneSubject,
+  },
+  Mutation: {
+    CreateSubject,
   },
 };
