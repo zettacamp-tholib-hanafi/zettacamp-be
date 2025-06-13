@@ -369,6 +369,33 @@ async function DeleteSubject(_, { id, deleted_by }) {
   }
 }
 
+/**
+ * Resolves the `tests` field for a given subject using DataLoader for batching and caching.
+ *
+ * This resolver extracts test IDs from the `subject.tests` array and loads the corresponding
+ * test documents efficiently using the `subject` DataLoader from the GraphQL context.
+ *
+ * @function tests
+ * @param {Object} subject - The parent subject object containing the `tests` field (array of ObjectIds).
+ * @param {Object} _ - Unused GraphQL argument placeholder.
+ * @param {Object} context - GraphQL context object containing initialized DataLoaders.
+ * @param {Object} context.loaders - Object containing all DataLoaders.
+ * @param {Object} context.loaders.subject - DataLoader for batching and caching test fetches by ID.
+ *
+ * @returns {Promise<Array<Object>>} A promise that resolves to an array of test objects related to the subject.
+ *
+ * @throws {Error} If the `context.loaders.subject` loader is not properly initialized.
+ */
+
+function tests(subject, _, context) {
+  if (!context && !context.loaders && !context.loaders.subject) {
+    throw new Error("Subject loader not initialized");
+  }
+
+  const subjectIds = subject.tests ? subject.tests.map((id) => String(id)) : [];
+  return context.loaders.subject.loadMany(subjectIds);
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -379,5 +406,8 @@ module.exports = {
     CreateSubject,
     UpdateSubject,
     DeleteSubject,
+  },
+  Subject: {
+    tests,
   },
 };
