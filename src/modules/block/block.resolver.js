@@ -50,9 +50,38 @@ async function GetAllBlocks(_, { filter }) {
   }
 }
 
+async function GetOneBlock(_, { id, filter }) {
+  try {
+    const query = { _id: id };
+
+    if (filter && filter.block_status) {
+      if (!VALID_STATUS.includes(filter.block_status)) {
+        throw CreateAppError(
+          "Invalid block_status filter value",
+          "BAD_REQUEST",
+          { block_status: filter.block_status }
+        );
+      }
+      query.block_status = filter.block_status;
+    } else {
+      query.block_status = "ACTIVE";
+    }
+
+    const block = await Block.findOne(query);
+    if (!block) {
+      throw CreateAppError("Block not found", "NOT_FOUND", { id });
+    }
+
+    return block;
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to fetch block");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
     GetAllBlocks,
+    GetOneBlock,
   },
 };
