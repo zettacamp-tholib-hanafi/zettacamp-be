@@ -7,6 +7,7 @@ const StudentTaskResult = require("./studentTaskResult.model.js");
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 const {
   ValidateCreateStudentTaskResult,
+  ValidateUpdateStudentTaskResult,
 } = require("./studentTaskResult.validator.js");
 
 // *************** Constant Enum
@@ -221,6 +222,82 @@ async function CreateStudentTaskResult(_, { input }) {
   }
 }
 
+/**
+ * UpdateStudentTaskResult
+ * ------------------------------------------------------------------
+ * Updates an existing student task result entry.
+ * Validates the input using `ValidateUpdateStudentTaskResult`, recalculates
+ * the average mark from the provided marks array, and persists the update.
+ *
+ * If the target `StudentTaskResult` document is not found, an error is thrown.
+ * If any validation or database operation fails, it is handled gracefully.
+ *
+ * @async
+ * @function UpdateStudentTaskResult
+ *
+ * @param {Object} _ - Unused GraphQL resolver root argument.
+ * @param {Object} args - Arguments passed to the mutation.
+ * @param {string} args.id - ID of the `StudentTaskResult` to update.
+ * @param {Object} args.input - Input data to update the student task result.
+ *
+ * @throws {AppError} If validation fails, test is not found, or document is not found.
+ * @throws {AppError} If any internal error occurs during the update process.
+ *
+ * @returns {Promise<Object>} Returns an object containing the updated ID.
+ */
+
+async function UpdateStudentTaskResult(_, { id, input }) {
+  try {
+    const {
+      student_id,
+      test_id,
+      marks,
+      graded_by,
+      remarks,
+      student_task_result_status,
+    } = await ValidateUpdateStudentTaskResult(input);
+
+    // *************** Calculate Average Mark
+    let average_mark = 0;
+    if (Array.isArray(marks) && marks.length > 0) {
+      let total = 0;
+      for (let i = 0; i < marks.length; i++) {
+        total += marks[i].mark;
+      }
+      average_mark = total / marks.length;
+    }
+
+    const studentTaskResultPayload = {
+      student_id,
+      test_id,
+      marks,
+      average_mark,
+      mark_entry_date: new Date(),
+      graded_by: graded_by || null,
+      remarks: remarks || null,
+      student_task_result_status,
+    };
+
+    const updateStudentTaskResult = await StudentTaskResult.findOneAndUpdate(
+      { _id: id },
+      { $set: studentTaskResultPayload }
+    );
+
+    if (!updateStudentTaskResult) {
+      throw CreateAppError("Student Task Result not found", "NOT_FOUND", {
+        id,
+      });
+    }
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(
+      error,
+      "Failed to create student_task_result",
+      "VALIDATION_ERROR"
+    );
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -229,5 +306,6 @@ module.exports = {
   },
   Mutation: {
     CreateStudentTaskResult,
+    UpdateStudentTaskResult,
   },
 };

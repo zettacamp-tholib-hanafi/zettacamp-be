@@ -55,11 +55,13 @@ module.exports = gql`
   }
 
   input UpdateStudentTaskResultInput {
-    marks: [MarkInput!]
+    student_id: ID!
+    test_id: ID!
+    marks: [MarkInput!]!
     graded_by: ID
     remarks: String
     student_task_result_status: StudentTaskResultStatus
-    updated_by: String
+    created_by: String
   }
 
   input StudentTaskResultFilter {
