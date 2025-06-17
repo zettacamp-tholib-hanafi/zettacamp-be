@@ -2,7 +2,10 @@
 const Task = require("./task.model.js");
 
 // *************** IMPORT VALIDATOR ***************
-const { ValidateCreateTask } = require("./task.validator.js");
+const {
+  ValidateCreateTask,
+  ValidateUpdateTask,
+} = require("./task.validator.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -207,6 +210,54 @@ async function CreateTask(_, { input }) {
   }
 }
 
+/**
+ * UpdateTask Resolver
+ * ----------------------------------------------------------------
+ * Updates an existing Task document in the database by `id`.
+ * Validates the input fields using `ValidateUpdateTask`, constructs the
+ * update payload, and applies the changes using `$set`. Returns the updated task's ID.
+ *
+ * @param {Object} _ - Unused parent resolver argument (GraphQL convention).
+ * @param {Object} args - Arguments passed to the resolver.
+ * @param {string} args.id - ID of the task to update.
+ * @param {Object} args.input - Input payload for updating the task.
+ * @param {string} args.input.test_id - ID of the test associated with the task.
+ * @param {string} args.input.user_id - ID of the user assigned to the task.
+ * @param {string} [args.input.task_type] - Task type (optional).
+ * @param {string} [args.input.task_status] - Task status (optional).
+ * @param {Date|string} [args.input.due_date] - Optional due date.
+ *
+ * @returns {Promise<Object>} An object containing the ID of the updated task: `{ id: string }`.
+ *
+ * @throws {AppError} If validation fails or the task does not exist.
+ */
+async function UpdateTask(_, { id, input }) {
+  try {
+    const { test_id, user_id, task_type, task_status, due_date } =
+      await ValidateUpdateTask(input);
+
+    const taskUpdatePayload = {
+      test_id,
+      user_id,
+      task_type,
+      task_status,
+      due_date,
+    };
+
+    const updated = await Task.updateOne(
+      { _id: id },
+      { $set: taskUpdatePayload }
+    );
+
+    if (!updated) {
+      throw CreateAppError("Task not found", "NOT_FOUND", { id });
+    }
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to update task", "VALIDATION_ERROR");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -215,5 +266,6 @@ module.exports = {
   },
   Mutation: {
     CreateTask,
+    UpdateTask,
   },
 };
