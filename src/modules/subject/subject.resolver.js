@@ -2,13 +2,13 @@
 const Subject = require("./subject.model.js");
 
 // *************** IMPORT VALIDATOR ***************
-
-// *************** IMPORT CORE ***************
-const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 const {
   ValidateCreateSubject,
   ValidateUpdateSubject,
 } = require("./subject.validator.js");
+
+// *************** IMPORT CORE ***************
+const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
 const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];

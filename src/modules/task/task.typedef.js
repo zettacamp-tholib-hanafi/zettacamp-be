@@ -56,8 +56,8 @@ module.exports = gql`
   input TaskFilter {
     test_id: ID
     user_id: ID
-    type: TaskType
-    status: TaskStatus
+    task_type: TaskType
+    task_status: TaskStatus
   }
 
   type Query {

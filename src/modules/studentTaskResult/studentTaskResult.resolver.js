@@ -2,13 +2,13 @@
 const StudentTaskResult = require("./studentTaskResult.model.js");
 
 // *************** IMPORT VALIDATOR ***************
-
-// *************** IMPORT CORE ***************
-const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 const {
   ValidateCreateStudentTaskResult,
   ValidateUpdateStudentTaskResult,
 } = require("./studentTaskResult.validator.js");
+
+// *************** IMPORT CORE ***************
+const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 // *************** Constant Enum
 const VALID_STUDENT_TASK_RESULT_STATUS = [
