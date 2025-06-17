@@ -7,6 +7,7 @@ const blockTypeDefs = require("../modules/block/block.typedef");
 const subjectTypedef = require("../modules/subject/subject.typedef");
 const testTypedef = require("../modules/test/test.typedef");
 const studentTaskResultTypedef = require("../modules/studentTaskResult/studentTaskResult.typedef");
+const taskTypedef = require("../modules/task/task.typedef");
 
 const typeDefs = [
   userTypeDefs,
@@ -16,6 +17,7 @@ const typeDefs = [
   subjectTypedef,
   testTypedef,
   studentTaskResultTypedef,
+  taskTypedef
 ];
 
 // *************** EXPORT MODUL ***************
