@@ -2,6 +2,7 @@
 const Task = require("./task.model.js");
 
 // *************** IMPORT VALIDATOR ***************
+const { ValidateCreateTask } = require("./task.validator.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -59,8 +60,6 @@ async function GetAllTasks(_, { filter }) {
         });
       }
       query.task_type = filter.task_type;
-    } else {
-      query.task_type = DEFAULT_TASK_STATUS;
     }
 
     // *************** Filter: test_id
@@ -168,10 +167,53 @@ async function GetOneTask(_, { filter }) {
   }
 }
 
+/**
+ * CreateTask Resolver
+ * ----------------------------------------------------------------
+ * Creates a new Task document in the database after validating the input.
+ * Ensures required fields (test_id, user_id, task_type) are present and
+ * task_type/status are valid enum values. Automatically sets the due date
+ * if provided.
+ *
+ * @param {Object} _ - Unused parent resolver argument (GraphQL convention).
+ * @param {Object} args - GraphQL resolver arguments.
+ * @param {Object} args.input - Input payload for creating a task.
+ * @param {string} args.input.test_id - ID of the associated test (required).
+ * @param {string} args.input.user_id - ID of the assigned user (required).
+ * @param {string} args.input.task_type - Type of the task (e.g., ASSIGN_CORRECTOR, ENTER_MARKS).
+ * @param {string} [args.input.task_status] - Optional task status (default: PENDING).
+ * @param {Date|string} [args.input.due_date] - Optional due date.
+ *
+ * @returns {Promise<Object>} Newly created Task document.
+ *
+ * @throws {AppError} If validation fails or the database operation fails.
+ */
+async function CreateTask(_, { input }) {
+  try {
+    const { test_id, user_id, task_type, task_status, due_date } =
+      await ValidateCreateTask(input);
+
+    const taskInputPayload = {
+      test_id,
+      user_id,
+      task_type,
+      task_status,
+      due_date,
+    };
+
+    return await Task.create(taskInputPayload);
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to create task", "VALIDATION_ERROR");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
     GetAllTasks,
     GetOneTask,
+  },
+  Mutation: {
+    CreateTask,
   },
 };

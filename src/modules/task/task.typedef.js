@@ -24,8 +24,8 @@ module.exports = gql`
     id: ID!
     test_id: ID!
     user_id: ID!
-    type: TaskType!
-    status: TaskStatus!
+    task_type: TaskType!
+    task_status: TaskStatus!
     due_date: Date
     created_at: Date
     created_by: String
@@ -38,8 +38,8 @@ module.exports = gql`
   input CreateTaskInput {
     test_id: ID!
     user_id: ID!
-    type: TaskType!
-    status: TaskStatus!
+    task_type: TaskType!
+    task_status: TaskStatus!
     due_date: Date
     created_by: String
   }
@@ -47,8 +47,8 @@ module.exports = gql`
   input UpdateTaskInput {
     test_id: ID!
     user_id: ID!
-    type: TaskType!
-    status: TaskStatus!
+    task_type: TaskType!
+    task_status: TaskStatus!
     due_date: Date
     updated_by: String
   }
