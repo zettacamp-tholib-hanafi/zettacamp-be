@@ -1,10 +1,14 @@
 // *************** IMPORT MODULE ***************
 const Task = require("./task.model.js");
-
+const Test = require("../test/test.model.js");
+const Student = require("../student/student.model.js");
+const User = require("../user/user.model.js");
+const { SendEmailViaSendGrid } = require("./task.helper.js");
 // *************** IMPORT VALIDATOR ***************
 const {
   ValidateCreateTask,
   ValidateUpdateTask,
+  ValidateAssignCorrector,
 } = require("./task.validator.js");
 
 // *************** IMPORT CORE ***************
@@ -302,6 +306,89 @@ async function DeleteTask(_, { id, deleted_by }) {
     throw HandleCaughtError(error, "Failed to delete task");
   }
 }
+
+/**
+ * Assigns a corrector to a test and notifies them via email.
+ *
+ * @param {Object} _ - Unused GraphQL parent resolver parameter.
+ * @param {Object} args - GraphQL arguments: { id, input }
+ * @param {Object} context - GraphQL context, including models and user info.
+ * @returns {String} - Success message if assignment and email succeed.
+ */
+async function AssignCorrector(_, { id, input }, context) {
+  try {
+    // *************** Step 1: Validate and fetch task
+    const { user_id, due_date, assignTask } = await ValidateAssignCorrector(
+      id,
+      input
+    );
+
+    // *************** Step 2: Mark AssignCorrector task as completed
+    await Task.updateOne(
+      {
+        _id: assignTask._id,
+        task_type: "ASSIGN_CORRECTOR",
+        task_status: "PENDING",
+      },
+      {
+        $set: {
+          task_status: "COMPLETED",
+        },
+      }
+    );
+
+    // *************** Step 3: Create new task "ENTER_MARKS"
+    await Task.create({
+      test_id: assignTask.test_id,
+      user_id,
+      task_type: "ENTER_MARKS",
+      task_status: "PENDING",
+      due_date,
+    });
+
+    // *************** Step 4: Send Email Notification
+    const test = await Test.findById(assignTask.test_id).lean();
+    // const corrector = await User.findById(user_id).lean();
+
+    // *************** For testing purposes
+    const corrector = {
+      email: "usmanhanafit@gmail.com",
+    };
+
+    if (!test || !corrector) {
+      throw new Error("Test or Corrector not found");
+    }
+
+    const students = await Student.find({ test_id: test._id })
+      .select("first_name last_name")
+      .lean();
+
+    const studentNames = students
+      .map((s) => `${s.first_name} ${s.last_name}`)
+      .join(", ");
+    const emailPayload = {
+      to: corrector.email,
+      subject: "You have been assigned as a Test Corrector!",
+      html: `
+    <h2>You have been assigned as a Test Corrector!</h2>
+    <p><strong>Test:</strong> ${test.name}</p>
+    <p><strong>Subject:</strong> ${test.subject_id}</p>
+    <p><strong>Description:</strong> ${test.description || "-"}</p>
+    <p><strong>Students to correct:</strong> ${studentNames}</p>
+  `,
+    };
+    const sendEmailProcess = await SendEmailViaSendGrid(emailPayload);
+
+    if (!sendEmailProcess) {
+      throw new Error("Failed to send email notification");
+    }
+
+    return { id };
+  } catch (error) {
+    return HandleCaughtError(error);
+  }
+}
+
 /**
  * test Field Resolver
  * ----------------------------------------------------------------
@@ -360,6 +447,7 @@ module.exports = {
     CreateTask,
     UpdateTask,
     DeleteTask,
+    AssignCorrector,
   },
   Task: {
     test,

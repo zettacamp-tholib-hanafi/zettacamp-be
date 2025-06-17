@@ -61,6 +61,10 @@ module.exports = gql`
     task_type: TaskType
     task_status: TaskStatus
   }
+  input AssignCorrectorInput {
+    user_id: ID!
+    due_date: Date
+  }
 
   type Query {
     GetAllTasks(filter: TaskFilter): [Task!]!
@@ -71,5 +75,6 @@ module.exports = gql`
     CreateTask(input: CreateTaskInput!): Task!
     UpdateTask(id: ID!, input: UpdateTaskInput!): Task!
     DeleteTask(id: ID!, deleted_by: String): Task!
+    AssignCorrector(id: ID!, input: AssignCorrectorInput!): Task!
   }
 `;

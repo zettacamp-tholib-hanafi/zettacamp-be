@@ -1,6 +1,12 @@
 // *************** IMPORT CORE ***************
 const { CreateAppError } = require("../../core/error.js");
 
+// *************** IMPORT LIBRARY ***************
+const { isValidObjectId } = require("mongoose");
+
+// *************** IMPORT MODULE ***************
+const Task = require("./task.model.js");
+
 // *************** Constant Enums
 const VALID_TASK_TYPES = ["ASSIGN_CORRECTOR", "ENTER_MARKS", "VALIDATE_MARKS"];
 const VALID_TASK_STATUSES = ["PENDING", "PROGRESS", "COMPLETED", "DELETED"];
@@ -149,8 +155,52 @@ async function ValidateUpdateTask(input) {
   };
 }
 
+/**
+ * Validates input and checks the task existence for assigning a corrector.
+ *
+ * @param {String} taskId - The task ID to validate
+ * @param {Object} input - Input object containing user_id and due_date
+ * @returns {Object} - Validated and resolved data: { user_id, due_date, assignTask }
+ * @throws {AppError} - If validation fails or task not found
+ */
+async function ValidateAssignCorrector(taskId, input) {
+  const { user_id, due_date } = input;
+
+  // Validate user_id
+  if (!isValidObjectId(user_id)) {
+    throw CreateAppError("Invalid corrector user_id", 400, "VALIDATION_ERROR");
+  }
+
+  // Validate taskId
+  if (!isValidObjectId(taskId)) {
+    throw CreateAppError("Invalid task ID", 400, "VALIDATION_ERROR");
+  }
+
+  // Find the task
+  const assignTask = await Task.findOne({
+    _id: taskId,
+    task_type: "ASSIGN_CORRECTOR",
+    task_status: "PENDING",
+  });
+
+  if (!assignTask) {
+    throw CreateAppError(
+      "Assign Corrector task not found or already completed",
+      404,
+      "NOT_FOUND"
+    );
+  }
+
+  return {
+    user_id,
+    due_date: due_date || null,
+    assignTask,
+  };
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   ValidateCreateTask,
   ValidateUpdateTask,
+  ValidateAssignCorrector,
 };
