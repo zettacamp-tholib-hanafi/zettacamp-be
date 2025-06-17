@@ -48,7 +48,7 @@ module.exports = gql`
   input CreateStudentTaskResultInput {
     student_id: ID!
     test_id: ID!
-    marks: [MarkInput!]!
+    marks: [MarkInput!]
     graded_by: ID
     remarks: String
     student_task_result_status: StudentTaskResultStatus
@@ -58,7 +58,7 @@ module.exports = gql`
   input UpdateStudentTaskResultInput {
     student_id: ID!
     test_id: ID!
-    marks: [MarkInput!]!
+    marks: [MarkInput!]
     graded_by: ID
     remarks: String
     student_task_result_status: StudentTaskResultStatus
