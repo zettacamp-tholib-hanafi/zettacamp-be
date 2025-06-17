@@ -298,6 +298,50 @@ async function UpdateStudentTaskResult(_, { id, input }) {
   }
 }
 
+/**
+ * Soft deletes a Student Task Result by marking its status as "DELETED".
+ *
+ * This function updates the `student_task_result_status` to `"DELETED"` and sets
+ * the `deleted_at` timestamp and `deleted_by` user info. It only deletes records
+ * that are not already deleted.
+ *
+ * @async
+ * @function DeleteStudentTaskResult
+ * @param {Object} _ - GraphQL parent resolver object (unused).
+ * @param {Object} args - GraphQL arguments.
+ * @param {string} args.id - The ID of the Student Task Result to delete.
+ * @param {string} [args.deleted_by] - Optional ID of the user performing the deletion.
+ *
+ * @returns {Promise<Object>} Returns an object containing the ID of the deleted Student Task Result.
+ *
+ * @throws {AppError} Throws NOT_FOUND if the record does not exist or is already deleted.
+ * @throws {AppError} Throws a general error with custom message if any other error occurs during deletion.
+ */
+async function DeleteStudentTaskResult(_, { id, deleted_by }) {
+  try {
+    const deleted = await StudentTaskResult.updateOne(
+      { _id: id, student_task_result_status: { $ne: "DELETED" } },
+      {
+        $set: {
+          student_task_result_status: "DELETED",
+          deleted_at: new Date(),
+          deleted_by: deleted_by ? deleted_by : null,
+        },
+      }
+    );
+
+    if (!deleted) {
+      throw CreateAppError("Student Task Result not found", "NOT_FOUND", {
+        id,
+      });
+    }
+
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to delete Student Task Result");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -307,5 +351,6 @@ module.exports = {
   Mutation: {
     CreateStudentTaskResult,
     UpdateStudentTaskResult,
+    DeleteStudentTaskResult,
   },
 };
