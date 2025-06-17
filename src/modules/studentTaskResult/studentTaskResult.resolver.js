@@ -342,6 +342,28 @@ async function DeleteStudentTaskResult(_, { id, deleted_by }) {
   }
 }
 
+function student_id(parent, _, context) {
+  if (!context && !context.loaders && !context.loaders.student) {
+    throw new Error("School loader not initialized");
+  }
+
+  return context.loaders.student.load(String(parent.student_id));
+}
+function test_id(parent, _, context) {
+  if (!context && !context.loaders && !context.loaders.test) {
+    throw new Error("School loader not initialized");
+  }
+
+  return context.loaders.test.load(String(parent.test_id));
+}
+function graded_by(parent, _, context) {
+  if (!context && !context.loaders && !context.loaders.users) {
+    throw new Error("School loader not initialized");
+  }
+
+  return context.loaders.user.load(String(parent.graded_by));
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -352,5 +374,10 @@ module.exports = {
     CreateStudentTaskResult,
     UpdateStudentTaskResult,
     DeleteStudentTaskResult,
+  },
+  StudentTaskResult: {
+    student: student_id,
+    test: test_id,
+    graded: graded_by,
   },
 };

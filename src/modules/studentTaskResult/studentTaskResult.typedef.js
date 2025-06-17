@@ -28,7 +28,8 @@ module.exports = gql`
     marks: [Mark!]!
     average_mark: Float!
     mark_entry_date: Date
-    graded_by: User
+    graded_by: ID
+    graded: User
     remarks: String
     student_task_result_status: StudentTaskResultStatus!
     created_at: Date
