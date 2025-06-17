@@ -14,7 +14,25 @@ const VALID_TASK_STATUSES = ["PENDING", "PROGRESS", "COMPLETED", "DELETED"];
 const DEFAULT_TASK_STATUS = "PENDING";
 
 // *************** QUERY ***************
-
+/**
+ * GetAllTasks Resolver
+ * ----------------------------------------------------------------
+ * Fetches a list of tasks from the database with optional filtering
+ * by task status, task type, test ID, and user ID. Performs strict
+ * validation for each filter before querying the database.
+ *
+ * @param {Object} _ - Unused resolver parent argument.
+ * @param {Object} args - GraphQL resolver arguments.
+ * @param {Object} args.filter - Optional filter object to narrow down results.
+ * @param {string} [args.filter.task_status] - Filter by task status (must be in VALID_TASK_STATUSES).
+ * @param {string} [args.filter.task_type] - Filter by task type (must be in VALID_TASK_TYPES).
+ * @param {string} [args.filter.test_id] - Filter by test ID (must be a non-empty string).
+ * @param {string} [args.filter.user_id] - Filter by user ID (must be a non-empty string).
+ *
+ * @returns {Promise<Array<Object>>} List of task documents matching the filters.
+ *
+ * @throws {AppError} If any filter value is invalid or if the database query fails.
+ */
 async function GetAllTasks(_, { filter }) {
   try {
     const query = {};
