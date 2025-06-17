@@ -78,9 +78,9 @@ async function GetAllTests(_, { filter }) {
  * @throws {AppError} Throws NOT_FOUND if no matching test is found.
  * @throws {AppError} Throws generic error if query operation fails.
  */
-async function GetOneTest(_, { filter }) {
+async function GetOneTest(_, { id, filter }) {
   try {
-    const query = {};
+    const query = {_id: id};
 
     if (filter && filter.test_status) {
       if (!VALID_TEST_STATUS.includes(filter.test_status)) {

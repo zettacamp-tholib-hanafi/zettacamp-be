@@ -129,9 +129,9 @@ async function GetAllSubjects(_, { filter }) {
  * @throws {AppError} If the subject is not found or any filter is invalid.
  */
 
-async function GetOneSubject(_, { filter }) {
+async function GetOneSubject(_, { id, filter }) {
   try {
-    const query = {};
+    const query = {_id: id};
 
     // *************** Filter: subject_status
     if (filter && filter.subject_status) {

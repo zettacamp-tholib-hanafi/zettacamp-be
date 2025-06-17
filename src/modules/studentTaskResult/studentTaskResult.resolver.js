@@ -109,9 +109,9 @@ async function GetAllStudentTaskResults(_, { filter }) {
  * @throws {AppError} If any filter is invalid, the result is not found, or if the query fails.
  */
 
-async function GetOneStudentTaskResult(_, { filter }) {
+async function GetOneStudentTaskResult(_, { id, filter }) {
   try {
-    const query = {};
+    const query = { _id: id };
 
     // *************** Filter: student_task_result_status
     if (filter && filter.student_task_result_status) {
