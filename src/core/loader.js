@@ -9,6 +9,7 @@ const {
   StudentTaskResultLoader,
 } = require("../modules/studentTaskResult/studentTaskResult.loader");
 const { UserLoader } = require("../modules/user/user.loader");
+const { TaskLoader } = require("../modules/task/task.loader");
 
 const Loaders = {
   user: UserLoader(),
@@ -18,6 +19,7 @@ const Loaders = {
   subject: SubjectLoader(),
   test: TestLoader(),
   studentTaskResult: StudentTaskResultLoader(),
+  task: TaskLoader(),
 };
 
 // *************** EXPORT MODUL ***************

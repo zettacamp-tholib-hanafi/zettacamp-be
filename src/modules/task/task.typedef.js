@@ -23,7 +23,9 @@ module.exports = gql`
   type Task {
     id: ID!
     test_id: ID!
+    test: Test
     user_id: ID!
+    user: User
     task_type: TaskType!
     task_status: TaskStatus!
     due_date: Date

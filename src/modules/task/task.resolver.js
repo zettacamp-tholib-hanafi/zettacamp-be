@@ -302,6 +302,55 @@ async function DeleteTask(_, { id, deleted_by }) {
     throw HandleCaughtError(error, "Failed to delete task");
   }
 }
+/**
+ * test Field Resolver
+ * ----------------------------------------------------------------
+ * Resolves the `test` field for a Task object using DataLoader to batch and cache queries.
+ *
+ * @param {Object} parent - The parent Task object containing the `test_id`.
+ * @param {Object} _ - Unused GraphQL args.
+ * @param {Object} context - GraphQL context containing initialized DataLoaders.
+ * @param {Object} context.loaders - The collection of DataLoaders.
+ * @param {Object} context.loaders.test - DataLoader instance for batching Test lookups.
+ *
+ * @returns {Promise<Object|null>} A Promise that resolves to the Test object related to the Task, or `null` if not found.
+ *
+ * @throws {Error} If the Test loader is not properly initialized in the context.
+ */
+
+function test(parent, _, context) {
+  if (!context && !context.loaders && !context.loaders.test) {
+    throw new Error("School loader not initialized");
+  }
+  console.log("Loading test for task:", parent.test_id);
+
+  return context.loaders.test.load(String(parent.test_id));
+}
+
+/**
+ * user Field Resolver
+ * ----------------------------------------------------------------
+ * Resolves the `user` field for a Task object using DataLoader to efficiently fetch user data.
+ *
+ * @param {Object} parent - The parent Task object containing the `user_id`.
+ * @param {Object} _ - Unused GraphQL args.
+ * @param {Object} context - GraphQL context containing initialized DataLoaders.
+ * @param {Object} context.loaders - The collection of DataLoaders.
+ * @param {Object} context.loaders.user - DataLoader instance for batching User lookups.
+ *
+ * @returns {Promise<Object|null>} A Promise that resolves to the User object assigned to the Task, or `null` if not found.
+ *
+ * @throws {Error} If the User loader is not properly initialized in the context.
+ */
+
+function user(parent, _, context) {
+  if (!context && !context.loaders && !context.loaders.users) {
+    throw new Error("School loader not initialized");
+  }
+  console.log("Loading user for task:", parent.user_id);
+
+  return context.loaders.user.load(String(parent.user_id));
+}
 
 // *************** EXPORT MODULE ***************
 module.exports = {
@@ -313,5 +362,9 @@ module.exports = {
     CreateTask,
     UpdateTask,
     DeleteTask,
+  },
+  Task: {
+    test,
+    user,
   },
 };
