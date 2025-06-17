@@ -8,7 +8,7 @@ const DEFAULT_GRADING_METHOD = "MANUAL";
 
 const testSchema = new Schema(
   {
-    // Name of the test (e.g., "Final Exam", "Quiz 1")
+    // Name of the test
     name: {
       type: String,
       required: true,
@@ -39,7 +39,7 @@ const testSchema = new Schema(
     // List of evaluation components directly nested
     notations: [
       {
-        // Description of what is being evaluated (e.g., "Clarity")
+        // Description of what is being evaluated
         notation_text: {
           type: String,
           required: true,
