@@ -5,7 +5,9 @@ const { isValidObjectId } = require("mongoose");
 const { CreateAppError } = require("../../core/error");
 
 // *************** IMPORT MODULE ***************
-const TestModel = require("../test/test.model");
+const Test = require("./test.model");
+const Task = require("../task/task.model");
+const User = require("../user/user.model");
 
 // *************** CONSTANTS ***************
 const VALID_STATUS = ["DRAFT", "PUBLISHED", "ARCHIVED", "DELETED"];
@@ -140,7 +142,7 @@ async function ValidateCreateTest(input) {
   }
 
   // *************** Validate: total weight per subject (including this one)
-  const existingTests = await TestModel.find({
+  const existingTests = await Test.find({
     subject_id,
     test_status: { $ne: "DELETED" },
   }).select("weight");
@@ -284,7 +286,7 @@ async function ValidateUpdateTest(input) {
   }
 
   // *************** Validate: total weight per subject (including this one)
-  const existingTests = await TestModel.find({
+  const existingTests = await Test.find({
     subject_id,
     test_status: { $ne: "DELETED" },
   }).select("weight");
@@ -311,7 +313,64 @@ async function ValidateUpdateTest(input) {
     attachments: attachments || [],
   };
 }
+
+/**
+ * Validates assignCorrector input for publishing a test and assigning a corrector.
+ *
+ * @param {object} input - The input payload containing test_id, user_id, and due_date.
+ * @returns {Promise<{ corrector: Object, test: Object }>}
+ * @throws {AppError} If any validation fails.
+ */
+async function ValidateAssignCorrector(id, input) {
+  const {user_id, due_date } = input;
+  const errors = [];
+
+  let corrector = null;
+  let test = null;
+
+  // *************** Validate Corrector (User)
+  corrector = await User.findById(user_id);
+  if (!corrector) {
+    errors.push({ field: "user_id", message: "Corrector not found" });
+  }
+
+  // *************** Validate Test
+  test = await Test.findById(id);
+  if (!test) {
+    errors.push({ field: "id", message: "Test not found" });
+  } else if (test.test_status !== "DRAFT") {
+    errors.push({
+      field: "test_status",
+      message: "Test must be in DRAFT status to be published",
+    });
+  }
+
+  // *************** Validate Due Date (Optional, but must be a valid future date if provided)
+  if (due_date) {
+    const parsedDate = new Date(due_date);
+    if (isNaN(parsedDate.getTime())) {
+      errors.push({
+        field: "due_date",
+        message: "Due date must be a valid date",
+      });
+    } else if (parsedDate < new Date()) {
+      errors.push({
+        field: "due_date",
+        message: "Due date must be in the future",
+      });
+    }
+  }
+
+  // *************** Throw if any errors found
+  if (errors.length > 0) {
+    throw CreateAppError("Validation failed", "BAD_USER_INPUT", { errors });
+  }
+
+  return { corrector, due_date };
+}
+
 module.exports = {
   ValidateCreateTest,
   ValidateUpdateTest,
+  ValidateAssignCorrector,
 };

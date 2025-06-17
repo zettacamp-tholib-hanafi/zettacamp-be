@@ -322,7 +322,6 @@ function test(parent, _, context) {
   if (!context && !context.loaders && !context.loaders.test) {
     throw new Error("School loader not initialized");
   }
-  console.log("Loading test for task:", parent.test_id);
 
   return context.loaders.test.load(String(parent.test_id));
 }
@@ -347,7 +346,6 @@ function user(parent, _, context) {
   if (!context && !context.loaders && !context.loaders.users) {
     throw new Error("School loader not initialized");
   }
-  console.log("Loading user for task:", parent.user_id);
 
   return context.loaders.user.load(String(parent.user_id));
 }

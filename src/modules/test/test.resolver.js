@@ -1,10 +1,13 @@
 // *************** IMPORT MODULE ***************
-const Test = require("./test.model.js");
+const Task = require("../task/task.model");
+const User = require("../user/user.model");
+const Test = require("./test.model");
 
 // *************** IMPORT VALIDATOR ***************
 const {
   ValidateCreateTest,
   ValidateUpdateTest,
+  ValidateAssignCorrector,
 } = require("./test.validator.js");
 
 // *************** IMPORT CORE ***************
@@ -80,7 +83,7 @@ async function GetAllTests(_, { filter }) {
  */
 async function GetOneTest(_, { id, filter }) {
   try {
-    const query = {_id: id};
+    const query = { _id: id };
 
     if (filter && filter.test_status) {
       if (!VALID_TEST_STATUS.includes(filter.test_status)) {
@@ -306,6 +309,59 @@ async function DeleteTest(_, { id, deleted_by }) {
 }
 
 /**
+ * Publishes a test and assigns a corrector by creating an ASSIGN_CORRECTOR task.
+ *
+ * This function performs the following steps:
+ * 1. Validates the corrector ID and due date via `ValidateAssignCorrector`.
+ * 2. Updates the test status from "DRAFT" to "PUBLISHED" and sets `published_date`.
+ * 3. Creates a new task of type `ASSIGN_CORRECTOR` with `PROGRESS` status for the corrector.
+ *
+ * @async
+ * @function PublishTest
+ * @param {object} _ - Unused parent resolver argument.
+ * @param {object} args - The arguments object.
+ * @param {string} args.id - The ID of the test to publish.
+ * @param {object} args.input - The input payload.
+ * @param {string} args.input.corrector_id - The ID of the user to be assigned as corrector.
+ * @param {string} [args.input.due_date] - Optional due date for the corrector's task.
+ * @returns {Promise<{ id: string }>} - Returns an object containing the published test ID.
+ * @throws {AppError} - Throws a custom application error if validation or any DB operation fails.
+ */
+
+async function PublishTest(_, { id, input }) {
+  try {
+    const { corrector, due_date } = await ValidateAssignCorrector(id, input);
+
+    // *************** Update Test to Published
+    const publish_test = await Test.updateOne(
+      { _id: id, test_status: "DRAFT" },
+      {
+        $set: { test_status: "PUBLISHED", published_date: new Date() },
+      }
+    );
+
+    if (!publish_test || publish_test.modifiedCount === 0) {
+      throw CreateAppError("Failed to publish test", "INTERNAL_SERVER_ERROR");
+    }
+
+    // *************** Prepare Task Payload (assignCorrector)
+    const assignCorrectorPayload = {
+      test_id: id,
+      user_id: corrector._id,
+      task_type: "ASSIGN_CORRECTOR",
+      task_status: "PROGRESS",
+      due_date: due_date ? new Date(due_date) : null,
+    };
+
+    await Task.create(assignCorrectorPayload);
+
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to publish test");
+  }
+}
+
+/**
  * Field resolver for fetching the subject associated with a test.
  *
  * This resolver uses a DataLoader (`context.loaders.subject`) to efficiently
@@ -340,6 +396,7 @@ module.exports = {
     CreateTest,
     UpdateTest,
     DeleteTest,
+    PublishTest,
   },
   Test: {
     subject: subjects,

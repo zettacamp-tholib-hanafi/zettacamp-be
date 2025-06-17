@@ -77,6 +77,11 @@ module.exports = gql`
     published_date: Date
   }
 
+  input PublishTestInput {
+    user_id: ID!
+    due_date: Date
+  }
+
   input TestFilter {
     grading_method: GradingMethod
     test_status: TestStatus
@@ -91,5 +96,6 @@ module.exports = gql`
     CreateTest(input: CreateTestInput!): Test!
     UpdateTest(id: ID!, input: UpdateTestInput!): Test!
     DeleteTest(id: ID!, deleted_by: String): Test!
+    PublishTest(id: ID!, input: PublishTestInput!): Test!
   }
 `;
