@@ -3,7 +3,7 @@ const { CreateAppError } = require("../../core/error.js");
 
 // *************** Constant Enums
 const VALID_TASK_TYPES = ["ASSIGN_CORRECTOR", "ENTER_MARKS", "VALIDATE_MARKS"];
-const VALID_TASK_STATUSES = ["PENDING", "IN_PROGRESS", "COMPLETED", "DELETED"];
+const VALID_TASK_STATUSES = ["PENDING", "PROGRESS", "COMPLETED", "DELETED"];
 
 /**
  * ValidateCreateTask
