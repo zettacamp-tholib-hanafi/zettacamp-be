@@ -9,7 +9,6 @@ const VALID_STUDENT_TASK_RESULT_STATUS = [
 ];
 const DEFAULT_STUDENT_TASK_RESULT_STATUS = "PENDING_REVIEW";
 
-// *************** DEFINE SCHEMA ***************
 const studentTaskResultSchema = new Schema(
   {
     // Reference to the student this result belongs to
@@ -108,5 +107,5 @@ const studentTaskResultSchema = new Schema(
   }
 );
 
-// *************** EXPORT MODEL ***************
+// *************** EXPORT MODULE ***************
 module.exports = model("StudentTaskResult", studentTaskResultSchema);
