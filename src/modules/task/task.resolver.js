@@ -170,6 +170,8 @@ async function GetOneTask(_, { filter }) {
   }
 }
 
+// *************** MUTATION ***************
+
 /**
  * CreateTask Resolver
  * ----------------------------------------------------------------
@@ -258,6 +260,49 @@ async function UpdateTask(_, { id, input }) {
   }
 }
 
+/**
+ * DeleteTask Resolver
+ * ----------------------------------------------------------------
+ * Soft deletes a Task by setting its `task_status` to `"DELETED"`,
+ * along with `deleted_at` and `deleted_by` metadata. The operation is
+ * skipped if the task is already marked as deleted.
+ *
+ * @param {Object} _ - Unused GraphQL resolver parent argument.
+ * @param {Object} args - GraphQL resolver arguments.
+ * @param {string} args.id - ID of the Task to be deleted.
+ * @param {string} [args.deleted_by] - Optional user ID performing the deletion.
+ *
+ * @returns {Promise<Object>} An object containing the ID of the deleted task: `{ id: string }`.
+ *
+ * @throws {AppError} If the task is not found or already deleted.
+ */
+
+async function DeleteTask(_, { id, deleted_by }) {
+  try {
+    const deleted = await Task.updateOne(
+      {
+        _id: id,
+        task_status: { $ne: "DELETED" },
+      },
+      {
+        $set: {
+          task_status: "DELETED",
+          deleted_at: new Date(),
+          deleted_by: deleted_by ? deleted_by : null,
+        },
+      }
+    );
+    if (!deleted) {
+      throw CreateAppError("Task not found or already deleted", "NOT_FOUND", {
+        id,
+      });
+    }
+    return { id };
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to delete task");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -267,5 +312,6 @@ module.exports = {
   Mutation: {
     CreateTask,
     UpdateTask,
+    DeleteTask,
   },
 };
