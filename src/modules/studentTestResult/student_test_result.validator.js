@@ -6,23 +6,23 @@ const { CreateAppError } = require("../../core/error");
 // *************** IMPORT MODULE ***************
 const Test = require("../test/test.model");
 
-const StudentTaskResultStatusEnum = [
+const StudentTestResultStatusEnum = [
   "GRADED",
   "PENDING_REVIEW",
   "NEEDS_CORRECTION",
 ];
 
 /**
- * Validate input for creating a new StudentTaskResult.
+ * Validate input for creating a new StudentTestResult.
  *
  * This function ensures that required fields are present and valid, including
  * mark boundaries, valid references, and enum values.
  *
- * @param {Object} input - Input object for StudentTaskResult creation.
+ * @param {Object} input - Input object for StudentTestResult creation.
  * @returns {Promise<Object>} Validated and sanitized input object.
  * @throws {AppError} If any validation rule fails.
  */
-async function ValidateCreateStudentTaskResult(input) {
+async function ValidateCreateStudentTestResult(input) {
   const {
     student_id,
     test_id,
@@ -31,7 +31,7 @@ async function ValidateCreateStudentTaskResult(input) {
     mark_entry_date,
     graded_by,
     remarks,
-    student_task_result_status,
+    student_test_result_status,
   } = input;
 
   if (
@@ -65,13 +65,13 @@ async function ValidateCreateStudentTaskResult(input) {
   }
 
   if (
-    !student_task_result_status ||
-    !StudentTaskResultStatusEnum.includes(student_task_result_status)
+    !student_test_result_status ||
+    !StudentTestResultStatusEnum.includes(student_test_result_status)
   ) {
     throw CreateAppError(
-      "Invalid student_task_result_status value",
+      "Invalid student_test_result_status value",
       "BAD_REQUEST",
-      { student_task_result_status }
+      { student_test_result_status }
     );
   }
 
@@ -139,21 +139,21 @@ async function ValidateCreateStudentTaskResult(input) {
     mark_entry_date: mark_entry_date || null,
     graded_by: graded_by || null,
     remarks: remarks || null,
-    student_task_result_status,
+    student_test_result_status,
   };
 }
 
 /**
- * ValidateUpdateStudentTaskResult
+ * ValidateUpdateStudentTestResult
  * ---------------------------------------------------------------
- * Validates the input payload for updating a student task result.
+ * Validates the input payload for updating a student test result.
  * Performs thorough checks on required fields, ensures marks are valid,
  * and validates each mark against the corresponding test notation.
  *
  * Throws meaningful application errors if any validation fails.
  *
  * @async
- * @function ValidateUpdateStudentTaskResult
+ * @function ValidateUpdateStudentTestResult
  *
  * @param {Object} input - The input object containing update data.
  * @param {string} input.student_id - ID of the student (required, non-empty string).
@@ -165,7 +165,7 @@ async function ValidateCreateStudentTaskResult(input) {
  * @param {string|null} [input.mark_entry_date] - Optional date of mark entry.
  * @param {string|null} [input.graded_by] - Optional user ID of the corrector.
  * @param {string|null} [input.remarks] - Optional remarks for the result.
- * @param {string} input.student_task_result_status - Status of the result (must match enum).
+ * @param {string} input.student_test_result_status - Status of the result (must match enum).
  *
  * @throws {AppError} If any required field is missing, improperly typed, or invalid.
  * @throws {AppError} If test is not found by the given `test_id`.
@@ -180,11 +180,11 @@ async function ValidateCreateStudentTaskResult(input) {
  *   mark_entry_date: string|null,
  *   graded_by: string|null,
  *   remarks: string|null,
- *   student_task_result_status: string
+ *   student_test_result_status: string
  * }
  */
 
-async function ValidateUpdateStudentTaskResult(input) {
+async function ValidateUpdateStudentTestResult(input) {
   const {
     student_id,
     test_id,
@@ -193,7 +193,7 @@ async function ValidateUpdateStudentTaskResult(input) {
     mark_entry_date,
     graded_by,
     remarks,
-    student_task_result_status,
+    student_test_result_status,
   } = input;
 
   if (
@@ -227,13 +227,13 @@ async function ValidateUpdateStudentTaskResult(input) {
   }
 
   if (
-    !student_task_result_status ||
-    !StudentTaskResultStatusEnum.includes(student_task_result_status)
+    !student_test_result_status ||
+    !StudentTestResultStatusEnum.includes(student_test_result_status)
   ) {
     throw CreateAppError(
-      "Invalid student_task_result_status value",
+      "Invalid student_test_result_status value",
       "BAD_REQUEST",
-      { student_task_result_status }
+      { student_test_result_status }
     );
   }
 
@@ -301,12 +301,12 @@ async function ValidateUpdateStudentTaskResult(input) {
     mark_entry_date: mark_entry_date || null,
     graded_by: graded_by || null,
     remarks: remarks || null,
-    student_task_result_status,
+    student_test_result_status,
   };
 }
 
 // *************** EXPORT MODULE ***************
 module.exports = {
-  ValidateCreateStudentTaskResult,
-  ValidateUpdateStudentTaskResult,
+  ValidateCreateStudentTestResult,
+  ValidateUpdateStudentTestResult,
 };

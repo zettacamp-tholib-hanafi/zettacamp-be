@@ -1,7 +1,7 @@
 // *************** IMPORT MODULE ***************
 const Task = require("./task.model.js");
 const Test = require("../test/test.model.js");
-const StudentTaskResult = require("../studentTaskResult/studentTaskResult.model.js");
+const StudentTestResult = require("../studentTestResult/student_test_result.model.js");
 const Student = require("../student/student.model.js");
 const User = require("../user/user.model.js");
 

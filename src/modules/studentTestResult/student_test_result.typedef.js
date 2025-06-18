@@ -7,7 +7,7 @@ const gql = require("graphql-tag");
 module.exports = gql`
   scalar Date
 
-  enum StudentTaskResultStatus {
+  enum StudentTestResultStatus {
     GRADED
     PENDING_REVIEW
     NEEDS_CORRECTION
@@ -19,7 +19,7 @@ module.exports = gql`
     mark: Float!
   }
 
-  type StudentTaskResult {
+  type StudentTestResult {
     id: ID!
     student_id: ID!
     student: Student
@@ -31,7 +31,7 @@ module.exports = gql`
     graded_by: ID
     graded: User
     remarks: String
-    student_task_result_status: StudentTaskResultStatus!
+    student_test_result_status: StudentTestResultStatus!
     created_at: Date
     created_by: String
     updated_at: Date
@@ -45,48 +45,48 @@ module.exports = gql`
     mark: Float!
   }
 
-  input CreateStudentTaskResultInput {
+  input CreateStudentTestResultInput {
     student_id: ID!
     test_id: ID!
     marks: [MarkInput!]
     graded_by: ID
     remarks: String
-    student_task_result_status: StudentTaskResultStatus
+    student_test_result_status: StudentTestResultStatus
     created_by: String
   }
 
-  input UpdateStudentTaskResultInput {
+  input UpdateStudentTestResultInput {
     student_id: ID!
     test_id: ID!
     marks: [MarkInput!]
     graded_by: ID
     remarks: String
-    student_task_result_status: StudentTaskResultStatus
+    student_test_result_status: StudentTestResultStatus
     created_by: String
   }
 
-  input StudentTaskResultFilter {
-    student_task_result_status: StudentTaskResultStatus
+  input StudentTestResultFilter {
+    student_test_result_status: StudentTestResultStatus
     student_id: ID
     test_id: ID
   }
 
   type Query {
-    GetAllStudentTaskResults(
-      filter: StudentTaskResultFilter
-    ): [StudentTaskResult!]!
-    GetOneStudentTaskResult(id: ID!): StudentTaskResult
+    GetAllStudentTestResults(
+      filter: StudentTestResultFilter
+    ): [StudentTestResult!]!
+    GetOneStudentTestResult(id: ID!): StudentTestResult
   }
 
   type Mutation {
-    CreateStudentTaskResult(
-      input: CreateStudentTaskResultInput!
-    ): StudentTaskResult!
-    UpdateStudentTaskResult(
+    CreateStudentTestResult(
+      input: CreateStudentTestResultInput!
+    ): StudentTestResult!
+    UpdateStudentTestResult(
       id: ID!
-      input: UpdateStudentTaskResultInput!
-    ): StudentTaskResult!
-    DeleteStudentTaskResult(id: ID!, deleted_by: String): StudentTaskResult!
-    EnterMarks(input: CreateStudentTaskResultInput!): StudentTaskResult!
+      input: UpdateStudentTestResultInput!
+    ): StudentTestResult!
+    DeleteStudentTestResult(id: ID!, deleted_by: String): StudentTestResult!
+    EnterMarks(input: CreateStudentTestResultInput!): StudentTestResult!
   }
 `;

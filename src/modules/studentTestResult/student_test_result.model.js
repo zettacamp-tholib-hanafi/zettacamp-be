@@ -1,15 +1,15 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-const VALID_STUDENT_TASK_RESULT_STATUS = [
+const VALID_STUDENT_TEST_RESULT_STATUS = [
   "GRADED",
   "PENDING_REVIEW",
   "NEEDS_CORRECTION",
   "DELETED",
 ];
-const DEFAULT_STUDENT_TASK_RESULT_STATUS = "PENDING_REVIEW";
+const DEFAULT_STUDENT_TEST_RESULT_STATUS = "PENDING_REVIEW";
 
-const studentTaskResultSchema = new Schema(
+const studentTestResultSchema = new Schema(
   {
     // Reference to the student this result belongs to
     student_id: {
@@ -70,11 +70,11 @@ const studentTaskResultSchema = new Schema(
       trim: true,
     },
 
-    // Status of the student task result
-    student_task_result_status: {
+    // Status of the student test result
+    student_test_result_status: {
       type: String,
-      enum: VALID_STUDENT_TASK_RESULT_STATUS,
-      default: DEFAULT_STUDENT_TASK_RESULT_STATUS,
+      enum: VALID_STUDENT_TEST_RESULT_STATUS,
+      default: DEFAULT_STUDENT_TEST_RESULT_STATUS,
       trim: true,
     },
 
@@ -103,9 +103,9 @@ const studentTaskResultSchema = new Schema(
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
-    collection: "student_task_results",
+    collection: "student_test_results",
   }
 );
 
 // *************** EXPORT MODULE ***************
-module.exports = model("StudentTaskResult", studentTaskResultSchema);
+module.exports = model("StudentTestResult", studentTestResultSchema);

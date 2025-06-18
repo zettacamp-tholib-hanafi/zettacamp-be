@@ -6,7 +6,7 @@ const schoolTypeDefs = require("../modules/school/school.typedef");
 const blockTypeDefs = require("../modules/block/block.typedef");
 const subjectTypedef = require("../modules/subject/subject.typedef");
 const testTypedef = require("../modules/test/test.typedef");
-const studentTaskResultTypedef = require("../modules/studentTaskResult/studentTaskResult.typedef");
+const studentTestResultTypedef = require("../modules/studentTestResult/student_test_result.typedef");
 const taskTypedef = require("../modules/task/task.typedef");
 
 const typeDefs = [
@@ -16,7 +16,7 @@ const typeDefs = [
   blockTypeDefs,
   subjectTypedef,
   testTypedef,
-  studentTaskResultTypedef,
+  studentTestResultTypedef,
   taskTypedef
 ];
 

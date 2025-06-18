@@ -6,8 +6,8 @@ const { StudentLoader } = require("../modules/student/student.loader");
 const { SubjectLoader } = require("../modules/subject/subject.loader");
 const { TestLoader } = require("../modules/test/test.loader");
 const {
-  StudentTaskResultLoader,
-} = require("../modules/studentTaskResult/studentTaskResult.loader");
+  StudentTestResultLoader,
+} = require("../modules/studentTestResult/student_test_result.loader");
 const { UserLoader } = require("../modules/user/user.loader");
 const { TaskLoader } = require("../modules/task/task.loader");
 
@@ -18,7 +18,7 @@ const Loaders = {
   block: BlockLoader(),
   subject: SubjectLoader(),
   test: TestLoader(),
-  studentTaskResult: StudentTaskResultLoader(),
+  studentTestResult: StudentTestResultLoader(),
   task: TaskLoader(),
 };
 
