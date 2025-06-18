@@ -26,7 +26,6 @@ module.exports = gql`
     deleted_by: String
   }
 
-  # *************** INPUT TYPES ***************
   input CreateBlockInput {
     name: String!
     description: String
