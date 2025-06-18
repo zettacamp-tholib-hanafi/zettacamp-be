@@ -1,11 +1,13 @@
 // *************** IMPORT MODULE ***************
 const StudentTaskResult = require("./studentTaskResult.model.js");
-
+const Task = require("../task/task.model.js");
+const { Mutation } = require("../task/task.resolver.js");
 // *************** IMPORT VALIDATOR ***************
 const {
   ValidateCreateStudentTaskResult,
   ValidateUpdateStudentTaskResult,
 } = require("./studentTaskResult.validator.js");
+const { ValidateCreateTask } = require("../task/task.validator.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -190,7 +192,6 @@ async function CreateStudentTaskResult(_, { input }) {
       remarks,
       student_task_result_status,
     } = await ValidateCreateStudentTaskResult(input);
-
     // *************** Calculate Average Mark
     let average_mark = 0;
     if (Array.isArray(marks) && marks.length > 0) {
@@ -342,6 +343,67 @@ async function DeleteStudentTaskResult(_, { id, deleted_by }) {
   }
 }
 
+async function EnterMarks(_, { input }) {
+  try {
+    const createStudentTaskResultPayload = {
+      student_id: input.student_id,
+      test_id: input.test_id,
+      marks: input.marks,
+      graded_by: input.graded_by,
+      remarks: input.remarks,
+      student_task_result_status: "GRADED",
+    };
+    const createStudentTaskResultProcess = await CreateStudentTaskResult(null, {
+      input: createStudentTaskResultPayload,
+    });
+
+    // *************** Step 4: Mark ENTER_MARKS Task as Completed
+    return console.log(
+      "Step 4: Mark ENTER_MARKS Task as Completed",
+      createStudentTaskResultProcess.test_id
+    );
+    await Task.updateOne(
+      {
+        test_id: createStudentTaskResultProcess.test_id,
+        type: "ENTER_MARKS",
+        status: "PENDING",
+      },
+      {
+        $set: {
+          status: "COMPLETED",
+        },
+      }
+    );
+
+    // *************** Step 5: Create VALIDATE_MARKS Task
+    const createValidateMarkPayload = {
+      task_type: "VALIDATE_MARKS",
+      test_id: createStudentTaskResultProcess.test_id,
+      user_id: createStudentTaskResultProcess.graded_by,
+      due_date: createStudentTaskResultProcess.due_date || null,
+      task_status: "PENDING",
+    };
+    const { test_id, user_id, task_type, task_status, due_date } =
+      await ValidateCreateTask(createValidateMarkPayload);
+
+    const taskInputPayload = {
+      test_id,
+      user_id,
+      task_type,
+      task_status,
+      due_date,
+    };
+
+    return await Task.create(taskInputPayload);
+  } catch (error) {
+    return HandleCaughtError(
+      error,
+      "Failed to create Enter Marks",
+      "VALIDATION_ERROR"
+    );
+  }
+}
+
 function student_id(parent, _, context) {
   if (!context && !context.loaders && !context.loaders.student) {
     throw new Error("School loader not initialized");
@@ -374,6 +436,7 @@ module.exports = {
     CreateStudentTaskResult,
     UpdateStudentTaskResult,
     DeleteStudentTaskResult,
+    EnterMarks,
   },
   StudentTaskResult: {
     student: student_id,

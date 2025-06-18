@@ -198,9 +198,82 @@ async function ValidateAssignCorrector(taskId, input) {
   };
 }
 
+/**
+ * @function ValidateEnterMarks
+ * @description Validates input for EnterMarks mutation and fetches matching task
+ * @param {String} test_id - ID of the test
+ * @param {Object} input - Input payload including marks, student_id, and user_id
+ * @returns {Object} Validated fields: marks, user_id, student_id, task, due_date
+ */
+async function ValidateEnterMarks(test_id, input) {
+  // *************** Sanity Checks
+  if (!mongoose.Types.ObjectId.isValid(test_id)) {
+    throw CreateAppError("Invalid test_id", 400, "VALIDATION_ERROR");
+  }
+
+  const { student_id, marks, user_id } = input;
+
+  if (!mongoose.Types.ObjectId.isValid(student_id)) {
+    throw CreateAppError("Invalid student_id", 400, "VALIDATION_ERROR");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(user_id)) {
+    throw CreateAppError("Invalid user_id", 400, "VALIDATION_ERROR");
+  }
+
+  if (!Array.isArray(marks) || marks.length === 0) {
+    throw CreateAppError(
+      "Marks must be a non-empty array",
+      400,
+      "VALIDATION_ERROR"
+    );
+  }
+
+  for (const [i, mark] of marks.entries()) {
+    if (
+      !mark ||
+      !mongoose.Types.ObjectId.isValid(mark.notation_id) ||
+      typeof mark.mark !== "number" ||
+      mark.mark < 0 ||
+      mark.mark > 100
+    ) {
+      throw CreateAppError(
+        `Invalid mark at index ${i}: notation_id and mark required (0-100)`,
+        400,
+        "VALIDATION_ERROR"
+      );
+    }
+  }
+
+  // *************** Fetch ENTER_MARKS Task
+  const task = await Task.findOne({
+    test_id,
+    user_id: user_id,
+    type: "ENTER_MARKS",
+    status: "PENDING",
+  });
+
+  if (!task) {
+    throw CreateAppError(
+      "No pending ENTER_MARKS task found for this test and user",
+      404,
+      "TASK_NOT_FOUND"
+    );
+  }
+
+  return {
+    marks,
+    user_id,
+    student_id,
+    task,
+    due_date: task.due_date || null,
+  };
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   ValidateCreateTask,
   ValidateUpdateTask,
   ValidateAssignCorrector,
+  ValidateEnterMarks,
 };

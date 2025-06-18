@@ -1,14 +1,18 @@
 // *************** IMPORT MODULE ***************
 const Task = require("./task.model.js");
 const Test = require("../test/test.model.js");
+const StudentTaskResult = require("../studentTaskResult/studentTaskResult.model.js");
 const Student = require("../student/student.model.js");
 const User = require("../user/user.model.js");
+
+// *************** IMPORT HELPER ***************
 const { SendEmailViaSendGrid } = require("./task.helper.js");
 // *************** IMPORT VALIDATOR ***************
 const {
   ValidateCreateTask,
   ValidateUpdateTask,
   ValidateAssignCorrector,
+  ValidateEnterMarks,
 } = require("./task.validator.js");
 
 // *************** IMPORT CORE ***************

@@ -87,5 +87,6 @@ module.exports = gql`
       input: UpdateStudentTaskResultInput!
     ): StudentTaskResult!
     DeleteStudentTaskResult(id: ID!, deleted_by: String): StudentTaskResult!
+    EnterMarks(input: CreateStudentTaskResultInput!): StudentTaskResult!
   }
 `;
