@@ -11,6 +11,9 @@ const {
   ValidateAdminUser,
 } = require("./school.validator.js");
 
+// *************** IMPORT UTILS ***************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
@@ -73,7 +76,9 @@ async function GetAllSchools(_, { filter }) {
 
 async function GetOneSchool(_, { id, filter }) {
   try {
-    const query = { _id: id };
+    const schoolId = await ValidateMongoId(id);
+
+    const query = { _id: schoolId };
 
     if (filter && filter.school_status) {
       if (!VALID_STATUS.includes(filter.school_status)) {
@@ -90,7 +95,7 @@ async function GetOneSchool(_, { id, filter }) {
 
     const school = await School.findOne(query);
     if (!school) {
-      throw CreateAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { schoolId });
     }
 
     return school;
@@ -265,10 +270,11 @@ async function UpdateSchool(_, { id, input }) {
     if (input.address) ValidateAddress(input.address);
     if (input.contact) ValidateContact(input.contact);
     if (input.admin_user) ValidateAdminUser(input.admin_user);
+    const schoolId = await ValidateMongoId(id);
 
-    const currentSchool = await School.findById(id);
+    const currentSchool = await School.findById(schoolId);
     if (!currentSchool) {
-      throw CreateAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { schoolId });
     }
 
     const schoolUpdatePayload = {
@@ -319,14 +325,14 @@ async function UpdateSchool(_, { id, input }) {
     };
 
     const updated = await School.updateOne(
-      { _id: id },
+      { _id: schoolId },
       { $set: schoolUpdatePayload }
     );
 
     if (!updated) {
-      throw CreateAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { schoolId });
     }
-    return { id };
+    return { id: schoolId };
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -359,8 +365,10 @@ async function UpdateSchool(_, { id, input }) {
 
 async function DeleteSchool(_, { id, input }) {
   try {
+    const schoolId = await ValidateMongoId(id);
+
     const deleted = await School.updateOne(
-      { _id: id, school_status: { $ne: "DELETED" } },
+      { _id: schoolId, school_status: { $ne: "DELETED" } },
       {
         $set: {
           school_status: "DELETED",
@@ -371,14 +379,16 @@ async function DeleteSchool(_, { id, input }) {
     );
 
     if (!deleted) {
-      throw CreateAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { schoolId });
     }
 
-    return { id };
+    return { id: schoolId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete school");
   }
 }
+
+// *************** LOADER ***************
 
 /**
  * Resolver for fetching students associated with a school using DataLoader.

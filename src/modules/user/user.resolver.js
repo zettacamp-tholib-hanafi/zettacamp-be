@@ -7,6 +7,9 @@ const {
   ValidateUpdateUserInput,
 } = require("./user.validator.js");
 
+// *************** IMPORT UTILS ***************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
@@ -61,7 +64,9 @@ async function GetAllUsers(_, { filter }) {
 
 async function GetOneUser(_, { id, filter }) {
   try {
-    const query = { _id: id };
+    const userId = await ValidateMongoId(id);
+
+    const query = { _id: userId };
 
     if (filter && filter.user_status) {
       if (!VALID_STATUS.includes(filter.user_status)) {
@@ -78,7 +83,7 @@ async function GetOneUser(_, { id, filter }) {
 
     const user = await User.findOne(query);
     if (!user) {
-      throw CreateAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("User not found", "NOT_FOUND", { userId });
     }
 
     return user;
@@ -140,10 +145,11 @@ async function CreateUser(_, { input }) {
 async function UpdateUser(_, { id, input }) {
   try {
     ValidateUpdateUserInput(input);
+    const userId = await ValidateMongoId(id);
 
-    const currentUser = await User.findById(id);
+    const currentUser = await User.findById(userId);
     if (!currentUser) {
-      throw CreateAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("User not found", "NOT_FOUND", { userId });
     }
 
     if (input.email && input.email !== currentUser.email) {
@@ -171,15 +177,15 @@ async function UpdateUser(_, { id, input }) {
     };
 
     const updated = await User.updateOne(
-      { _id: id },
+      { _id: userId },
       { $set: userUpdatePayload }
     );
 
     if (!updated) {
-      throw CreateAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("User not found", "NOT_FOUND", { userId });
     }
 
-    return { id };
+    return { id: userId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to update user", "VALIDATION_ERROR");
   }
@@ -196,8 +202,10 @@ async function UpdateUser(_, { id, input }) {
 
 async function DeleteUser(_, { id }) {
   try {
+    const userId = await ValidateMongoId(id);
+
     const deleted = await User.updateOne(
-      { _id: id, user_status: { $ne: "DELETED" } },
+      { _id: userId, user_status: { $ne: "DELETED" } },
       {
         $set: {
           user_status: "DELETED",
@@ -207,10 +215,10 @@ async function DeleteUser(_, { id }) {
     );
 
     if (!deleted) {
-      throw CreateAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("User not found", "NOT_FOUND", { userId });
     }
 
-    return { id };
+    return { id: userId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete user");
   }
