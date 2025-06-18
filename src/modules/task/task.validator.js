@@ -32,9 +32,7 @@ async function ValidateCreateTask(input) {
   const errors = {};
 
   if (
-    !input.test_id ||
-    typeof input.test_id !== "string" ||
-    input.test_id.trim() === ""
+    !input.test_id
   ) {
     errors.test_id = "test_id is required and must be a non-empty string";
   }
@@ -47,7 +45,7 @@ async function ValidateCreateTask(input) {
     errors.user_id = "user_id is required and must be a non-empty string";
   }
 
-  if (input.task_status && !VALID_TASK_TYPES.includes(input.task_type)) {
+  if (input.task_type && !VALID_TASK_TYPES.includes(input.task_type)) {
     errors.task_type = `task_type must be one of: ${VALID_TASK_TYPES.join(
       ", "
     )}`;

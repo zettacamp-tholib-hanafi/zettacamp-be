@@ -355,6 +355,17 @@ async function DeleteStudentTestResult(_, { id, deleted_by }) {
   }
 }
 
+/**
+ * Handle the EnterMarks mutation:
+ * 1. Create a StudentTestResult
+ * 2. Mark the ENTER_MARKS Task as COMPLETED
+ * 3. Create a VALIDATE_MARKS Task for the same test
+ *
+ * @param {Object} _ - Unused root argument.
+ * @param {Object} input - GraphQL input for EnterMarks.
+ * @returns {Promise<Object>} - Object containing new StudentTestResult ID.
+ */
+
 async function EnterMarks(_, { input }) {
   try {
     const createStudentTestResultPayload = {
@@ -369,25 +380,25 @@ async function EnterMarks(_, { input }) {
       input: createStudentTestResultPayload,
     });
 
-    // *************** Step 4: Mark ENTER_MARKS Task as Completed
-    return console.log(
-      "Step 4: Mark ENTER_MARKS Task as Completed",
-      createStudentTestResultProcess.test_id
-    );
-    await Task.updateOne(
+    const updatedTask = await Task.updateOne(
       {
         test_id: createStudentTestResultProcess.test_id,
-        type: "ENTER_MARKS",
-        status: "PENDING",
+        task_type: "ENTER_MARKS",
+        task_status: "PENDING",
       },
       {
         $set: {
-          status: "COMPLETED",
+          task_status: "COMPLETED",
         },
       }
     );
+    if (!updatedTask || updatedTask.modifiedCount === 0) {
+      throw CreateAppError("Task not found or already completed", "NOT_FOUND", {
+        test_id: createStudentTestResultProcess.test_id,
+        task_type: "ENTER_MARKS",
+      });
+    }
 
-    // *************** Step 5: Create VALIDATE_MARKS Task
     const createValidateMarkPayload = {
       task_type: "VALIDATE_MARKS",
       test_id: createStudentTestResultProcess.test_id,
@@ -406,7 +417,14 @@ async function EnterMarks(_, { input }) {
       due_date,
     };
 
-    return await Task.create(taskInputPayload);
+    const createTask = await Task.create(taskInputPayload);
+    if (!createTask) {
+      throw CreateAppError("Task not found or already completed", "NOT_FOUND", {
+        test_id: createStudentTestResultProcess.test_id,
+        task_type: "ENTER_MARKS",
+      });
+    }
+    return { id: createStudentTestResultProcess._id };
   } catch (error) {
     return HandleCaughtError(
       error,

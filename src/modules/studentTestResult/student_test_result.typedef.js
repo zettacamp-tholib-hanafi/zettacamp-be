@@ -75,7 +75,7 @@ module.exports = gql`
     GetAllStudentTestResults(
       filter: StudentTestResultFilter
     ): [StudentTestResult!]!
-    GetOneStudentTestResult(id: ID!): StudentTestResult
+    GetOneStudentTestResult(id: ID!, filter: StudentTestResultFilter): StudentTestResult
   }
 
   type Mutation {
