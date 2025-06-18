@@ -28,6 +28,7 @@ module.exports = gql`
     marks: [Mark!]!
     average_mark: Float!
     mark_entry_date: Date
+    mark_validated_date: Date
     graded_by: ID
     graded: User
     remarks: String
@@ -75,7 +76,10 @@ module.exports = gql`
     GetAllStudentTestResults(
       filter: StudentTestResultFilter
     ): [StudentTestResult!]!
-    GetOneStudentTestResult(id: ID!, filter: StudentTestResultFilter): StudentTestResult
+    GetOneStudentTestResult(
+      id: ID!
+      filter: StudentTestResultFilter
+    ): StudentTestResult
   }
 
   type Mutation {
@@ -88,5 +92,6 @@ module.exports = gql`
     ): StudentTestResult!
     DeleteStudentTestResult(id: ID!, deleted_by: String): StudentTestResult!
     EnterMarks(input: CreateStudentTestResultInput!): StudentTestResult!
+    ValidateMarks(id: ID!): StudentTestResult!
   }
 `;

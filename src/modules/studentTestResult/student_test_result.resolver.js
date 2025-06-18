@@ -1,11 +1,11 @@
 // *************** IMPORT MODULE ***************
 const StudentTestResult = require("./student_test_result.model.js");
 const Task = require("../task/task.model.js");
-const { Mutation } = require("../task/task.resolver.js");
 // *************** IMPORT VALIDATOR ***************
 const {
   ValidateCreateStudentTestResult,
   ValidateUpdateStudentTestResult,
+  ValidateValidateMarks,
 } = require("./student_test_result.validator.js");
 const { ValidateCreateTask } = require("../task/task.validator.js");
 
@@ -433,6 +433,63 @@ async function EnterMarks(_, { input }) {
     );
   }
 }
+/**
+ * Validate the marks of a student test result and complete the associated task.
+ *
+ * This function performs the following steps:
+ * 1. Validates the given task ID using `ValidateMongoId`.
+ * 2. Retrieves and validates the related task and student test result using `ValidateValidateMarks`.
+ * 3. Updates the `mark_validated_date` in the `StudentTestResult` document.
+ * 4. Marks the corresponding "VALIDATE_MARKS" task as "COMPLETED".
+ * 5. Returns the ID of the validated `StudentTestResult`.
+ *
+ * If an error occurs during the process, it is handled by `HandleCaughtError`.
+ *
+ * @async
+ * @function ValidateMarks
+ * @param {object} _ - Unused GraphQL resolver parent argument.
+ * @param {object} args - GraphQL arguments object.
+ * @param {string} args.id - The task ID to validate and complete.
+ * @returns {Promise<{id: string}>} Returns the ID of the validated student test result.
+ *
+ * @throws {AppError} If validation or update processes fail, returns an error wrapped by `HandleCaughtError`.
+ */
+
+async function ValidateMarks(_, { id }) {
+  try {
+    const taskId = await ValidateMongoId(id);
+    const { task, studentTestResult } = await ValidateValidateMarks(taskId);
+
+    await StudentTestResult.updateOne(
+      { _id: studentTestResult._id },
+      {
+        $set: {
+          mark_validated_date: new Date(),
+        },
+      }
+    );
+
+    await Task.updateOne(
+      {
+        _id: task._id,
+        task_type: "VALIDATE_MARKS",
+        task_status: "PENDING",
+      },
+      {
+        $set: { task_status: "COMPLETED" },
+      }
+    );
+
+    return { id: studentTestResult._id };
+  } catch (error) {
+    return HandleCaughtError(
+      error,
+      "Failed to Validate Marks",
+      "VALIDATION_ERROR"
+    );
+  }
+}
+
 // *************** LOADER ***************
 /**
  * Resolver function to load a student by their ID using DataLoader.
@@ -506,6 +563,7 @@ module.exports = {
     UpdateStudentTestResult,
     DeleteStudentTestResult,
     EnterMarks,
+    ValidateMarks,
   },
   StudentTestResult: {
     student: student_id,

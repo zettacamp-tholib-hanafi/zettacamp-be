@@ -5,6 +5,8 @@ const { CreateAppError } = require("../../core/error");
 
 // *************** IMPORT MODULE ***************
 const Test = require("../test/test.model");
+const StudentTestResult = require("./student_test_result.model");
+const Task = require("../task/task.model");
 
 const StudentTestResultStatusEnum = [
   "GRADED",
@@ -304,9 +306,39 @@ async function ValidateUpdateStudentTestResult(input) {
     student_test_result_status,
   };
 }
+/**
+ * Validate and prepare data for ValidateMarks mutation.
+ *
+ * @param {string} taskId - The ID of the student test result to validate.
+ * @returns {Promise<{ task: object, test_result: object }>} - The corresponding task and test result.
+ */
+async function ValidateValidateMarks(taskId) {
+  const task = await Task.findOne({
+    task_type: "VALIDATE_MARKS",
+    task_status: "PENDING",
+    _id: taskId,
+  });
+
+  if (!task) {
+    throw CreateAppError(
+      "No VALIDATE_MARKS task in PENDING status for this test result",
+      "NOT_FOUND"
+    );
+  }
+  const studentTestResult = await StudentTestResult.findOne({
+    test_id: task.test_id,
+  });
+
+  if (!studentTestResult) {
+    throw CreateAppError("Student Test Result not found", "NOT_FOUND");
+  }
+
+  return { task, studentTestResult };
+}
 
 // *************** EXPORT MODULE ***************
 module.exports = {
   ValidateCreateStudentTestResult,
   ValidateUpdateStudentTestResult,
+  ValidateValidateMarks,
 };
