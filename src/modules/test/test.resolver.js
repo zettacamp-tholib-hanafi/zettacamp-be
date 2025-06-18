@@ -10,6 +10,9 @@ const {
   ValidateAssignCorrector,
 } = require("./test.validator.js");
 
+// *************** IMPORT UTILS ***************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
@@ -83,7 +86,9 @@ async function GetAllTests(_, { filter }) {
  */
 async function GetOneTest(_, { id, filter }) {
   try {
-    const query = { _id: id };
+    const testId = await ValidateMongoId(id);
+
+    const query = { _id: testId };
 
     if (filter && filter.test_status) {
       if (!VALID_TEST_STATUS.includes(filter.test_status)) {
@@ -110,7 +115,7 @@ async function GetOneTest(_, { id, filter }) {
 
     const test = await Test.findOne(query);
     if (!test) {
-      throw CreateAppError("Test not found", "NOT_FOUND", { id });
+      throw CreateAppError("Test not found", "NOT_FOUND", { testId });
     }
 
     return test;
@@ -221,7 +226,7 @@ async function CreateTest(_, { input }) {
  * @throws {AppError} Throws when validation fails or the update operation encounters an error.
  */
 
-async function UpdateTest(_, { input }) {
+async function UpdateTest(_, { id, input }) {
   try {
     const {
       name,
@@ -236,6 +241,7 @@ async function UpdateTest(_, { input }) {
       attachments,
       published_date,
     } = await ValidateUpdateTest(input);
+    const testId = await ValidateMongoId(id);
 
     const testPayload = {
       name,
@@ -251,12 +257,15 @@ async function UpdateTest(_, { input }) {
       published_date: published_date ? published_date : null,
     };
 
-    const updated = await Test.updateOne({ _id: id }, { $set: testPayload });
+    const updated = await Test.updateOne(
+      { _id: testId },
+      { $set: testPayload }
+    );
 
     if (!updated) {
-      throw CreateAppError("Test not found", "NOT_FOUND", { id });
+      throw CreateAppError("Test not found", "NOT_FOUND", { testId });
     }
-    return { id };
+    return { id: testId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to create test", "VALIDATION_ERROR");
   }
@@ -284,9 +293,11 @@ async function UpdateTest(_, { input }) {
 
 async function DeleteTest(_, { id, deleted_by }) {
   try {
+    const testId = await ValidateMongoId(id);
+
     const deleted = await Test.updateOne(
       {
-        _id: id,
+        _id: testId,
         test_status: { $ne: "DELETED" },
       },
       {
@@ -299,10 +310,10 @@ async function DeleteTest(_, { id, deleted_by }) {
     );
 
     if (!deleted) {
-      throw CreateAppError("Test Not Found!", "NOT_FOUND", { id });
+      throw CreateAppError("Test Not Found!", "NOT_FOUND", { testId });
     }
 
-    return { id };
+    return { id: testId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete test");
   }
@@ -330,11 +341,15 @@ async function DeleteTest(_, { id, deleted_by }) {
 
 async function PublishTest(_, { id, input }) {
   try {
-    const { corrector, due_date } = await ValidateAssignCorrector(id, input);
+    const testId = await ValidateMongoId(id);
+    const { corrector, due_date } = await ValidateAssignCorrector(
+      testId,
+      input
+    );
 
     // *************** Update Test to Published
     const publish_test = await Test.updateOne(
-      { _id: id, test_status: "DRAFT" },
+      { _id: testId, test_status: "DRAFT" },
       {
         $set: { test_status: "PUBLISHED", published_date: new Date() },
       }
@@ -346,7 +361,7 @@ async function PublishTest(_, { id, input }) {
 
     // *************** Prepare Task Payload (assignCorrector)
     const assignCorrectorPayload = {
-      test_id: id,
+      test_id: testId,
       user_id: corrector._id,
       task_type: "ASSIGN_CORRECTOR",
       task_status: "PROGRESS",
@@ -355,7 +370,7 @@ async function PublishTest(_, { id, input }) {
 
     await Task.create(assignCorrectorPayload);
 
-    return { id };
+    return { id: testId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to publish test");
   }

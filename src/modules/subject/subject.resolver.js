@@ -7,6 +7,9 @@ const {
   ValidateUpdateSubject,
 } = require("./subject.validator.js");
 
+// *************** IMPORT UTILS ***************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
@@ -131,7 +134,9 @@ async function GetAllSubjects(_, { filter }) {
 
 async function GetOneSubject(_, { id, filter }) {
   try {
-    const query = {_id: id};
+    const subjectId = await ValidateMongoId(id);
+
+    const query = { _id: subjectId };
 
     // *************** Filter: subject_status
     if (filter && filter.subject_status) {
@@ -184,7 +189,7 @@ async function GetOneSubject(_, { id, filter }) {
     // *************** Execute query
     const subject = await Subject.findOne(query);
     if (!subject) {
-      throw CreateAppError("Subject not found", "NOT_FOUND", { id });
+      throw CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
     }
 
     return subject;
@@ -292,6 +297,7 @@ async function UpdateSubject(_, { id, input }) {
       tests,
       subject_status,
     } = await ValidateUpdateSubject(input);
+    const subjectId = await ValidateMongoId(id);
 
     const subjectPayload = {
       name,
@@ -306,14 +312,14 @@ async function UpdateSubject(_, { id, input }) {
     };
 
     const updated = await Subject.updateOne(
-      { _id: id },
+      { _id: subjectId },
       { $set: subjectPayload }
     );
 
     if (!updated) {
-      throw CreateAppError("Subject not found", "NOT_FOUND", { id });
+      throw CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
     }
-    return { id };
+    return { id: subjectId };
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -349,8 +355,10 @@ async function UpdateSubject(_, { id, input }) {
 
 async function DeleteSubject(_, { id, deleted_by }) {
   try {
+    const subjectId = await ValidateMongoId(id);
+
     const deleted = await Subject.updateOne(
-      { _id: id, subject_status: { $ne: "DELETED" } },
+      { _id: subjectId, subject_status: { $ne: "DELETED" } },
       {
         $set: {
           subject_status: "DELETED",
@@ -361,10 +369,10 @@ async function DeleteSubject(_, { id, deleted_by }) {
     );
 
     if (!deleted) {
-      throw CreateAppError("Subject not found", "NOT_FOUND", { id });
+      throw CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
     }
 
-    return { id };
+    return { id: subjectId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete subject");
   }

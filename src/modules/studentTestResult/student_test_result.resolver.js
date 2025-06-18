@@ -9,6 +9,9 @@ const {
 } = require("./student_test_result.validator.js");
 const { ValidateCreateTask } = require("../task/task.validator.js");
 
+// *************** IMPORT UTILS ***************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
@@ -113,7 +116,9 @@ async function GetAllStudentTestResults(_, { filter }) {
 
 async function GetOneStudentTestResult(_, { id, filter }) {
   try {
-    const query = { _id: id };
+    const studentTestResultId = await ValidateMongoId(id);
+
+    const query = { _id: studentTestResultId };
 
     // *************** Filter: student_test_result_status
     if (filter && filter.student_test_result_status) {
@@ -157,7 +162,9 @@ async function GetOneStudentTestResult(_, { id, filter }) {
     }
     const studentTestResult = await StudentTestResult.findOne(query);
     if (!studentTestResult) {
-      throw CreateAppError("StudentTestResult not found", "NOT_FOUND", { id });
+      throw CreateAppError("StudentTestResult not found", "NOT_FOUND", {
+        studentTestResultId,
+      });
     }
 
     return studentTestResult;
@@ -257,6 +264,7 @@ async function UpdateStudentTestResult(_, { id, input }) {
       remarks,
       student_test_result_status,
     } = await ValidateUpdateStudentTestResult(input);
+    const studentTestResultId = await ValidateMongoId(id);
 
     // *************** Calculate Average Mark
     let average_mark = 0;
@@ -280,16 +288,16 @@ async function UpdateStudentTestResult(_, { id, input }) {
     };
 
     const updateStudentTestResult = await StudentTestResult.findOneAndUpdate(
-      { _id: id },
+      { _id: studentTestResultId },
       { $set: studentTestResultPayload }
     );
 
     if (!updateStudentTestResult) {
       throw CreateAppError("Student Test Result not found", "NOT_FOUND", {
-        id,
+        studentTestResultId,
       });
     }
-    return { id };
+    return { id: studentTestResultId };
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -320,8 +328,12 @@ async function UpdateStudentTestResult(_, { id, input }) {
  */
 async function DeleteStudentTestResult(_, { id, deleted_by }) {
   try {
+    const studentTestResultId = await ValidateMongoId(id);
     const deleted = await StudentTestResult.updateOne(
-      { _id: id, student_test_result_status: { $ne: "DELETED" } },
+      {
+        _id: studentTestResultId,
+        student_test_result_status: { $ne: "DELETED" },
+      },
       {
         $set: {
           student_test_result_status: "DELETED",
@@ -333,11 +345,11 @@ async function DeleteStudentTestResult(_, { id, deleted_by }) {
 
     if (!deleted) {
       throw CreateAppError("Student Test Result not found", "NOT_FOUND", {
-        id,
+        studentTestResultId,
       });
     }
 
-    return { id };
+    return { id: studentTestResultId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete Student Test Result");
   }

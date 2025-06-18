@@ -15,6 +15,9 @@ const {
   ValidateEnterMarks,
 } = require("./task.validator.js");
 
+// *************** IMPORT UTILS ***************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
@@ -118,9 +121,11 @@ async function GetAllTasks(_, { filter }) {
  * @throws {AppError} If filter contains invalid values or task is not found.
  */
 
-async function GetOneTask(_, { filter }) {
+async function GetOneTask(_, { id, filter }) {
   try {
-    const query = { _id: id };
+    const taskId = await ValidateMongoId(id);
+
+    const query = { _id: taskId };
 
     // *************** Filter: task_status
     if (filter && filter.task_status) {
@@ -144,9 +149,7 @@ async function GetOneTask(_, { filter }) {
         });
       }
       query.task_type = filter.task_type;
-    } else {
-      query.task_type = DEFAULT_TASK_STATUS;
-    }
+    } 
 
     // *************** Filter: test_id
     if (filter && filter.test_id) {
@@ -169,7 +172,7 @@ async function GetOneTask(_, { filter }) {
 
     const task = await Task.findOne(query);
     if (!task) {
-      throw CreateAppError("User not found", "NOT_FOUND", { id });
+      throw CreateAppError("Task not found", "NOT_FOUND", { taskId });
     }
 
     return task;
@@ -245,6 +248,7 @@ async function UpdateTask(_, { id, input }) {
   try {
     const { test_id, user_id, task_type, task_status, due_date } =
       await ValidateUpdateTask(input);
+    const taskId = await ValidateMongoId(id);
 
     const taskUpdatePayload = {
       test_id,
@@ -255,14 +259,14 @@ async function UpdateTask(_, { id, input }) {
     };
 
     const updated = await Task.updateOne(
-      { _id: id },
+      { _id: taskId },
       { $set: taskUpdatePayload }
     );
 
     if (!updated) {
-      throw CreateAppError("Task not found", "NOT_FOUND", { id });
+      throw CreateAppError("Task not found", "NOT_FOUND", { taskId });
     }
-    return { id };
+    return { id: taskId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to update task", "VALIDATION_ERROR");
   }
@@ -287,9 +291,11 @@ async function UpdateTask(_, { id, input }) {
 
 async function DeleteTask(_, { id, deleted_by }) {
   try {
+    const taskId = await ValidateMongoId(id);
+
     const deleted = await Task.updateOne(
       {
-        _id: id,
+        _id: taskId,
         task_status: { $ne: "DELETED" },
       },
       {
@@ -302,10 +308,10 @@ async function DeleteTask(_, { id, deleted_by }) {
     );
     if (!deleted) {
       throw CreateAppError("Task not found or already deleted", "NOT_FOUND", {
-        id,
+        taskId,
       });
     }
-    return { id };
+    return { id: taskId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete task");
   }
@@ -322,8 +328,9 @@ async function DeleteTask(_, { id, deleted_by }) {
 async function AssignCorrector(_, { id, input }, context) {
   try {
     // *************** Step 1: Validate and fetch task
+    const taskId = await ValidateMongoId(id);
     const { user_id, due_date, assignTask } = await ValidateAssignCorrector(
-      id,
+      taskId,
       input
     );
 
@@ -387,7 +394,7 @@ async function AssignCorrector(_, { id, input }, context) {
       throw new Error("Failed to send email notification");
     }
 
-    return { id };
+    return { id: taskId };
   } catch (error) {
     return HandleCaughtError(error);
   }

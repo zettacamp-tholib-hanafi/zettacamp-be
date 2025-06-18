@@ -77,8 +77,8 @@ async function GetAllBlocks(_, { filter }) {
 
 async function GetOneBlock(_, { id, filter }) {
   try {
-    const block_id = await ValidateMongoId(id);
-    const query = { _id: block_id };
+    const blockId = await ValidateMongoId(id);
+    const query = { _id: blockId };
 
     if (filter && filter.block_status) {
       if (!VALID_STATUS.includes(filter.block_status)) {
@@ -95,7 +95,7 @@ async function GetOneBlock(_, { id, filter }) {
 
     const block = await Block.findOne(query);
     if (!block) {
-      throw CreateAppError("Block not found", "NOT_FOUND", { id });
+      throw CreateAppError("Block not found", "NOT_FOUND", { blockId });
     }
 
     return block;
@@ -180,7 +180,7 @@ async function UpdateBlock(_, { id, input }) {
   try {
     const { name, description, block_status, start_date, end_date, subjects } =
       await ValidateUpdateBlock(input);
-    const block_id = await ValidateMongoId(id);
+    const blockId = await ValidateMongoId(id);
 
     const blockUpdatePayload = {
       name,
@@ -192,14 +192,14 @@ async function UpdateBlock(_, { id, input }) {
     };
 
     const updated = await Block.updateOne(
-      { _id: block_id },
+      { _id: blockId },
       { $set: blockUpdatePayload }
     );
 
     if (!updated) {
-      throw CreateAppError("Block not updated", "NOT_FOUND", { block_id });
+      throw CreateAppError("Block not updated", "NOT_FOUND", { blockId });
     }
-    return { id: block_id };
+    return { id: blockId };
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -228,10 +228,10 @@ async function UpdateBlock(_, { id, input }) {
 
 async function DeleteBlock(_, { id, deleted_by }) {
   try {
-    const block_id = await ValidateMongoId(id);
+    const blockId = await ValidateMongoId(id);
 
     const deleted = await Block.updateOne(
-      { _id: block_id, block_status: { $ne: "DELETED" } },
+      { _id: blockId, block_status: { $ne: "DELETED" } },
       {
         $set: {
           block_status: "DELETED",
@@ -242,10 +242,10 @@ async function DeleteBlock(_, { id, deleted_by }) {
     );
 
     if (!deleted) {
-      throw CreateAppError("Block not found", "NOT_FOUND", { block_id });
+      throw CreateAppError("Block not found", "NOT_FOUND", { blockId });
     }
 
-    return { id: block_id };
+    return { id: blockId };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete block");
   }
