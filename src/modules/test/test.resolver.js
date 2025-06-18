@@ -376,6 +376,8 @@ async function PublishTest(_, { id, input }) {
   }
 }
 
+// *************** LOADER ***************
+
 /**
  * Field resolver for fetching the subject associated with a test.
  *

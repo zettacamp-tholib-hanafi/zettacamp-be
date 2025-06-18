@@ -388,6 +388,8 @@ async function DeleteSchool(_, { id, input }) {
   }
 }
 
+// *************** LOADER ***************
+
 /**
  * Resolver for fetching students associated with a school using DataLoader.
  *

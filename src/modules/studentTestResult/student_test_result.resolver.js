@@ -415,6 +415,19 @@ async function EnterMarks(_, { input }) {
     );
   }
 }
+// *************** LOADER ***************
+/**
+ * Resolver function to load a student by their ID using DataLoader.
+ *
+ * @param {Object} parent - The parent object containing the student_id.
+ * @param {Object} _ - Unused GraphQL arguments.
+ * @param {Object} context - GraphQL context containing loaders.
+ * @param {Object} context.loaders - Registry of DataLoader instances.
+ * @param {DataLoader} context.loaders.student - DataLoader for students.
+ *
+ * @throws {Error} Throws an error if the student loader is not initialized.
+ * @returns {Promise<Object>} Promise resolving to the student document.
+ */
 
 function student_id(parent, _, context) {
   if (!context && !context.loaders && !context.loaders.student) {
@@ -423,6 +436,19 @@ function student_id(parent, _, context) {
 
   return context.loaders.student.load(String(parent.student_id));
 }
+/**
+ * Resolver function to load a test by its ID using DataLoader.
+ *
+ * @param {Object} parent - The parent object containing the test_id.
+ * @param {Object} _ - Unused GraphQL arguments.
+ * @param {Object} context - GraphQL context containing loaders.
+ * @param {Object} context.loaders - Registry of DataLoader instances.
+ * @param {DataLoader} context.loaders.test - DataLoader for tests.
+ *
+ * @throws {Error} Throws an error if the test loader is not initialized.
+ * @returns {Promise<Object>} Promise resolving to the test document.
+ */
+
 function test_id(parent, _, context) {
   if (!context && !context.loaders && !context.loaders.test) {
     throw new Error("School loader not initialized");
@@ -430,6 +456,19 @@ function test_id(parent, _, context) {
 
   return context.loaders.test.load(String(parent.test_id));
 }
+/**
+ * Resolver function to load the user who graded the test, using their ID.
+ *
+ * @param {Object} parent - The parent object containing the graded_by field.
+ * @param {Object} _ - Unused GraphQL arguments.
+ * @param {Object} context - GraphQL context containing loaders.
+ * @param {Object} context.loaders - Registry of DataLoader instances.
+ * @param {DataLoader} context.loaders.user - DataLoader for users.
+ *
+ * @throws {Error} Throws an error if the user loader is not initialized.
+ * @returns {Promise<Object>} Promise resolving to the user document.
+ */
+
 function graded_by(parent, _, context) {
   if (!context && !context.loaders && !context.loaders.users) {
     throw new Error("School loader not initialized");

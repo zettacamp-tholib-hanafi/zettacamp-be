@@ -378,6 +378,8 @@ async function DeleteSubject(_, { id, deleted_by }) {
   }
 }
 
+// *************** LOADER ***************
+
 /**
  * Resolves the `tests` field for a given subject using DataLoader for batching and caching.
  *

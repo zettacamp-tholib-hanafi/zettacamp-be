@@ -251,6 +251,21 @@ async function DeleteBlock(_, { id, deleted_by }) {
   }
 }
 
+// *************** LOADER ***************
+/**
+ * Resolver function to load subjects associated with a block.
+ * Utilizes DataLoader to batch and cache requests for subjects.
+ *
+ * @param {Object} block - The parent block object containing subject IDs.
+ * @param {Object} _ - GraphQL resolver unused argument (args).
+ * @param {Object} context - GraphQL context object containing DataLoaders.
+ * @param {Object} context.loaders - DataLoader registry.
+ * @param {DataLoader} context.loaders.block - DataLoader instance for subjects.
+ *
+ * @throws {Error} Throws an error if the subject loader is not initialized.
+ *
+ * @returns {Promise<Array<Object>>} Returns a promise resolving to an array of subject documents.
+ */
 function subjects(block, _, context) {
   if (!context && !context.loaders && !context.loaders.block) {
     throw new Error("Student loader not initialized");

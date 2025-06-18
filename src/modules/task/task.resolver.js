@@ -400,6 +400,8 @@ async function AssignCorrector(_, { id, input }, context) {
   }
 }
 
+// *************** LOADER ***************
+
 /**
  * test Field Resolver
  * ----------------------------------------------------------------

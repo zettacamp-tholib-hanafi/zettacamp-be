@@ -345,6 +345,8 @@ async function DeleteStudent(_, { id, input }) {
   }
 }
 
+// *************** LOADER ***************
+
 /**
  * Resolves the school associated with a student using DataLoader.
  *
