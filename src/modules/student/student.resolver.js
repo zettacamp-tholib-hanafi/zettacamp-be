@@ -8,6 +8,9 @@ const {
   ValidateUpdateStudentInput,
 } = require("./student.validator.js");
 
+// *************** IMPORT UTILS ***************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
@@ -92,7 +95,9 @@ async function GetAllStudents(_, { filter }) {
 
 async function GetOneStudent(_, { id, filter }) {
   try {
-    const query = { _id: id };
+    const student_id = await ValidateMongoId(id);
+
+    const query = { _id: student_id };
 
     if (filter) {
       if (filter.student_status) {
@@ -129,7 +134,7 @@ async function GetOneStudent(_, { id, filter }) {
 
     const student = await Student.findOne(query);
     if (!student) {
-      throw CreateAppError("Student not found", "NOT_FOUND", { id });
+      throw CreateAppError("Student not found", "NOT_FOUND", { student_id });
     }
 
     return student;
@@ -220,10 +225,11 @@ async function CreateStudent(_, { input }) {
 async function UpdateStudent(_, { id, input }) {
   try {
     ValidateUpdateStudentInput(input);
+    const student_id = await ValidateMongoId(id);
 
-    const currentStudent = await Student.findById(id);
+    const currentStudent = await Student.findById(student_id);
     if (!currentStudent) {
-      throw CreateAppError("Student not found", "NOT_FOUND", { id });
+      throw CreateAppError("Student not found", "NOT_FOUND", { student_id });
     }
 
     if (input.email && input.email !== currentStudent.email) {
@@ -261,12 +267,12 @@ async function UpdateStudent(_, { id, input }) {
     };
 
     const updatedStudent = await Student.findOneAndUpdate(
-      { _id: id },
+      { _id: student_id },
       { $set: studentUpdatePayload }
     );
 
     if (!updatedStudent) {
-      throw CreateAppError("Student not found", "NOT_FOUND", { id });
+      throw CreateAppError("Student not found", "NOT_FOUND", { student_id });
     }
 
     const oldSchoolId = String(updatedStudent.school_id);
@@ -277,23 +283,23 @@ async function UpdateStudent(_, { id, input }) {
       if (oldSchoolId) {
         await School.updateOne(
           { _id: oldSchoolId },
-          { $pull: { students: id } }
+          { $pull: { students: student_id } }
         );
       }
 
       if (newSchoolId) {
         await School.updateOne(
           { _id: newSchoolId },
-          { $addToSet: { students: id } }
+          { $addToSet: { students: student_id } }
         );
       }
       await Student.updateOne(
-        { _id: id },
+        { _id: student_id },
         { $set: { transferred_date: new Date() } }
       );
     }
 
-    return { id };
+    return { id: student_id };
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -317,8 +323,9 @@ async function UpdateStudent(_, { id, input }) {
 
 async function DeleteStudent(_, { id, input }) {
   try {
+    const student_id = await ValidateMongoId(id);
     const deleted = await Student.updateOne(
-      { _id: id, student_status: { $ne: "DELETED" } },
+      { _id: student_id, student_status: { $ne: "DELETED" } },
       {
         $set: {
           student_status: "DELETED",
@@ -329,10 +336,10 @@ async function DeleteStudent(_, { id, input }) {
     );
 
     if (!deleted) {
-      throw CreateAppError("Student not found", "NOT_FOUND", { id });
+      throw CreateAppError("Student not found", "NOT_FOUND", { student_id });
     }
 
-    return { id };
+    return { id: student_id };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete student");
   }

@@ -11,6 +11,9 @@ const {
   ValidateAdminUser,
 } = require("./school.validator.js");
 
+// *************** IMPORT UTILS ***************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
@@ -265,10 +268,11 @@ async function UpdateSchool(_, { id, input }) {
     if (input.address) ValidateAddress(input.address);
     if (input.contact) ValidateContact(input.contact);
     if (input.admin_user) ValidateAdminUser(input.admin_user);
+    const school_id = await ValidateMongoId(id);
 
-    const currentSchool = await School.findById(id);
+    const currentSchool = await School.findById(school_id);
     if (!currentSchool) {
-      throw CreateAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { school_id });
     }
 
     const schoolUpdatePayload = {
@@ -319,14 +323,14 @@ async function UpdateSchool(_, { id, input }) {
     };
 
     const updated = await School.updateOne(
-      { _id: id },
+      { _id: school_id },
       { $set: schoolUpdatePayload }
     );
 
     if (!updated) {
-      throw CreateAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { school_id });
     }
-    return { id };
+    return { id: school_id };
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -359,8 +363,10 @@ async function UpdateSchool(_, { id, input }) {
 
 async function DeleteSchool(_, { id, input }) {
   try {
+    const school_id = await ValidateMongoId(id);
+
     const deleted = await School.updateOne(
-      { _id: id, school_status: { $ne: "DELETED" } },
+      { _id: school_id, school_status: { $ne: "DELETED" } },
       {
         $set: {
           school_status: "DELETED",
@@ -371,10 +377,10 @@ async function DeleteSchool(_, { id, input }) {
     );
 
     if (!deleted) {
-      throw CreateAppError("School not found", "NOT_FOUND", { id });
+      throw CreateAppError("School not found", "NOT_FOUND", { school_id });
     }
 
-    return { id };
+    return { id: school_id };
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete school");
   }
