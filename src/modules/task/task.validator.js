@@ -31,9 +31,7 @@ const VALID_TASK_STATUSES = ["PENDING", "PROGRESS", "COMPLETED", "DELETED"];
 async function ValidateCreateTask(input) {
   const errors = {};
 
-  if (
-    !input.test_id
-  ) {
+  if (!input.test_id) {
     errors.test_id = "test_id is required and must be a non-empty string";
   }
 
@@ -68,13 +66,14 @@ async function ValidateCreateTask(input) {
     throw CreateAppError("Validation failed", "VALIDATION_ERROR", errors);
   }
 
-  return {
+  const callbackTaskPayload = {
     test_id: input.test_id,
     user_id: input.user_id,
     task_type: input.task_type,
     task_status: input.task_status || "PENDING",
     due_date: input.due_date ? new Date(input.due_date) : null,
   };
+  return callbackTaskPayload;
 }
 
 /**
@@ -144,13 +143,14 @@ async function ValidateUpdateTask(input) {
     throw CreateAppError("Validation failed", "VALIDATION_ERROR", errors);
   }
 
-  return {
+  const callbackTestPayload = {
     test_id: input.test_id,
     user_id: input.user_id,
     task_type: input.task_type,
     task_status: input.task_status || "PENDING",
     due_date: input.due_date ? new Date(input.due_date) : null,
   };
+  return callbackTestPayload;
 }
 
 /**
@@ -189,11 +189,12 @@ async function ValidateAssignCorrector(taskId, input) {
     );
   }
 
-  return {
+  const callbackValidateAssignPayload = {
     user_id,
     due_date: due_date || null,
     assignTask,
   };
+  return callbackValidateAssignPayload;
 }
 
 /**
@@ -259,13 +260,14 @@ async function ValidateEnterMarks(test_id, input) {
     );
   }
 
-  return {
+  const callbackValidateEnterMarksPayload = {
     marks,
     user_id,
     student_id,
     task,
     due_date: task.due_date || null,
   };
+  return callbackValidateEnterMarksPayload;
 }
 
 // *************** EXPORT MODULE ***************
