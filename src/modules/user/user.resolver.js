@@ -45,7 +45,8 @@ async function GetAllUsers(_, { filter }) {
       query.user_status = "ACTIVE";
     }
 
-    return await User.find(query);
+    const userResponse = await User.find(query);
+    return userResponse
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch users");
   }
@@ -127,7 +128,8 @@ async function CreateUser(_, { input }) {
       preferences: input.preferences,
     };
 
-    return await User.create(userInputPayload);
+    const createUserResponse = await User.create(userInputPayload);
+    return createUserResponse
   } catch (error) {
     throw HandleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
   }
@@ -185,7 +187,8 @@ async function UpdateUser(_, { id, input }) {
       throw CreateAppError("User not found", "NOT_FOUND", { userId });
     }
 
-    return { id: userId };
+    const updateUserResponse = { id: userId };
+    return updateUserResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to update user", "VALIDATION_ERROR");
   }
@@ -218,7 +221,8 @@ async function DeleteUser(_, { id }) {
       throw CreateAppError("User not found", "NOT_FOUND", { userId });
     }
 
-    return { id: userId };
+    const deleteUserResponse = { id: userId };
+    return deleteUserResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete user");
   }
