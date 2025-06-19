@@ -30,7 +30,7 @@ module.exports = gql`
     category: SubjectCategory
     block_id: ID!
     coefficient: Float!
-    tests: [ID!]
+    tests: [Test!]
     subject_status: SubjectStatus!
     created_at: Date!
     created_by: String
