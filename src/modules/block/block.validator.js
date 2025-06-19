@@ -81,7 +81,7 @@ function ValidateCreateBlock(input) {
     });
   }
 
-  return {
+  const callbackBlockPayload = {
     name: name.trim(),
     description: description ? description.trim() : null,
     block_status,
@@ -89,6 +89,7 @@ function ValidateCreateBlock(input) {
     end_date: endDateObj,
     subjects: subjects ? subjects : [],
   };
+  return callbackBlockPayload;
 }
 
 /**
@@ -166,7 +167,7 @@ function ValidateUpdateBlock(input) {
     });
   }
 
-  return {
+  const callbackBlockPayload = {
     name: name.trim(),
     description: description ? description.trim() : null,
     block_status,
@@ -174,6 +175,7 @@ function ValidateUpdateBlock(input) {
     end_date: endDateObj,
     subjects: subjects ? subjects : [],
   };
+  return callbackBlockPayload;
 }
 
 module.exports = {
