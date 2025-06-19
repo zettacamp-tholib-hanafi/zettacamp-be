@@ -25,14 +25,16 @@ async function BatchTestsById(test_id) {
     _id: { $in: test_id },
   });
 
-  return test_id.map((id) =>
+  const batchTestResponse = test_id.map((id) =>
     tests.find((test) => String(test._id) === String(id))
   );
+  return batchTestResponse
 }
 
 // *************** LOADER ***************
 function TestLoader() {
-  return new DataLoader(BatchTestsById);
+  const testLoaderResponse = new DataLoader(BatchTestsById);
+  return testLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

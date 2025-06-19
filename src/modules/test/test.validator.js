@@ -90,10 +90,11 @@ async function ValidateCreateTest(input) {
     }
 
     total_score += max_points;
-    return {
+    const notation_response = {
       notation_text: notation_text.trim(),
       max_points,
     };
+    return notation_response;
   });
 
   // *************** Validate: grading_method (optional)
@@ -158,7 +159,7 @@ async function ValidateCreateTest(input) {
     );
   }
 
-  return {
+  const callbackTestPayload = {
     name: name.trim(),
     subject_id,
     weight,
@@ -168,6 +169,7 @@ async function ValidateCreateTest(input) {
     test_status,
     attachments: attachments || [],
   };
+  return callbackTestPayload;
 }
 
 async function ValidateUpdateTest(input) {
@@ -234,10 +236,11 @@ async function ValidateUpdateTest(input) {
     }
 
     total_score += max_points;
-    return {
+    const notationPayload = {
       notation_text: notation_text.trim(),
       max_points,
     };
+    return notationPayload;
   });
 
   // *************** Validate: grading_method (optional)
@@ -302,7 +305,7 @@ async function ValidateUpdateTest(input) {
     );
   }
 
-  return {
+  const callbackTestPayload = {
     name: name.trim(),
     subject_id,
     weight,
@@ -312,6 +315,7 @@ async function ValidateUpdateTest(input) {
     test_status,
     attachments: attachments || [],
   };
+  return callbackTestPayload;
 }
 
 /**
@@ -322,7 +326,7 @@ async function ValidateUpdateTest(input) {
  * @throws {AppError} If any validation fails.
  */
 async function ValidateAssignCorrector(id, input) {
-  const {user_id, due_date } = input;
+  const { user_id, due_date } = input;
   const errors = [];
 
   let corrector = null;
@@ -366,7 +370,8 @@ async function ValidateAssignCorrector(id, input) {
     throw CreateAppError("Validation failed", "BAD_USER_INPUT", { errors });
   }
 
-  return { corrector, due_date };
+  const callbackAssignCorrectorPayload = { corrector, due_date };
+  return callbackAssignCorrectorPayload;
 }
 
 module.exports = {
