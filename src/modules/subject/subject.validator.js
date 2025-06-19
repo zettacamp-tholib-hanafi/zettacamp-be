@@ -21,7 +21,8 @@ const VALID_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
  */
 function ValidateCreateSubject(input) {
   if (typeof input !== "object" || input === null) {
-    throw CreateAppError("Invalid input format", "BAD_REQUEST");
+    const handlingError = CreateAppError("Invalid input format", "BAD_REQUEST");
+    throw handlingError;
   }
 
   const {
@@ -38,7 +39,12 @@ function ValidateCreateSubject(input) {
 
   // *************** Validate: name
   if (!name || typeof name !== "string" || name.trim() === "") {
-    throw CreateAppError("Subject name is required", "BAD_REQUEST", { name });
+    const handlingError = CreateAppError(
+      "Subject name is required",
+      "BAD_REQUEST",
+      { name }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: subject_code
@@ -47,37 +53,58 @@ function ValidateCreateSubject(input) {
     typeof subject_code !== "string" ||
     subject_code.trim() === ""
   ) {
-    throw CreateAppError("Subject code is required", "BAD_REQUEST", {
-      subject_code,
-    });
+    const handlingError = CreateAppError(
+      "Subject code is required",
+      "BAD_REQUEST",
+      {
+        subject_code,
+      }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: level
   if (!VALID_LEVEL.includes(level)) {
-    throw CreateAppError("Invalid subject level", "BAD_REQUEST", { level });
+    const handlingError = CreateAppError(
+      "Invalid subject level",
+      "BAD_REQUEST",
+      { level }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: optional category
   if (category && !VALID_CATEGORY.includes(category)) {
-    throw CreateAppError("Invalid subject category", "BAD_REQUEST", {
-      category,
-    });
+    const handlingError = CreateAppError(
+      "Invalid subject category",
+      "BAD_REQUEST",
+      {
+        category,
+      }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: block_id
   if (!block_id || !isValidObjectId(block_id)) {
-    throw CreateAppError("Invalid or missing block_id", "BAD_REQUEST", {
-      block_id,
-    });
+    const handlingError = CreateAppError(
+      "Invalid or missing block_id",
+      "BAD_REQUEST",
+      {
+        block_id,
+      }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: coefficient
   if (typeof coefficient !== "number" || coefficient < 0) {
-    throw CreateAppError(
+    const handlingError = CreateAppError(
       "Coefficient must be a non-negative number",
       "BAD_REQUEST",
       { coefficient }
     );
+    throw handlingError;
   }
 
   // *************** Validate: tests (optional)
@@ -85,22 +112,27 @@ function ValidateCreateSubject(input) {
     tests &&
     (!Array.isArray(tests) || tests.some((id) => !isValidObjectId(id)))
   ) {
-    throw CreateAppError(
+    const handlingError = CreateAppError(
       "Tests must be an array of valid ObjectIds",
       "BAD_REQUEST",
       { tests }
     );
+    throw handlingError;
   }
 
   // *************** Validate: subject_status
   const status = subject_status || "ACTIVE";
   if (!VALID_STATUS.includes(status)) {
-    throw CreateAppError("Invalid subject status", "BAD_REQUEST", {
-      subject_status,
-    });
+    const handlingError = CreateAppError(
+      "Invalid subject status",
+      "BAD_REQUEST",
+      {
+        subject_status,
+      }
+    );
+    throw handlingError;
   }
-
-  return {
+  const callBackPayload = {
     name: name.trim(),
     subject_code: subject_code.trim(),
     description: description ? description.trim() : null,
@@ -111,6 +143,8 @@ function ValidateCreateSubject(input) {
     tests: tests ? tests : [],
     subject_status: status,
   };
+
+  return callBackPayload;
 }
 
 /**
@@ -140,7 +174,8 @@ function ValidateCreateSubject(input) {
 
 function ValidateUpdateSubject(input) {
   if (typeof input !== "object" || input === null) {
-    throw CreateAppError("Invalid input format", "BAD_REQUEST");
+    const handlingError = CreateAppError("Invalid input format", "BAD_REQUEST");
+    throw handlingError;
   }
 
   const {
@@ -157,7 +192,12 @@ function ValidateUpdateSubject(input) {
 
   // *************** Validate: name
   if (!name || typeof name !== "string" || name.trim() === "") {
-    throw CreateAppError("Subject name is required", "BAD_REQUEST", { name });
+    const handlingError = CreateAppError(
+      "Subject name is required",
+      "BAD_REQUEST",
+      { name }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: subject_code
@@ -166,37 +206,58 @@ function ValidateUpdateSubject(input) {
     typeof subject_code !== "string" ||
     subject_code.trim() === ""
   ) {
-    throw CreateAppError("Subject code is required", "BAD_REQUEST", {
-      subject_code,
-    });
+    const handlingError = CreateAppError(
+      "Subject code is required",
+      "BAD_REQUEST",
+      {
+        subject_code,
+      }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: level
   if (!VALID_LEVEL.includes(level)) {
-    throw CreateAppError("Invalid subject level", "BAD_REQUEST", { level });
+    const handlingError = CreateAppError(
+      "Invalid subject level",
+      "BAD_REQUEST",
+      { level }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: optional category
   if (category && !VALID_CATEGORY.includes(category)) {
-    throw CreateAppError("Invalid subject category", "BAD_REQUEST", {
-      category,
-    });
+    const handlingError = CreateAppError(
+      "Invalid subject category",
+      "BAD_REQUEST",
+      {
+        category,
+      }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: block_id
   if (!block_id || !isValidObjectId(block_id)) {
-    throw CreateAppError("Invalid or missing block_id", "BAD_REQUEST", {
-      block_id,
-    });
+    const handlingError = CreateAppError(
+      "Invalid or missing block_id",
+      "BAD_REQUEST",
+      {
+        block_id,
+      }
+    );
+    throw handlingError;
   }
 
   // *************** Validate: coefficient
   if (typeof coefficient !== "number" || coefficient < 0) {
-    throw CreateAppError(
+    const handlingError = CreateAppError(
       "Coefficient must be a non-negative number",
       "BAD_REQUEST",
       { coefficient }
     );
+    throw handlingError;
   }
 
   // *************** Validate: tests (optional)
@@ -204,22 +265,27 @@ function ValidateUpdateSubject(input) {
     tests &&
     (!Array.isArray(tests) || tests.some((id) => !isValidObjectId(id)))
   ) {
-    throw CreateAppError(
+    const handlingError = CreateAppError(
       "Tests must be an array of valid ObjectIds",
       "BAD_REQUEST",
       { tests }
     );
+    throw handlingError;
   }
 
   // *************** Validate: subject_status
   const status = subject_status || "ACTIVE";
   if (!VALID_STATUS.includes(status)) {
-    throw CreateAppError("Invalid subject status", "BAD_REQUEST", {
-      subject_status,
-    });
+    const handlingError = CreateAppError(
+      "Invalid subject status",
+      "BAD_REQUEST",
+      {
+        subject_status,
+      }
+    );
+    throw handlingError;
   }
-
-  return {
+  const callBackPayload = {
     name: name.trim(),
     subject_code: subject_code.trim(),
     description: description ? description.trim() : null,
@@ -230,6 +296,7 @@ function ValidateUpdateSubject(input) {
     tests: tests ? tests : [],
     subject_status: status,
   };
+  return callBackPayload;
 }
 
 module.exports = {

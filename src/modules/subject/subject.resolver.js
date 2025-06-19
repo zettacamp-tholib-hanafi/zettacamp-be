@@ -99,9 +99,11 @@ async function GetAllSubjects(_, { filter }) {
     }
 
     // *************** Execute query
-    return await Subject.find(query);
+    const subjectResponse =  await Subject.find(query);
+    return subjectResponse
   } catch (error) {
-    throw HandleCaughtError(error, "Failed to fetch subjects");
+    const handlingError = HandleCaughtError(error, "Failed to fetch subjects");
+    return handlingError;
   }
 }
 
@@ -189,12 +191,14 @@ async function GetOneSubject(_, { id, filter }) {
     // *************** Execute query
     const subject = await Subject.findOne(query);
     if (!subject) {
-      throw CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
+      const handlingError = CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
+      return handlingError;
     }
 
     return subject;
   } catch (error) {
-    throw HandleCaughtError(error, "Failed to fetch subjects");
+    const handlingError = HandleCaughtError(error, "Failed to fetch subjects");
+    return handlingError;
   }
 }
 
@@ -243,13 +247,15 @@ async function CreateSubject(_, { input }) {
       subject_status,
     };
 
-    return await Subject.create(subjectPayload);
+    const createSubjectResponse =  await Subject.create(subjectPayload);
+    return createSubjectResponse
   } catch (error) {
-    throw HandleCaughtError(
+    const handlingError =  HandleCaughtError(
       error,
       "Failed to create subject",
       "VALIDATION_ERROR"
     );
+    return handlingError;
   }
 }
 
@@ -319,13 +325,15 @@ async function UpdateSubject(_, { id, input }) {
     if (!updated) {
       throw CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
     }
-    return { id: subjectId };
+    const updateSubjectResponse = { id: subjectId };
+    return updateSubjectResponse;
   } catch (error) {
-    throw HandleCaughtError(
+    const handlingError = HandleCaughtError(
       error,
       "Failed to create subject",
       "VALIDATION_ERROR"
     );
+    throw handlingError
   }
 }
 
@@ -372,9 +380,11 @@ async function DeleteSubject(_, { id, deleted_by }) {
       throw CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
     }
 
-    return { id: subjectId };
+    const deleteSubjectResponse =  { id: subjectId };
+    return deleteSubjectResponse;
   } catch (error) {
-    throw HandleCaughtError(error, "Failed to delete subject");
+    const handlingError = HandleCaughtError(error, "Failed to delete subject");
+    throw handlingError;
   }
 }
 
@@ -404,7 +414,8 @@ function tests(subject, _, context) {
   }
 
   const subjectIds = subject.tests ? subject.tests.map((id) => String(id)) : [];
-  return context.loaders.subject.loadMany(subjectIds);
+  const testLoaderResponse =  context.loaders.subject.loadMany(subjectIds);
+  return testLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************
