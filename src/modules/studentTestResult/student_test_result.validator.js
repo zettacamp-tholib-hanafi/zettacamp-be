@@ -133,7 +133,7 @@ async function ValidateCreateStudentTestResult(input) {
     }
   }
 
-  return {
+  const callbackStudentTestResultPayload = {
     student_id: student_id.trim(),
     test_id: test_id.trim(),
     marks,
@@ -143,6 +143,7 @@ async function ValidateCreateStudentTestResult(input) {
     remarks: remarks || null,
     student_test_result_status,
   };
+  return callbackStudentTestResultPayload;
 }
 
 /**
@@ -295,7 +296,7 @@ async function ValidateUpdateStudentTestResult(input) {
     }
   }
 
-  return {
+  const callbackStudentTestResultPayload = {
     student_id: student_id.trim(),
     test_id: test_id.trim(),
     marks,
@@ -305,6 +306,7 @@ async function ValidateUpdateStudentTestResult(input) {
     remarks: remarks || null,
     student_test_result_status,
   };
+  return callbackStudentTestResultPayload;
 }
 /**
  * Validate and prepare data for ValidateMarks mutation.
@@ -333,7 +335,8 @@ async function ValidateValidateMarks(taskId) {
     throw CreateAppError("Student Test Result not found", "NOT_FOUND");
   }
 
-  return { task, studentTestResult };
+  const validateMarksPayload = { task, studentTestResult };
+  return validateMarksPayload;
 }
 
 // *************** EXPORT MODULE ***************
