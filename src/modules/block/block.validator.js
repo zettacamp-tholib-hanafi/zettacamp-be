@@ -5,6 +5,7 @@ const { CreateAppError } = require("../../core/error");
 const mongoose = require("mongoose");
 
 const VALID_STATUSES = ["ACTIVE", "ARCHIVED", "DELETED"];
+const VALID_PASSING_CRITERIA_OPERATOR = ["AND", "OR"];
 
 /**
  * Validate input for creating a new Block.
@@ -22,8 +23,15 @@ function ValidateCreateBlock(input) {
   const errors = [];
 
   // *************** Extract fields
-  const { name, description, block_status, start_date, end_date, subjects } =
-    input;
+  const {
+    name,
+    description,
+    block_status,
+    passing_criteria_operator,
+    start_date,
+    end_date,
+    subjects,
+  } = input;
 
   // *************** Validate required fields
 
@@ -34,6 +42,16 @@ function ValidateCreateBlock(input) {
   if (!block_status || !VALID_STATUSES.includes(block_status)) {
     errors.push(
       `Field 'block_status' is required"
+      )}.`
+    );
+  }
+
+  if (
+    passing_criteria_operator &&
+    !VALID_PASSING_CRITERIA_OPERATOR.includes(passing_criteria_operator)
+  ) {
+    errors.push(
+      `Field 'passing_criteria_operator' is required"
       )}.`
     );
   }
@@ -85,6 +103,7 @@ function ValidateCreateBlock(input) {
     name: name.trim(),
     description: description ? description.trim() : null,
     block_status,
+    passing_criteria_operator,
     start_date: startDateObj,
     end_date: endDateObj,
     subjects: subjects ? subjects : [],

@@ -142,13 +142,21 @@ async function GetOneBlock(_, { id, filter }) {
 
 async function CreateBlock(_, { input }) {
   try {
-    const { name, description, block_status, start_date, end_date, subjects } =
-      await ValidateCreateBlock(input);
+    const {
+      name,
+      description,
+      block_status,
+      passing_criteria_operator,
+      start_date,
+      end_date,
+      subjects,
+    } = await ValidateCreateBlock(input);
 
     const blockInputPayload = {
       name,
       description: description ? description : null,
       block_status,
+      passing_criteria_operator,
       start_date,
       end_date: end_date ? end_date : null,
       subjects: Array.isArray(subjects) ? subjects : [],
