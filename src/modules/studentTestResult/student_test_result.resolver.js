@@ -15,7 +15,8 @@ const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
-// *************** Constant Enum
+const { RunTranscriptWorker } = require("./student_test_result.worker");
+
 const VALID_STUDENT_TEST_RESULT_STATUS = [
   "GRADED",
   "PENDING_REVIEW",
@@ -467,7 +468,7 @@ async function ValidateMarks(_, { id }) {
     const taskId = await ValidateMongoId(id);
     const { task, studentTestResult } = await ValidateValidateMarks(taskId);
 
-    await StudentTestResult.updateOne(
+    const updateStudent = await StudentTestResult.updateOne(
       { _id: studentTestResult._id },
       {
         $set: {
@@ -475,8 +476,13 @@ async function ValidateMarks(_, { id }) {
         },
       }
     );
+    if (!updateStudent) {
+      throw CreateAppError("Student Test Result not updated", "NOT_FOUND", {
+        StudentTestResult,
+      });
+    }
 
-    await Task.updateOne(
+    const updateTask = await Task.updateOne(
       {
         _id: task._id,
         task_type: "VALIDATE_MARKS",
@@ -486,6 +492,22 @@ async function ValidateMarks(_, { id }) {
         $set: { task_status: "COMPLETED" },
       }
     );
+
+    if (!updateTask) {
+      throw CreateAppError("Task not updated", "NOT_FOUND", {
+        updateTask,
+      });
+    }
+
+    const student_id = ValidateMongoId(String(studentTestResult.student_id));
+    if (student_id) {
+      RunTranscriptWorker(student_id);
+    } else {
+      throw CreateAppError(
+        "[Transcript Worker] student_id is missing — worker not triggered",
+        "NOT_FOUND"
+      );
+    }
 
     const validateMarksResponse = { id: studentTestResult._id };
     return validateMarksResponse;
