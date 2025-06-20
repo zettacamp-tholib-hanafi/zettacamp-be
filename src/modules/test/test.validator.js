@@ -39,6 +39,7 @@ async function ValidateCreateTest(input) {
     grading_method,
     test_status,
     attachments,
+    passing_score,
   } = input;
 
   // *************** Validate: name
@@ -96,6 +97,20 @@ async function ValidateCreateTest(input) {
     };
     return notation_response;
   });
+
+  if (passing_score !== undefined) {
+    if (
+      typeof passing_score !== "number" ||
+      passing_score < 0 ||
+      passing_score > total_score
+    ) {
+      throw CreateAppError(
+        "Passing score must be between 0 and total_score.",
+        "VALIDATION_ERROR",
+        { field: "passing_score" }
+      );
+    }
+  }
 
   // *************** Validate: grading_method (optional)
   if (grading_method && !VALID_GRADING_METHOD.includes(grading_method)) {
@@ -168,6 +183,7 @@ async function ValidateCreateTest(input) {
     grading_method: grading_method || "MANUAL",
     test_status,
     attachments: attachments || [],
+    passing_score,
   };
   return callbackTestPayload;
 }

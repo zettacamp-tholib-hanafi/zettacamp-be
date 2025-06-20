@@ -183,7 +183,7 @@ async function CreateTest(_, { input }) {
       notations: Array.isArray(notations) ? notations : [],
       total_score,
       grading_method: grading_method ? grading_method : null,
-      passing_score: passing_score ? passing_score : null,
+      passing_score: passing_score !== undefined ? passing_score : null,
       test_status,
       attachments: Array.isArray(attachments) ? attachments : [],
       published_date: published_date ? published_date : null,
@@ -253,7 +253,7 @@ async function UpdateTest(_, { id, input }) {
       notations: Array.isArray(notations) ? notations : [],
       total_score,
       grading_method: grading_method ? grading_method : null,
-      passing_score: passing_score ? passing_score : null,
+      passing_score: passing_score !== undefined ? passing_score : null,
       test_status,
       attachments: Array.isArray(attachments) ? attachments : [],
       published_date: published_date ? published_date : null,
@@ -264,13 +264,13 @@ async function UpdateTest(_, { id, input }) {
       { $set: testPayload }
     );
 
-    if (!updated) {
+    if (!updated || updated.matchedCount === 0) {
       throw CreateAppError("Test not found", "NOT_FOUND", { testId });
     }
     const updateTestResponse = { id: testId };
     return updateTestResponse;
   } catch (error) {
-    throw HandleCaughtError(error, "Failed to create test", "VALIDATION_ERROR");
+    throw HandleCaughtError(error, "Failed to update test", "VALIDATION_ERROR");
   }
 }
 
@@ -405,7 +405,9 @@ function subjects(test, args, context) {
     throw new Error("Test loader not initialized");
   }
 
-  const subjectLoaderResponse =  context.loaders.subject.load(String(test.subject_id));
+  const subjectLoaderResponse = context.loaders.subject.load(
+    String(test.subject_id)
+  );
   return subjectLoaderResponse;
 }
 
