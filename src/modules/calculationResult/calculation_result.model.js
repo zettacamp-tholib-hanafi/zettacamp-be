@@ -11,6 +11,8 @@ const BLOCK_RULE_TYPE_ENUM = [
 const SUBJECT_RULE_TYPE_ENUM = ["TEST_SCORE", "AVERAGE"];
 const OPERATOR_ENUM = ["==", ">=", ">", "<=", "<"];
 const RESULT_ENUM = ["PASS", "FAIL"];
+const VALID_CALCULATION_RESULT_STATUS = ["PUBLISHED", "ARCHIVED", "DELETED"];
+const DEFAULT_CALCULATION_RESULT_STATUS = "PUBLISHED";
 
 const CalculationResultSchema = new Schema(
   {
@@ -120,6 +122,11 @@ const CalculationResultSchema = new Schema(
         ],
       },
     ],
+    calculation_result_status: {
+      type: String,
+      enum: VALID_CALCULATION_RESULT_STATUS,
+      default: DEFAULT_CALCULATION_RESULT_STATUS,
+    },
     created_by: {
       type: Schema.Types.ObjectId,
       ref: "User",

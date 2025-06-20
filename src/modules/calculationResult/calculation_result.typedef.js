@@ -8,6 +8,11 @@ module.exports = gql`
   scalar ObjectId
   scalar Date
 
+  enum CalculationResultStatus {
+    PUBLISHED
+    ARCHIVED
+    DELETED
+  }
   enum EvaluationResult {
     PASS
     FAIL
@@ -94,6 +99,7 @@ module.exports = gql`
   type CalculationResult {
     student_id: ObjectId!
     results: [BlockResult!]!
+    calculation_result_status: CalculationResultStatus!
     created_at: Date
     created_by: ObjectId
     updated_by: ObjectId
@@ -104,15 +110,10 @@ module.exports = gql`
 
   input FilterCalculationResult {
     student_id: ObjectId
+    calculation_result_status: CalculationResultStatus
   }
 
   type Query {
-    GetCalculationResults(
-      filter: FilterCalculationResult
-    ): [CalculationResult!]!
-    GetOneCalculationResult(
-      id: ObjectId!
-      filter: FilterCalculationResult
-    ): CalculationResult
+    CalculationResults(filter: FilterCalculationResult): [CalculationResult!]!
   }
 `;

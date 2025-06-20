@@ -8,6 +8,7 @@ const subjectTypedef = require("../modules/subject/subject.typedef");
 const testTypedef = require("../modules/test/test.typedef");
 const studentTestResultTypedef = require("../modules/studentTestResult/student_test_result.typedef");
 const taskTypedef = require("../modules/task/task.typedef");
+const calculationResultTypedef = require("../modules/calculationResult/calculation_result.typedef");
 
 const typeDefs = [
   userTypeDefs,
@@ -17,7 +18,8 @@ const typeDefs = [
   subjectTypedef,
   testTypedef,
   studentTestResultTypedef,
-  taskTypedef
+  taskTypedef,
+  calculationResultTypedef,
 ];
 
 // *************** EXPORT MODUL ***************
