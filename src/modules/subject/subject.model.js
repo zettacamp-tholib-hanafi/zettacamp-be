@@ -6,6 +6,8 @@ const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
 const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
 const VALID_SUBJECT_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
 const DEFAULT_SUBJECT_STATUS = "ACTIVE";
+const VALID_PASSING_CRITERIA_OPERATOR = ["AND", "OR"];
+const VALID_CONDITION_TYPE = ["SINGLE_TEST", "AVERAGE"];
 
 const subjectSchema = new Schema(
   {
@@ -52,6 +54,36 @@ const subjectSchema = new Schema(
       type: Types.ObjectId,
       required: true,
       ref: "Block",
+    },
+
+    // Passing Criteria of Subject
+    passing_criteria: {
+      // Passing Criteria Operator of Subject
+      operator: {
+        type: String,
+        enum: VALID_PASSING_CRITERIA_OPERATOR,
+        required: true,
+      },
+      // Passing Criteria Condition of Subject (Array)
+      conditions: [
+        {
+          condition_type: {
+            type: String,
+            required: true,
+            enum: VALID_CONDITION_TYPE,
+          },
+          min_score: {
+            type: Number,
+            required: true,
+            min: 0,
+            max: 100,
+          },
+          test_id: {
+            type: Types.ObjectId,
+            ref: "Test",
+          },
+        },
+      ],
     },
 
     // Subject coefficient

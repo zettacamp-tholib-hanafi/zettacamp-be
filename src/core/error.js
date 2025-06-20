@@ -60,12 +60,12 @@ const HandleCaughtError = (
       Object.keys(
         originalError.keyPattern ? originalError.keyPattern : {}
       )[0] || "Field";
-
-    return CreateAppError(
+    const errorResponse = CreateAppError(
       `${capitalize(duplicatedField)} already exists.`,
       "DUPLICATE_KEY",
       { field: duplicatedField }
     );
+    return errorResponse;
   }
 
   return CreateAppError(message, type);
@@ -81,7 +81,7 @@ const HandleCaughtError = (
  * @returns {object} Cleaned error response with limited fields.
  */
 const FormatError = (error) => {
-  return {
+  const formattedError = {
     message: error.message,
     path: error.path,
     extensions: {
@@ -90,6 +90,7 @@ const FormatError = (error) => {
       metadata: error.extensions ? error.extensions.metadata : null,
     },
   };
+  return formattedError;
 };
 
 /**

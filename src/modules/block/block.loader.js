@@ -20,15 +20,16 @@ async function BatchBlocksById(block_id) {
   const blocks = await Block.find({
     _id: { $in: block_id },
   });
-
-  return block_id.map((id) =>
+  const batchBlocks = block_id.map((id) =>
     blocks.find((block) => String(block._id) === String(id))
   );
+  return batchBlocks;
 }
 
 // *************** LOADER ***************
 function BlockLoader() {
-  return new DataLoader(BatchBlocksById);
+  const blockLoaderResponse = new DataLoader(BatchBlocksById);
+  return blockLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

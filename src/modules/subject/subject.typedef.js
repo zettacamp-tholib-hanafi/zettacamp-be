@@ -21,6 +21,16 @@ module.exports = gql`
     DELETED
   }
 
+  enum PassingCriteriaOperator {
+    AND
+    OR
+  }
+
+  enum ConditionType {
+    SINGLE_TEST
+    AVERAGE
+  }
+
   type Subject {
     id: ID!
     name: String!
@@ -30,7 +40,8 @@ module.exports = gql`
     category: SubjectCategory
     block_id: ID!
     coefficient: Float!
-    tests: [ID!]
+    tests: [Test]
+    passing_criteria: SubjectPassingCriteria!
     subject_status: SubjectStatus!
     created_at: Date!
     created_by: String
@@ -40,6 +51,17 @@ module.exports = gql`
     deleted_by: String
   }
 
+  type SubjectPassingCriteria {
+    operator: PassingCriteriaOperator
+    conditions: [SubjectPassingCondition!]!
+  }
+
+  type SubjectPassingCondition {
+    condition_type: ConditionType!
+    min_score: Float!
+    test_id: ID
+  }
+
   input CreateSubjectInput {
     name: String!
     subject_code: String!
@@ -47,8 +69,9 @@ module.exports = gql`
     level: SubjectLevel!
     category: SubjectCategory
     block_id: ID!
-    coefficient: Float!
     tests: [ID]
+    coefficient: Float!
+    passing_criteria: SubjectPassingCriteriaInput!
     subject_status: SubjectStatus!
     created_by: String
   }
@@ -60,10 +83,22 @@ module.exports = gql`
     level: SubjectLevel!
     category: SubjectCategory
     block_id: ID!
-    coefficient: Float!
     tests: [ID]
+    coefficient: Float!
+    passing_criteria: SubjectPassingCriteriaInput!
     subject_status: SubjectStatus!
     updated_by: String
+  }
+
+  input SubjectPassingCriteriaInput {
+    operator: PassingCriteriaOperator!
+    conditions: [SubjectPassingConditionInput!]!
+  }
+
+  input SubjectPassingConditionInput {
+    condition_type: ConditionType!
+    min_score: Float!
+    test_id: ID
   }
 
   input SubjectFilter {

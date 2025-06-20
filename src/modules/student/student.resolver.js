@@ -74,7 +74,8 @@ async function GetAllStudents(_, { filter }) {
       }
     }
 
-    return await Student.find(query);
+    const studentResponse = await Student.find(query);
+    return studentResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch students");
   }
@@ -299,7 +300,8 @@ async function UpdateStudent(_, { id, input }) {
       );
     }
 
-    return { id: studentId };
+    const updateStudentResponse = { id: studentId };
+    return updateStudentResponse;
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -339,7 +341,8 @@ async function DeleteStudent(_, { id, input }) {
       throw CreateAppError("Student not found", "NOT_FOUND", { studentId });
     }
 
-    return { id: studentId };
+    const deleteStudentResponse = { id: studentId };
+    return deleteStudentResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete student");
   }
@@ -362,7 +365,10 @@ function schools(student, _, context) {
     throw new Error("School loader not initialized");
   }
 
-  return context.loaders.school.load(String(student.school_id));
+  const schoolLoaderResponse = context.loaders.school.load(
+    String(student.school_id)
+  );
+  return schoolLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

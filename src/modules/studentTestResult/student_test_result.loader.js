@@ -25,16 +25,18 @@ async function BatchStudentTestResultsById(student_test_result_ids) {
     _id: { $in: student_test_result_ids },
   });
 
-  return student_test_result_ids.map((id) =>
+  const batchStudentTestResultResponse = student_test_result_ids.map((id) =>
     studentTestResults.find(
       (studentTestResult) => String(studentTestResult._id) === String(id)
     )
   );
+  return batchStudentTestResultResponse;
 }
 
 // *************** LOADER ***************
 function StudentTestResultLoader() {
-  return new DataLoader(BatchStudentTestResultsById);
+  const studentTestResultLoaderResponse = new DataLoader(BatchStudentTestResultsById);
+  return studentTestResultLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

@@ -9,14 +9,16 @@ async function BatchSubjectsById(subject_id) {
     _id: { $in: subject_id },
   });
 
-  return subject_id.map((id) =>
+  const batchSubjectResponse = subject_id.map((id) =>
     subjects.find((subject) => String(subject._id) === String(id))
   );
+  return batchSubjectResponse;
 }
 
 // *************** LOADER ***************
 function SubjectLoader() {
-  return new DataLoader(BatchSubjectsById);
+  const subjectLoaderResponse = new DataLoader(BatchSubjectsById);
+  return subjectLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

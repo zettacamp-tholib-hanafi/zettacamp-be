@@ -23,14 +23,16 @@ async function BatchUserById(user_ids) {
     _id: { $in: user_ids },
   });
 
-  return user_ids.map((id) =>
+  const batchUserResponse = user_ids.map((id) =>
     users.find((user) => String(user._id) === String(id))
   );
+  return batchUserResponse;
 }
 
 // *************** LOADER ***************
 function UserLoader() {
-  return new DataLoader(BatchUserById);
+  const userLoaderRespose = new DataLoader(BatchUserById);
+  return userLoaderRespose;
 }
 
 // *************** EXPORT MODULE ***************

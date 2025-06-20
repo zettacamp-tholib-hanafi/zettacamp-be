@@ -95,7 +95,8 @@ async function GetAllTasks(_, { filter }) {
       query.user_id = filter.user_id;
     }
 
-    return await Task.find(query);
+    const taskResponse = await Task.find(query);
+    return taskResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch tasks");
   }
@@ -149,7 +150,7 @@ async function GetOneTask(_, { id, filter }) {
         });
       }
       query.task_type = filter.task_type;
-    } 
+    }
 
     // *************** Filter: test_id
     if (filter && filter.test_id) {
@@ -217,7 +218,8 @@ async function CreateTask(_, { input }) {
       due_date,
     };
 
-    return await Task.create(taskInputPayload);
+    const createTaskResponse = await Task.create(taskInputPayload);
+    return createTaskResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to create task", "VALIDATION_ERROR");
   }
@@ -266,7 +268,8 @@ async function UpdateTask(_, { id, input }) {
     if (!updated) {
       throw CreateAppError("Task not found", "NOT_FOUND", { taskId });
     }
-    return { id: taskId };
+    const updateTaskResponse = { id: taskId };
+    return updateTaskResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to update task", "VALIDATION_ERROR");
   }
@@ -311,7 +314,8 @@ async function DeleteTask(_, { id, deleted_by }) {
         taskId,
       });
     }
-    return { id: taskId };
+    const deleteTaskResponse = { id: taskId };
+    return deleteTaskResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete task");
   }
@@ -394,9 +398,10 @@ async function AssignCorrector(_, { id, input }, context) {
       throw new Error("Failed to send email notification");
     }
 
-    return { id: taskId };
+    const assignCorrectorResponse = { id: taskId };
+    return assignCorrectorResponse;
   } catch (error) {
-    return HandleCaughtError(error);
+    throw HandleCaughtError(error);
   }
 }
 
@@ -423,7 +428,8 @@ function test(parent, _, context) {
     throw new Error("School loader not initialized");
   }
 
-  return context.loaders.test.load(String(parent.test_id));
+  const testLoaderResponse = context.loaders.test.load(String(parent.test_id));
+  return testLoaderResponse;
 }
 
 /**
@@ -447,7 +453,8 @@ function user(parent, _, context) {
     throw new Error("School loader not initialized");
   }
 
-  return context.loaders.user.load(String(parent.user_id));
+  const userLoaderResponse = context.loaders.user.load(String(parent.user_id));
+  return userLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

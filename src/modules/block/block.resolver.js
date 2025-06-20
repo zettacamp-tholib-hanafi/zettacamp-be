@@ -40,20 +40,22 @@ async function GetAllBlocks(_, { filter }) {
 
     if (filter && filter.block_status) {
       if (!VALID_STATUS.includes(filter.block_status)) {
-        throw CreateAppError(
+        const handlingError = CreateAppError(
           "Invalid block_status filter value",
           "BAD_REQUEST",
           { block_status: filter.block_status }
         );
+        throw handlingError;
       }
       query.block_status = filter.block_status;
     } else {
       query.block_status = "ACTIVE";
     }
-
-    return await Block.find(query);
+    const findBlocks = await Block.find(query);
+    return findBlocks;
   } catch (error) {
-    throw HandleCaughtError(error, "Failed to fetch blocks");
+    const handlingError = HandleCaughtError(error, "Failed to fetch blocks");
+    throw handlingError;
   }
 }
 
@@ -82,11 +84,12 @@ async function GetOneBlock(_, { id, filter }) {
 
     if (filter && filter.block_status) {
       if (!VALID_STATUS.includes(filter.block_status)) {
-        throw CreateAppError(
+        const handlingError = CreateAppError(
           "Invalid block_status filter value",
           "BAD_REQUEST",
           { block_status: filter.block_status }
         );
+        throw handlingError;
       }
       query.block_status = filter.block_status;
     } else {
@@ -95,12 +98,16 @@ async function GetOneBlock(_, { id, filter }) {
 
     const block = await Block.findOne(query);
     if (!block) {
-      throw CreateAppError("Block not found", "NOT_FOUND", { blockId });
+      const handlingError = CreateAppError("Block not found", "NOT_FOUND", {
+        blockId,
+      });
+      throw handlingError;
     }
 
     return block;
   } catch (error) {
-    throw HandleCaughtError(error, "Failed to fetch block");
+    const handlingError = HandleCaughtError(error, "Failed to fetch block");
+    throw handlingError;
   }
 }
 
@@ -135,25 +142,35 @@ async function GetOneBlock(_, { id, filter }) {
 
 async function CreateBlock(_, { input }) {
   try {
-    const { name, description, block_status, start_date, end_date, subjects } =
-      await ValidateCreateBlock(input);
+    const {
+      name,
+      description,
+      block_status,
+      passing_criteria_operator,
+      start_date,
+      end_date,
+      subjects,
+    } = await ValidateCreateBlock(input);
 
     const blockInputPayload = {
       name,
       description: description ? description : null,
       block_status,
+      passing_criteria_operator,
       start_date,
       end_date: end_date ? end_date : null,
       subjects: Array.isArray(subjects) ? subjects : [],
     };
 
-    return await Block.create(blockInputPayload);
+    const CreateBlockResponse = await Block.create(blockInputPayload);
+    return CreateBlockResponse;
   } catch (error) {
-    throw HandleCaughtError(
+    const handlingError = HandleCaughtError(
       error,
       "Failed to create block",
       "VALIDATION_ERROR"
     );
+    throw handlingError;
   }
 }
 
@@ -178,14 +195,22 @@ async function CreateBlock(_, { input }) {
 
 async function UpdateBlock(_, { id, input }) {
   try {
-    const { name, description, block_status, start_date, end_date, subjects } =
-      await ValidateUpdateBlock(input);
+    const {
+      name,
+      description,
+      block_status,
+      passing_criteria_operator,
+      start_date,
+      end_date,
+      subjects,
+    } = await ValidateUpdateBlock(input);
     const blockId = await ValidateMongoId(id);
 
     const blockUpdatePayload = {
       name,
       description: description ? description : null,
       block_status,
+      passing_criteria_operator,
       start_date,
       end_date: end_date ? end_date : null,
       subjects: Array.isArray(subjects) ? subjects : [],
@@ -199,13 +224,15 @@ async function UpdateBlock(_, { id, input }) {
     if (!updated) {
       throw CreateAppError("Block not updated", "NOT_FOUND", { blockId });
     }
-    return { id: blockId };
+    const updateBlockResponse = { id: blockId };
+    return updateBlockResponse;
   } catch (error) {
-    throw HandleCaughtError(
+    const handlingError = HandleCaughtError(
       error,
       "Failed to update block",
       "VALIDATION_ERROR"
     );
+    throw handlingError;
   }
 }
 
@@ -245,9 +272,11 @@ async function DeleteBlock(_, { id, deleted_by }) {
       throw CreateAppError("Block not found", "NOT_FOUND", { blockId });
     }
 
-    return { id: blockId };
+    const deleteBlockResponse = { id: blockId };
+    return deleteBlockResponse;
   } catch (error) {
-    throw HandleCaughtError(error, "Failed to delete block");
+    const handlingError = HandleCaughtError(error, "Failed to delete block");
+    throw handlingError;
   }
 }
 
@@ -272,7 +301,8 @@ function subjects(block, _, context) {
   }
 
   const blockIds = block.subjects ? block.subjects.map((id) => String(id)) : [];
-  return context.loaders.block.loadMany(blockIds);
+  const subjectLoaderResponse = context.loaders.block.loadMany(blockIds);
+  return subjectLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

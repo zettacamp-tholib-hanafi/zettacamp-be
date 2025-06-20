@@ -25,14 +25,16 @@ async function BatchTaskById(task_ids) {
     _id: { $in: task_ids },
   });
 
-  return task_ids.map((id) =>
+  const batchTaskResponse = task_ids.map((id) =>
     tasks.find((task) => String(task._id) === String(id))
   );
+  return batchTaskResponse;
 }
 
 // *************** LOADER ***************
 function TaskLoader() {
-  return new DataLoader(BatchTaskById);
+  const taskLoaderResponse = new DataLoader(BatchTaskById);
+  return taskLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

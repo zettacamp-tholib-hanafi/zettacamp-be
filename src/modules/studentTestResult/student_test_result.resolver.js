@@ -89,7 +89,8 @@ async function GetAllStudentTestResults(_, { filter }) {
       query.test_id = filter.test_id;
     }
 
-    return await StudentTestResult.find(query);
+    const studentTestResultResponse = await StudentTestResult.find(query);
+    return studentTestResultResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch student_test_results");
   }
@@ -220,7 +221,10 @@ async function CreateStudentTestResult(_, { input }) {
       student_test_result_status,
     };
 
-    return await StudentTestResult.create(studentTestResultPayload);
+    const createStudentTaskResultResponse = await StudentTestResult.create(
+      studentTestResultPayload
+    );
+    return createStudentTaskResultResponse;
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -297,7 +301,8 @@ async function UpdateStudentTestResult(_, { id, input }) {
         studentTestResultId,
       });
     }
-    return { id: studentTestResultId };
+    const updateStudentTestResultResponse = { id: studentTestResultId };
+    return updateStudentTestResultResponse;
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -349,7 +354,8 @@ async function DeleteStudentTestResult(_, { id, deleted_by }) {
       });
     }
 
-    return { id: studentTestResultId };
+    const deleteStudentTestResultResponse = { id: studentTestResultId };
+    return deleteStudentTestResultResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete Student Test Result");
   }
@@ -424,9 +430,10 @@ async function EnterMarks(_, { input }) {
         task_type: "ENTER_MARKS",
       });
     }
-    return { id: createStudentTestResultProcess._id };
+    const enterMarksResponse = { id: createStudentTestResultProcess._id };
+    return enterMarksResponse;
   } catch (error) {
-    return HandleCaughtError(
+    throw HandleCaughtError(
       error,
       "Failed to create Enter Marks",
       "VALIDATION_ERROR"
@@ -480,9 +487,10 @@ async function ValidateMarks(_, { id }) {
       }
     );
 
-    return { id: studentTestResult._id };
+    const validateMarksResponse = { id: studentTestResult._id };
+    return validateMarksResponse;
   } catch (error) {
-    return HandleCaughtError(
+    throw HandleCaughtError(
       error,
       "Failed to Validate Marks",
       "VALIDATION_ERROR"
@@ -509,7 +517,10 @@ function student_id(parent, _, context) {
     throw new Error("School loader not initialized");
   }
 
-  return context.loaders.student.load(String(parent.student_id));
+  const studentIdLoaderResponse = context.loaders.student.load(
+    String(parent.student_id)
+  );
+  return studentIdLoaderResponse;
 }
 /**
  * Resolver function to load a test by its ID using DataLoader.
@@ -529,7 +540,10 @@ function test_id(parent, _, context) {
     throw new Error("School loader not initialized");
   }
 
-  return context.loaders.test.load(String(parent.test_id));
+  const testIdLoaderResponse = context.loaders.test.load(
+    String(parent.test_id)
+  );
+  return testIdLoaderResponse;
 }
 /**
  * Resolver function to load the user who graded the test, using their ID.
@@ -549,7 +563,10 @@ function graded_by(parent, _, context) {
     throw new Error("School loader not initialized");
   }
 
-  return context.loaders.user.load(String(parent.graded_by));
+  const gradedByLoaderResponse = context.loaders.user.load(
+    String(parent.graded_by)
+  );
+  return gradedByLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

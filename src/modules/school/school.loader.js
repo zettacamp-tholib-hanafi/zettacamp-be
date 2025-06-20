@@ -21,15 +21,16 @@ async function BatchSchoolsById(school_id) {
     _id: { $in: school_id },
   });
 
-  return school_id.map(
-    (id) =>
-      schools.find((school) => String(school._id) === String(id))
+  const batchSchoolResponse = school_id.map((id) =>
+    schools.find((school) => String(school._id) === String(id))
   );
+  return batchSchoolResponse;
 }
 
 // *************** LOADER ***************
 function SchoolLoader() {
-  return new DataLoader(BatchSchoolsById);
+  const schoolLoaderResponse = new DataLoader(BatchSchoolsById);
+  return schoolLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

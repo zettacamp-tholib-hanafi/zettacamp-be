@@ -52,7 +52,8 @@ async function GetAllSchools(_, { filter }) {
       query.school_status = "ACTIVE";
     }
 
-    return await School.find(query);
+    const schoolResponse = await School.find(query);
+    return schoolResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch schools");
   }
@@ -205,7 +206,8 @@ async function CreateSchool(_, { input }) {
       updated_by: input.updated_by,
     };
 
-    return await School.create(schoolInputPayload);
+    const createSchoolResponse = await School.create(schoolInputPayload);
+    return createSchoolResponse;
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -332,7 +334,8 @@ async function UpdateSchool(_, { id, input }) {
     if (!updated) {
       throw CreateAppError("School not found", "NOT_FOUND", { schoolId });
     }
-    return { id: schoolId };
+    const updateSchoolResponse = { id: schoolId };
+    return updateSchoolResponse;
   } catch (error) {
     throw HandleCaughtError(
       error,
@@ -382,7 +385,8 @@ async function DeleteSchool(_, { id, input }) {
       throw CreateAppError("School not found", "NOT_FOUND", { schoolId });
     }
 
-    return { id: schoolId };
+    const deleteSchoolResponse = { id: schoolId };
+    return deleteSchoolResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete school");
   }
@@ -414,7 +418,8 @@ function students(school, _, context) {
   const studentIds = school.students
     ? school.students.map((id) => String(id))
     : [];
-  return context.loaders.student.loadMany(studentIds);
+  const studentLoaderResponse = context.loaders.student.loadMany(studentIds);
+  return studentLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

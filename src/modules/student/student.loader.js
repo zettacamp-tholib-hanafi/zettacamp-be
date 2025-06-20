@@ -18,14 +18,16 @@ async function BatchStudentsById(student_id) {
     _id: { $in: student_id },
   });
 
-  return student_id.map((id) =>
+  const batchStudentResponse = student_id.map((id) =>
     students.find((student) => String(student._id) === String(id))
   );
+  return batchStudentResponse;
 }
 
 // *************** LOADER ***************
 function StudentLoader() {
-  return new DataLoader(BatchStudentsById);
+  const studentLoaderResponse = new DataLoader(BatchStudentsById);
+  return studentLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************

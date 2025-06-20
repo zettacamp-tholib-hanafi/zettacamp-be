@@ -11,7 +11,6 @@ const URL_REGEX = /^(https?:\/\/)?[\w\-]+(\.[\w\-]+)+[/#?]?.*$/;
 
 const VALID_STATUSES = ["ACTIVE", "PENDING"];
 
-
 /**
  * Validates the address object to ensure all required fields are present and are strings.
  *
@@ -65,7 +64,13 @@ function ValidateAddress(address) {
  */
 
 function ValidateContact(contact) {
-  if (!contact || typeof contact !== "object") return;
+  if (!contact || typeof contact !== "object") {
+    throw CreateAppError(
+      "Contact must be a valid object.",
+      "VALIDATION_ERROR",
+      { field: "contact" }
+    );
+  }
 
   if (contact.phone && !PHONE_REGEX.test(contact.phone + "")) {
     throw CreateAppError(
@@ -145,7 +150,11 @@ function ValidateVerified(verified) {
  */
 
 function ValidateAdminUser(adminUsers) {
-  if (!Array.isArray(adminUsers)) return;
+  if (!Array.isArray(adminUsers)) {
+    throw CreateAppError("Admin users must be an array.", "VALIDATION_ERROR", {
+      field: "admin_user",
+    });
+  }
 
   adminUsers.forEach((admin, index) => {
     if (admin.id && !isValidObjectId(admin.id)) {
@@ -219,10 +228,7 @@ function ValidateCreateSchoolInput(input) {
     });
   }
 
-  if (
-    !school_status ||
-    !VALID_STATUSES.includes(school_status)
-  ) {
+  if (!school_status || !VALID_STATUSES.includes(school_status)) {
     throw CreateAppError(
       "School status is required and must be one of: PENDING, ACTIVE.",
       "VALIDATION_ERROR",
@@ -288,10 +294,7 @@ function ValidateUpdateSchoolInput(input) {
     });
   }
 
-  if (
-    school_status &&
-    !VALID_STATUSES.includes(school_status)
-  ) {
+  if (school_status && !VALID_STATUSES.includes(school_status)) {
     throw CreateAppError(
       "School status must be one of: PENDING, ACTIVE.",
       "VALIDATION_ERROR",

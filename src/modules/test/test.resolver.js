@@ -63,7 +63,8 @@ async function GetAllTests(_, { filter }) {
       query.grading_method = filter.grading_method;
     }
 
-    return await Test.find(query);
+    const testResponse = await Test.find(query);
+    return testResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch tests");
   }
@@ -182,13 +183,14 @@ async function CreateTest(_, { input }) {
       notations: Array.isArray(notations) ? notations : [],
       total_score,
       grading_method: grading_method ? grading_method : null,
-      passing_score: passing_score ? passing_score : null,
+      passing_score: passing_score !== undefined ? passing_score : null,
       test_status,
       attachments: Array.isArray(attachments) ? attachments : [],
       published_date: published_date ? published_date : null,
     };
 
-    return await Test.create(testPayload);
+    const createTestResponse = await Test.create(testPayload);
+    return createTestResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to create test", "VALIDATION_ERROR");
   }
@@ -228,6 +230,7 @@ async function CreateTest(_, { input }) {
 
 async function UpdateTest(_, { id, input }) {
   try {
+    const testId = await ValidateMongoId(id);
     const {
       name,
       subject_id,
@@ -240,8 +243,7 @@ async function UpdateTest(_, { id, input }) {
       test_status,
       attachments,
       published_date,
-    } = await ValidateUpdateTest(input);
-    const testId = await ValidateMongoId(id);
+    } = await ValidateUpdateTest(testId, input);
 
     const testPayload = {
       name,
@@ -251,7 +253,7 @@ async function UpdateTest(_, { id, input }) {
       notations: Array.isArray(notations) ? notations : [],
       total_score,
       grading_method: grading_method ? grading_method : null,
-      passing_score: passing_score ? passing_score : null,
+      passing_score: passing_score !== undefined ? passing_score : null,
       test_status,
       attachments: Array.isArray(attachments) ? attachments : [],
       published_date: published_date ? published_date : null,
@@ -262,12 +264,13 @@ async function UpdateTest(_, { id, input }) {
       { $set: testPayload }
     );
 
-    if (!updated) {
+    if (!updated || updated.matchedCount === 0) {
       throw CreateAppError("Test not found", "NOT_FOUND", { testId });
     }
-    return { id: testId };
+    const updateTestResponse = { id: testId };
+    return updateTestResponse;
   } catch (error) {
-    throw HandleCaughtError(error, "Failed to create test", "VALIDATION_ERROR");
+    throw HandleCaughtError(error, "Failed to update test", "VALIDATION_ERROR");
   }
 }
 
@@ -313,7 +316,8 @@ async function DeleteTest(_, { id, deleted_by }) {
       throw CreateAppError("Test Not Found!", "NOT_FOUND", { testId });
     }
 
-    return { id: testId };
+    const deleteTestResponse = { id: testId };
+    return deleteTestResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to delete test");
   }
@@ -370,7 +374,8 @@ async function PublishTest(_, { id, input }) {
 
     await Task.create(assignCorrectorPayload);
 
-    return { id: testId };
+    const publishTestResponse = { id: testId };
+    return publishTestResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to publish test");
   }
@@ -400,7 +405,10 @@ function subjects(test, args, context) {
     throw new Error("Test loader not initialized");
   }
 
-  return context.loaders.subject.load(String(test.subject_id));
+  const subjectLoaderResponse = context.loaders.subject.load(
+    String(test.subject_id)
+  );
+  return subjectLoaderResponse;
 }
 
 // *************** EXPORT MODULE ***************
