@@ -157,6 +157,13 @@ function ValidateCreateSubject(input) {
         );
       }
     }
+    if (cond.condition_type === "AVERAGE" && cond.test_id) {
+      throw CreateAppError(
+        `test_id must not be provided for AVERAGE condition_type at ${path}`,
+        "VALIDATION_ERROR",
+        { field: `${path}.test_id` }
+      );
+    }
 
     validatedConditions.push({
       condition_type: cond.condition_type,
@@ -258,6 +265,7 @@ function ValidateUpdateSubject(input) {
     block_id,
     coefficient,
     tests,
+    passing_criteria,
     subject_status,
   } = input;
 
@@ -321,6 +329,77 @@ function ValidateUpdateSubject(input) {
     throw handlingError;
   }
 
+  // *************** Validate: criteria
+  if (
+    !passing_criteria ||
+    typeof passing_criteria !== "object" ||
+    !["AND", "OR"].includes(passing_criteria.operator)
+  ) {
+    throw CreateAppError(
+      "Invalid passing_criteria or operator",
+      "VALIDATION_ERROR",
+      { field: "passing_criteria.operator" }
+    );
+  }
+
+  const { conditions } = passing_criteria;
+  if (!Array.isArray(conditions) || conditions.length === 0) {
+    throw CreateAppError(
+      "At least one condition is required in passing_criteria",
+      "VALIDATION_ERROR",
+      { field: "passing_criteria.conditions" }
+    );
+  }
+
+  const validatedConditions = [];
+
+  conditions.forEach((cond, index) => {
+    const path = `passing_criteria.conditions[${index}]`;
+
+    if (!["SINGLE_TEST", "AVERAGE"].includes(cond.condition_type)) {
+      throw CreateAppError(
+        `Invalid condition_type at ${path}`,
+        "VALIDATION_ERROR",
+        { field: `${path}.condition_type` }
+      );
+    }
+
+    if (
+      typeof cond.min_score !== "number" ||
+      cond.min_score < 0 ||
+      cond.min_score > 100
+    ) {
+      throw CreateAppError(
+        `min_score must be between 0 and 100 at ${path}`,
+        "VALIDATION_ERROR",
+        { field: `${path}.min_score` }
+      );
+    }
+
+    if (cond.condition_type === "SINGLE_TEST") {
+      if (!cond.test_id || !ValidateMongoId(cond.test_id, false)) {
+        throw CreateAppError(
+          `test_id is required and must be a valid ObjectId for SINGLE_TEST at ${path}`,
+          "VALIDATION_ERROR",
+          { field: `${path}.test_id` }
+        );
+      }
+    }
+    if (cond.condition_type === "AVERAGE" && cond.test_id) {
+      throw CreateAppError(
+        `test_id must not be provided for AVERAGE condition_type at ${path}`,
+        "VALIDATION_ERROR",
+        { field: `${path}.test_id` }
+      );
+    }
+
+    validatedConditions.push({
+      condition_type: cond.condition_type,
+      min_score: cond.min_score,
+      ...(cond.condition_type === "SINGLE_TEST" && { test_id: cond.test_id }),
+    });
+  });
+
   // *************** Validate: coefficient
   if (typeof coefficient !== "number" || coefficient < 0) {
     const handlingError = CreateAppError(
@@ -365,6 +444,7 @@ function ValidateUpdateSubject(input) {
     block_id,
     coefficient,
     tests: tests ? tests : [],
+    passing_criteria,
     subject_status: status,
   };
   return callBackPayload;
