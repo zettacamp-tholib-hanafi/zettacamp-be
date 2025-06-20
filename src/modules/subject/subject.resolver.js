@@ -99,8 +99,8 @@ async function GetAllSubjects(_, { filter }) {
     }
 
     // *************** Execute query
-    const subjectResponse =  await Subject.find(query);
-    return subjectResponse
+    const subjectResponse = await Subject.find(query);
+    return subjectResponse;
   } catch (error) {
     const handlingError = HandleCaughtError(error, "Failed to fetch subjects");
     return handlingError;
@@ -191,7 +191,9 @@ async function GetOneSubject(_, { id, filter }) {
     // *************** Execute query
     const subject = await Subject.findOne(query);
     if (!subject) {
-      const handlingError = CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
+      const handlingError = CreateAppError("Subject not found", "NOT_FOUND", {
+        subjectId,
+      });
       return handlingError;
     }
 
@@ -233,6 +235,7 @@ async function CreateSubject(_, { input }) {
       coefficient,
       tests,
       subject_status,
+      passing_criteria,
     } = await ValidateCreateSubject(input);
 
     const subjectPayload = {
@@ -240,17 +243,18 @@ async function CreateSubject(_, { input }) {
       subject_code,
       description: description ? description : null,
       level,
-      category: category ? description : null,
+      category: category ? category : null,
       block_id,
       coefficient,
       tests: Array.isArray(tests) ? tests : [],
+      passing_criteria,
       subject_status,
     };
 
-    const createSubjectResponse =  await Subject.create(subjectPayload);
-    return createSubjectResponse
+    const createSubjectResponse = await Subject.create(subjectPayload);
+    return createSubjectResponse;
   } catch (error) {
-    const handlingError =  HandleCaughtError(
+    const handlingError = HandleCaughtError(
       error,
       "Failed to create subject",
       "VALIDATION_ERROR"
@@ -310,7 +314,7 @@ async function UpdateSubject(_, { id, input }) {
       subject_code,
       description: description ? description : null,
       level,
-      category: category ? description : null,
+      category: category ? category : null,
       block_id,
       coefficient,
       tests: Array.isArray(tests) ? tests : [],
@@ -333,7 +337,7 @@ async function UpdateSubject(_, { id, input }) {
       "Failed to create subject",
       "VALIDATION_ERROR"
     );
-    throw handlingError
+    throw handlingError;
   }
 }
 
@@ -380,7 +384,7 @@ async function DeleteSubject(_, { id, deleted_by }) {
       throw CreateAppError("Subject not found", "NOT_FOUND", { subjectId });
     }
 
-    const deleteSubjectResponse =  { id: subjectId };
+    const deleteSubjectResponse = { id: subjectId };
     return deleteSubjectResponse;
   } catch (error) {
     const handlingError = HandleCaughtError(error, "Failed to delete subject");
@@ -414,7 +418,7 @@ function tests(subject, _, context) {
   }
 
   const subjectIds = subject.tests ? subject.tests.map((id) => String(id)) : [];
-  const testLoaderResponse =  context.loaders.subject.loadMany(subjectIds);
+  const testLoaderResponse = context.loaders.subject.loadMany(subjectIds);
   return testLoaderResponse;
 }
 

@@ -40,7 +40,7 @@ module.exports = gql`
     category: SubjectCategory
     block_id: ID!
     coefficient: Float!
-    tests: [Test!]
+    tests: [Test]
     passing_criteria: SubjectPassingCriteria!
     subject_status: SubjectStatus!
     created_at: Date!
@@ -52,7 +52,7 @@ module.exports = gql`
   }
 
   type SubjectPassingCriteria {
-    operator: PassingCriteriaOperator!
+    operator: PassingCriteriaOperator
     conditions: [SubjectPassingCondition!]!
   }
 
