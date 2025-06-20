@@ -12,11 +12,17 @@ module.exports = gql`
     DELETED
   }
 
+  enum BlockPassingCriteriaOperator {
+    AND
+    OR
+  }
+
   type Block {
     id: ID!
     name: String!
     description: String
     block_status: BlockStatus!
+    passing_criteria_operator: BlockPassingCriteriaOperator
     start_date: Date!
     end_date: Date
     subjects: [Subject!]
@@ -32,6 +38,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
+    passing_criteria_operator: BlockPassingCriteriaOperator
     start_date: Date!
     end_date: Date
     subjects: [ID!]
@@ -41,6 +48,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
+    passing_criteria_operator: BlockPassingCriteriaOperator
     start_date: Date!
     end_date: Date
     subjects: [ID!]
