@@ -2,6 +2,7 @@
 const { Schema, model, Types } = require("mongoose");
 
 const VALID_BLOCK_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
+const VALID_BLOCK_PASSING_CRITERIA = ["AND", "OR"];
 
 const blockSchema = new Schema(
   {
@@ -24,6 +25,13 @@ const blockSchema = new Schema(
       type: String,
       required: true,
       enum: VALID_BLOCK_STATUS,
+      trim: true,
+    },
+
+    // Passing criteria Operator of the block
+    passing_criteria_operator: {
+      type: String,
+      enum: VALID_BLOCK_PASSING_CRITERIA,
       trim: true,
     },
 
