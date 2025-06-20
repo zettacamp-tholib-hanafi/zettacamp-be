@@ -230,6 +230,7 @@ async function CreateTest(_, { input }) {
 
 async function UpdateTest(_, { id, input }) {
   try {
+    const testId = await ValidateMongoId(id);
     const {
       name,
       subject_id,
@@ -242,8 +243,7 @@ async function UpdateTest(_, { id, input }) {
       test_status,
       attachments,
       published_date,
-    } = await ValidateUpdateTest(input);
-    const testId = await ValidateMongoId(id);
+    } = await ValidateUpdateTest(testId, input);
 
     const testPayload = {
       name,
