@@ -40,20 +40,14 @@ function ValidateCreateBlock(input) {
   }
 
   if (!block_status || !VALID_STATUSES.includes(block_status)) {
-    errors.push(
-      `Field 'block_status' is required"
-      )}.`
-    );
+    errors.push(`Field 'block_status' is required`);
   }
 
   if (
     passing_criteria_operator &&
     !VALID_PASSING_CRITERIA_OPERATOR.includes(passing_criteria_operator)
   ) {
-    errors.push(
-      `Field 'passing_criteria_operator' is required"
-      )}.`
-    );
+    errors.push(`Field 'passing_criteria_operator' is required`);
   }
 
   const startDateObj = new Date(start_date);
@@ -127,8 +121,15 @@ function ValidateUpdateBlock(input) {
   const errors = [];
 
   // *************** Extract fields
-  const { name, description, block_status, start_date, end_date, subjects } =
-    input;
+  const {
+    name,
+    description,
+    block_status,
+    passing_criteria_operator,
+    start_date,
+    end_date,
+    subjects,
+  } = input;
 
   // *************** Validate required fields
 
@@ -139,6 +140,16 @@ function ValidateUpdateBlock(input) {
   if (!block_status || !VALID_STATUSES.includes(block_status)) {
     errors.push(
       `Field 'block_status' is required"
+      )}.`
+    );
+  }
+
+  if (
+    passing_criteria_operator &&
+    !VALID_PASSING_CRITERIA_OPERATOR.includes(passing_criteria_operator)
+  ) {
+    errors.push(
+      `Field 'passing_criteria_operator' is required"
       )}.`
     );
   }
@@ -181,7 +192,7 @@ function ValidateUpdateBlock(input) {
 
   // *************** Throw if validation failed
   if (errors.length > 0) {
-    throw createAppError("Invalid UpdateBlock input", "VALIDATION_ERROR", {
+    throw CreateAppError("Invalid UpdateBlock input", "VALIDATION_ERROR", {
       details: errors,
     });
   }
@@ -190,6 +201,7 @@ function ValidateUpdateBlock(input) {
     name: name.trim(),
     description: description ? description.trim() : null,
     block_status,
+    passing_criteria_operator,
     start_date: startDateObj,
     end_date: endDateObj,
     subjects: subjects ? subjects : [],
