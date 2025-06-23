@@ -17,12 +17,52 @@ module.exports = gql`
     OR
   }
 
+  enum BlockRuleType {
+    SUBJECT_PASS_STATUS
+    TEST_PASS_STATUS
+    BLOCK_AVERAGE
+  }
+
+  enum Operator {
+    EQ
+    GTE
+    GT
+    LTE
+    LT
+  }
+
+  input PassingRuleInput {
+    type: BlockRuleType!
+    subject_id: ID
+    test_id: ID
+    operator: Operator!
+    value: Float!
+  }
+
+  input BlockPassingCriteriaInput {
+    logic: BlockPassingCriteriaOperator!
+    rules: [PassingRuleInput!]!
+  }
+
+  type PassingRule {
+    type: BlockRuleType!
+    subject_id: ID
+    test_id: ID
+    operator: Operator!
+    value: Float!
+  }
+
+  type BlockPassingCriteria {
+    logic: BlockPassingCriteriaOperator!
+    rules: [PassingRule!]!
+  }
+
   type Block {
     id: ID!
     name: String!
     description: String
     block_status: BlockStatus!
-    passing_criteria_operator: BlockPassingCriteriaOperator
+    passing_criteria: BlockPassingCriteria
     start_date: Date!
     end_date: Date
     subjects: [Subject!]
@@ -38,7 +78,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    passing_criteria_operator: BlockPassingCriteriaOperator
+    passing_criteria: BlockPassingCriteriaInput!
     start_date: Date!
     end_date: Date
     subjects: [ID!]
@@ -48,7 +88,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    passing_criteria_operator: BlockPassingCriteriaOperator
+    passing_criteria: BlockPassingCriteriaInput!
     start_date: Date!
     end_date: Date
     subjects: [ID!]

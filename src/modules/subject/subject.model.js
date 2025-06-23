@@ -6,8 +6,9 @@ const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
 const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
 const VALID_SUBJECT_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
 const DEFAULT_SUBJECT_STATUS = "ACTIVE";
-const VALID_PASSING_CRITERIA_OPERATOR = ["AND", "OR"];
-const VALID_CONDITION_TYPE = ["SINGLE_TEST", "AVERAGE"];
+const VALID_CONDITION_TYPE = ["TEST_SCORE", "AVERAGE"];
+const LOGIC_ENUM = ["AND", "OR"];
+const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
 
 const subjectSchema = new Schema(
   {
@@ -58,30 +59,21 @@ const subjectSchema = new Schema(
 
     // Passing Criteria of Subject
     passing_criteria: {
-      // Passing Criteria Operator of Subject
-      operator: {
-        type: String,
-        enum: VALID_PASSING_CRITERIA_OPERATOR,
-        required: true,
-      },
-      // Passing Criteria Condition of Subject (Array)
-      conditions: [
+      logic: { type: String, enum: LOGIC_ENUM, required: true },
+      rules: [
         {
-          condition_type: {
+          type: {
             type: String,
-            required: true,
             enum: VALID_CONDITION_TYPE,
-          },
-          min_score: {
-            type: Number,
             required: true,
-            min: 0,
-            max: 100,
           },
-          test_id: {
-            type: Types.ObjectId,
-            ref: "Test",
+          test_id: { type: Schema.Types.ObjectId, ref: "Test" },
+          operator: {
+            type: String,
+            enum: OPERATOR_ENUM,
+            required: true,
           },
+          value: { type: Number, required: true },
         },
       ],
     },

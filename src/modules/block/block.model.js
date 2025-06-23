@@ -2,7 +2,13 @@
 const { Schema, model, Types } = require("mongoose");
 
 const VALID_BLOCK_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
-const VALID_BLOCK_PASSING_CRITERIA = ["AND", "OR"];
+const LOGIC_ENUM = ["AND", "OR"];
+const BLOCK_RULE_TYPE_ENUM = [
+  "SUBJECT_PASS_STATUS",
+  "TEST_PASS_STATUS",
+  "BLOCK_AVERAGE",
+];
+const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
 
 const blockSchema = new Schema(
   {
@@ -29,10 +35,21 @@ const blockSchema = new Schema(
     },
 
     // Passing criteria Operator of the block
-    passing_criteria_operator: {
-      type: String,
-      enum: VALID_BLOCK_PASSING_CRITERIA,
-      trim: true,
+    passing_criteria: {
+      logic: { type: String, enum: LOGIC_ENUM, required: true },
+      rules: [
+        {
+          type: {
+            type: String,
+            enum: BLOCK_RULE_TYPE_ENUM,
+            required: true,
+          },
+          subject_id: { type: Schema.Types.ObjectId, ref: "Subject" },
+          test_id: { type: Schema.Types.ObjectId, ref: "Test" },
+          operator: { type: String, enum: OPERATOR_ENUM, required: true },
+          value: { type: Number, required: true },
+        },
+      ],
     },
 
     // Start date of the block

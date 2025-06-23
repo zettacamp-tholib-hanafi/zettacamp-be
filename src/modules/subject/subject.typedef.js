@@ -21,14 +21,22 @@ module.exports = gql`
     DELETED
   }
 
-  enum PassingCriteriaOperator {
+  enum PassingCriteriaLogic {
     AND
     OR
   }
 
-  enum ConditionType {
-    SINGLE_TEST
+  enum PassingRuleType {
+    TEST_SCORE
     AVERAGE
+  }
+
+  enum PassingRuleOperator {
+    EQ
+    GTE
+    GT
+    LTE
+    LT
   }
 
   type Subject {
@@ -52,13 +60,14 @@ module.exports = gql`
   }
 
   type SubjectPassingCriteria {
-    operator: PassingCriteriaOperator
-    conditions: [SubjectPassingCondition!]!
+    logic: PassingCriteriaLogic!
+    rules: [SubjectPassingRule!]!
   }
 
-  type SubjectPassingCondition {
-    condition_type: ConditionType!
-    min_score: Float!
+  type SubjectPassingRule {
+    type: PassingRuleType!
+    operator: PassingRuleOperator!
+    value: Float!
     test_id: ID
   }
 
@@ -91,13 +100,14 @@ module.exports = gql`
   }
 
   input SubjectPassingCriteriaInput {
-    operator: PassingCriteriaOperator!
-    conditions: [SubjectPassingConditionInput!]!
+    logic: PassingCriteriaLogic!
+    rules: [SubjectPassingRuleInput!]!
   }
 
-  input SubjectPassingConditionInput {
-    condition_type: ConditionType!
-    min_score: Float!
+  input SubjectPassingRuleInput {
+    type: PassingRuleType!
+    operator: PassingRuleOperator!
+    value: Float!
     test_id: ID
   }
 
