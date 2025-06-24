@@ -50,11 +50,6 @@ module.exports = gql`
     value: Float!
   }
 
-  type BlockCriteriaSnapshot {
-    logic: Logic!
-    rules: [BlockRule!]!
-  }
-
   type SubjectRule {
     type: SubjectRuleType!
     test_id: ObjectId
@@ -62,19 +57,8 @@ module.exports = gql`
     value: Float!
   }
 
-  type SubjectCriteriaSnapshot {
-    logic: Logic!
-    rules: [SubjectRule!]!
-  }
-
-  type TestCriteriaSnapshot {
-    operator: Operator!
-    value: Float!
-  }
-
   type TestResult {
     test_id: ObjectId!
-    criteria: TestCriteriaSnapshot!
     test_result: EvaluationResult!
     average_mark: Float!
     weighted_mark: Float!
@@ -82,7 +66,6 @@ module.exports = gql`
 
   type SubjectResult {
     subject_id: ObjectId!
-    criteria: SubjectCriteriaSnapshot!
     subject_result: EvaluationResult!
     total_mark: Float!
     test_results: [TestResult!]!
@@ -90,7 +73,6 @@ module.exports = gql`
 
   type BlockResult {
     block_id: ObjectId!
-    criteria: BlockCriteriaSnapshot!
     block_result: EvaluationResult!
     total_mark: Float!
     subject_results: [SubjectResult!]!
@@ -98,6 +80,7 @@ module.exports = gql`
 
   type CalculationResult {
     student_id: ObjectId!
+    overall_result: EvaluationResult!
     results: [BlockResult!]!
     calculation_result_status: CalculationResultStatus!
     created_at: Date
