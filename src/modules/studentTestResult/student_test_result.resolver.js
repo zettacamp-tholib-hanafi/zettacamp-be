@@ -467,12 +467,6 @@ async function EnterMarks(_, { input }) {
  */
 async function ValidateMarks(_, { id }) {
   try {
-    try {
-      await RunTranscriptWorker(id);
-    } catch (err) {
-      throw CreateAppError("Transcript worker not started", "NOT_FOUND");
-    }
-    return false;
     const taskId = await ValidateMongoId(id);
     const { task, studentTestResult } = await ValidateValidateMarks(taskId);
 
