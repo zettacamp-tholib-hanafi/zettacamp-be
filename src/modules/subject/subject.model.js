@@ -1,15 +1,13 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-// *************** Enum Constants
-const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
-const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
-const VALID_SUBJECT_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
-const DEFAULT_SUBJECT_STATUS = "ACTIVE";
-const VALID_CONDITION_TYPE = ["TEST_SCORE", "AVERAGE"];
-const LOGIC_ENUM = ["AND", "OR"];
-const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
-const VALID_EXPECTED_OUTCOME = ["PASS", "FAIL"];
+// ************** IMPORT UTILS *************
+const {
+  SUBJECT,
+  LOGIC_ENUM,
+  OPERATOR_ENUM,
+  VALID_EXPECTED_OUTCOME,
+} = require("../../shared/utils/enum");
 
 const subjectSchema = new Schema(
   {
@@ -39,14 +37,14 @@ const subjectSchema = new Schema(
     level: {
       type: String,
       required: true,
-      enum: VALID_LEVEL,
+      enum: SUBJECT.VALID_LEVEL,
       trim: true,
     },
 
     // Subject category (optional enum)
     category: {
       type: String,
-      enum: VALID_CATEGORY,
+      enum: SUBJECT.VALID_CATEGORY,
       default: null,
       trim: true,
     },
@@ -65,7 +63,7 @@ const subjectSchema = new Schema(
         {
           type: {
             type: String,
-            enum: VALID_CONDITION_TYPE,
+            enum: SUBJECT.VALID_CONDITION_TYPE,
             required: true,
           },
           test_id: { type: Schema.Types.ObjectId, ref: "Test" },
@@ -103,8 +101,7 @@ const subjectSchema = new Schema(
     // Subject status
     subject_status: {
       type: String,
-      enum: VALID_SUBJECT_STATUS,
-      default: DEFAULT_SUBJECT_STATUS,
+      enum: SUBJECT.VALID_STATUS,
       required: true,
       trim: true,
     },

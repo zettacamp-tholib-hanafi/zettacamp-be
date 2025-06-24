@@ -3,16 +3,14 @@ const { isValidObjectId } = require("mongoose");
 
 // *************** IMPORT UTILS ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const {
+  SUBJECT,
+  OPERATOR_ENUM,
+  LOGIC_ENUM,
+} = require("../../shared/utils/enum.js");
 
 // *************** IMPORT HELPER ***************
 const { CreateAppError } = require("../../core/error");
-
-const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
-const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
-const VALID_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
-const VALID_RULE_TYPE = ["TEST_SCORE", "AVERAGE"];
-const VALID_RULE_OPERATOR = ["EQ", "GTE", "GT", "LTE", "LT"];
-const VALID_LOGIC_OPERATOR = ["AND", "OR"];
 
 /**
  * Validates and sanitizes input for creating a Subject entity.
@@ -24,9 +22,9 @@ const VALID_LOGIC_OPERATOR = ["AND", "OR"];
  * @param {Object} input - Input data for creating a subject.
  * @param {string} input.name - Required subject name (non-empty).
  * @param {string} input.subject_code - Required subject code (non-empty).
- * @param {string} input.level - Required level, must be in VALID_LEVEL.
+ * @param {string} input.level - Required level, must be in SUBJECT.VALID_LEVEL.
  * @param {string} [input.description] - Optional subject description.
- * @param {string} [input.category] - Optional category, must be in VALID_CATEGORY if provided.
+ * @param {string} [input.category] - Optional category, must be in SUBJECT.VALID_CATEGORY if provided.
  * @param {string} input.block_id - Required valid block ObjectId.
  * @param {number} input.coefficient - Required non-negative number.
  * @param {Array<string>} [input.tests] - Optional array of valid test ObjectIds.
@@ -69,11 +67,11 @@ function ValidateCreateSubject(input) {
     });
   }
 
-  if (!VALID_LEVEL.includes(level)) {
+  if (!SUBJECT.VALID_LEVEL.includes(level)) {
     throw CreateAppError("Invalid subject level", "BAD_REQUEST", { level });
   }
 
-  if (category && !VALID_CATEGORY.includes(category)) {
+  if (category && !SUBJECT.VALID_CATEGORY.includes(category)) {
     throw CreateAppError("Invalid subject category", "BAD_REQUEST", {
       category,
     });
@@ -88,7 +86,7 @@ function ValidateCreateSubject(input) {
   if (
     !criteria ||
     typeof criteria !== "object" ||
-    !VALID_LOGIC_OPERATOR.includes(criteria.logic)
+    !LOGIC_ENUM.includes(criteria.logic)
   ) {
     throw CreateAppError(
       "Invalid or missing criteria.logic. Must be 'AND' or 'OR'.",
@@ -109,9 +107,9 @@ function ValidateCreateSubject(input) {
   const validatedRules = rules.map((rule, index) => {
     const path = `criteria.rules[${index}]`;
 
-    if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
+    if (!OPERATOR_ENUM.includes(rule.operator)) {
       throw CreateAppError(
-        `Invalid rule.operator at ${path}. Must be one of ${VALID_RULE_OPERATOR.join(
+        `Invalid rule.operator at ${path}. Must be one of ${OPERATOR_ENUM.join(
           ", "
         )}`,
         "VALIDATION_ERROR",
@@ -119,9 +117,9 @@ function ValidateCreateSubject(input) {
       );
     }
 
-    if (!VALID_RULE_TYPE.includes(rule.type)) {
+    if (!SUBJECT.VALID_CONDITION_TYPE.includes(rule.type)) {
       throw CreateAppError(
-        `Invalid rule.type at ${path}. Must be one of ${VALID_RULE_TYPE.join(
+        `Invalid rule.type at ${path}. Must be one of ${SUBJECT.VALID_CONDITION_TYPE.join(
           ", "
         )}`,
         "VALIDATION_ERROR",
@@ -185,7 +183,7 @@ function ValidateCreateSubject(input) {
   }
 
   const status = subject_status || "ACTIVE";
-  if (!VALID_STATUS.includes(status)) {
+  if (!SUBJECT.VALID_STATUS.includes(status)) {
     throw CreateAppError("Invalid subject status", "BAD_REQUEST", {
       subject_status,
     });
@@ -216,9 +214,9 @@ function ValidateCreateSubject(input) {
  * @param {Object} input - Subject update payload.
  * @param {string} input.name - Required subject name (non-empty).
  * @param {string} input.subject_code - Required subject code (non-empty).
- * @param {string} input.level - Required level (must match VALID_LEVEL).
+ * @param {string} input.level - Required level (must match SUBJECT.VALID_LEVEL).
  * @param {string} [input.description] - Optional subject description.
- * @param {string} [input.category] - Optional category (must match VALID_CATEGORY if provided).
+ * @param {string} [input.category] - Optional category (must match SUBJECT.VALID_CATEGORY if provided).
  * @param {string} input.block_id - Required valid block ObjectId.
  * @param {number} input.coefficient - Required non-negative number.
  * @param {Array<string>} [input.tests] - Optional array of valid test ObjectIds.
@@ -261,11 +259,11 @@ function ValidateUpdateSubject(input) {
     });
   }
 
-  if (!VALID_LEVEL.includes(level)) {
+  if (!SUBJECT.VALID_LEVEL.includes(level)) {
     throw CreateAppError("Invalid subject level", "BAD_REQUEST", { level });
   }
 
-  if (category && !VALID_CATEGORY.includes(category)) {
+  if (category && !SUBJECT.VALID_CATEGORY.includes(category)) {
     throw CreateAppError("Invalid subject category", "BAD_REQUEST", {
       category,
     });
@@ -280,7 +278,7 @@ function ValidateUpdateSubject(input) {
   if (
     !criteria ||
     typeof criteria !== "object" ||
-    !VALID_LOGIC_OPERATOR.includes(criteria.logic)
+    !LOGIC_ENUM.includes(criteria.logic)
   ) {
     throw CreateAppError(
       "Invalid or missing criteria.logic. Must be 'AND' or 'OR'.",
@@ -301,9 +299,9 @@ function ValidateUpdateSubject(input) {
   const validatedRules = rules.map((rule, index) => {
     const path = `criteria.rules[${index}]`;
 
-    if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
+    if (!OPERATOR_ENUM.includes(rule.operator)) {
       throw CreateAppError(
-        `Invalid rule.operator at ${path}. Must be one of ${VALID_RULE_OPERATOR.join(
+        `Invalid rule.operator at ${path}. Must be one of ${OPERATOR_ENUM.join(
           ", "
         )}`,
         "VALIDATION_ERROR",
@@ -311,9 +309,9 @@ function ValidateUpdateSubject(input) {
       );
     }
 
-    if (!VALID_RULE_TYPE.includes(rule.type)) {
+    if (!SUBJECT.VALID_CONDITION_TYPE.includes(rule.type)) {
       throw CreateAppError(
-        `Invalid rule.type at ${path}. Must be one of ${VALID_RULE_TYPE.join(
+        `Invalid rule.type at ${path}. Must be one of ${SUBJECT.VALID_CONDITION_TYPE.join(
           ", "
         )}`,
         "VALIDATION_ERROR",
@@ -377,7 +375,7 @@ function ValidateUpdateSubject(input) {
   }
 
   const status = subject_status || "ACTIVE";
-  if (!VALID_STATUS.includes(status)) {
+  if (!SUBJECT.VALID_STATUS.includes(status)) {
     throw CreateAppError("Invalid subject status", "BAD_REQUEST", {
       subject_status,
     });
