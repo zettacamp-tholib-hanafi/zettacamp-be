@@ -31,12 +31,18 @@ module.exports = gql`
     LT
   }
 
+  enum BlockExpectedOutcome {
+    PASS
+    FAIL
+  }
+
   input PassingRuleInput {
     type: BlockRuleType!
     subject_id: ID
     test_id: ID
     operator: Operator!
     value: Float!
+    expected_outcome: BlockExpectedOutcome!
   }
 
   input BlockPassingCriteriaInput {
@@ -50,6 +56,7 @@ module.exports = gql`
     test_id: ID
     operator: Operator!
     value: Float!
+    expected_outcome: BlockExpectedOutcome!
   }
 
   type BlockPassingCriteria {
