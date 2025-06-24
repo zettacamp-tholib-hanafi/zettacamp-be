@@ -9,6 +9,7 @@ const BLOCK_RULE_TYPE_ENUM = [
   "BLOCK_AVERAGE",
 ];
 const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
+const VALID_EXPECTED_OUTCOME = ["PASS", "FAIL"];
 
 const blockSchema = new Schema(
   {
@@ -35,7 +36,7 @@ const blockSchema = new Schema(
     },
 
     // Passing criteria Operator of the block
-    passing_criteria: {
+    criteria: {
       logic: { type: String, enum: LOGIC_ENUM, required: true },
       rules: [
         {
@@ -48,6 +49,12 @@ const blockSchema = new Schema(
           test_id: { type: Schema.Types.ObjectId, ref: "Test" },
           operator: { type: String, enum: OPERATOR_ENUM, required: true },
           value: { type: Number, required: true },
+          expected_outcome: {
+            type: String,
+            required: true,
+            enum: VALID_EXPECTED_OUTCOME,
+            trim: true,
+          },
         },
       ],
     },

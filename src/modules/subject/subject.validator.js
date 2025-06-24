@@ -30,9 +30,9 @@ const VALID_LOGIC_OPERATOR = ["AND", "OR"];
  * @param {string} input.block_id - Required valid block ObjectId.
  * @param {number} input.coefficient - Required non-negative number.
  * @param {Array<string>} [input.tests] - Optional array of valid test ObjectIds.
- * @param {Object} input.passing_criteria - Required passing criteria object.
- * @param {string} input.passing_criteria.logic - Must be 'AND' or 'OR'.
- * @param {Array<Object>} input.passing_criteria.rules - Non-empty array of valid rule objects.
+ * @param {Object} input.criteria - Required passing criteria object.
+ * @param {string} input.criteria.logic - Must be 'AND' or 'OR'.
+ * @param {Array<Object>} input.criteria.rules - Non-empty array of valid rule objects.
  * @param {string} [input.subject_status] - Optional status, defaults to 'ACTIVE'.
  *
  * @returns {Object} Validated and sanitized subject data.
@@ -51,7 +51,7 @@ function ValidateCreateSubject(input) {
     block_id,
     coefficient,
     tests,
-    passing_criteria,
+    criteria,
     subject_status,
   } = input;
 
@@ -86,28 +86,28 @@ function ValidateCreateSubject(input) {
   }
 
   if (
-    !passing_criteria ||
-    typeof passing_criteria !== "object" ||
-    !VALID_LOGIC_OPERATOR.includes(passing_criteria.logic)
+    !criteria ||
+    typeof criteria !== "object" ||
+    !VALID_LOGIC_OPERATOR.includes(criteria.logic)
   ) {
     throw CreateAppError(
-      "Invalid or missing passing_criteria.logic. Must be 'AND' or 'OR'.",
+      "Invalid or missing criteria.logic. Must be 'AND' or 'OR'.",
       "VALIDATION_ERROR",
-      { field: "passing_criteria.logic" }
+      { field: "criteria.logic" }
     );
   }
 
-  const { rules } = passing_criteria;
+  const { rules } = criteria;
   if (!Array.isArray(rules) || rules.length === 0) {
     throw CreateAppError(
-      "At least one rule is required in passing_criteria.rules",
+      "At least one rule is required in criteria.rules",
       "VALIDATION_ERROR",
-      { field: "passing_criteria.rules" }
+      { field: "criteria.rules" }
     );
   }
 
   const validatedRules = rules.map((rule, index) => {
-    const path = `passing_criteria.rules[${index}]`;
+    const path = `criteria.rules[${index}]`;
 
     if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
       throw CreateAppError(
@@ -163,7 +163,7 @@ function ValidateCreateSubject(input) {
     };
   });
 
-  passing_criteria.rules = validatedRules;
+  criteria.rules = validatedRules;
 
   if (typeof coefficient !== "number" || coefficient < 0) {
     throw CreateAppError(
@@ -200,7 +200,7 @@ function ValidateCreateSubject(input) {
     block_id,
     coefficient,
     tests: tests ?? [],
-    passing_criteria,
+    criteria,
     subject_status: status,
   };
 }
@@ -209,7 +209,7 @@ function ValidateCreateSubject(input) {
  * Validates and sanitizes input for updating a Subject entity.
  *
  * Ensures required fields like name, subject_code, level, block_id, coefficient,
- * and passing_criteria are valid. Also validates optional fields such as
+ * and criteria are valid. Also validates optional fields such as
  * description, category, tests, and subject_status.
  * Throws `CreateAppError` if validation fails.
  *
@@ -222,9 +222,9 @@ function ValidateCreateSubject(input) {
  * @param {string} input.block_id - Required valid block ObjectId.
  * @param {number} input.coefficient - Required non-negative number.
  * @param {Array<string>} [input.tests] - Optional array of valid test ObjectIds.
- * @param {Object} input.passing_criteria - Required object containing logic and rules.
- * @param {string} input.passing_criteria.logic - Must be 'AND' or 'OR'.
- * @param {Array<Object>} input.passing_criteria.rules - Array of rule objects with validation.
+ * @param {Object} input.criteria - Required object containing logic and rules.
+ * @param {string} input.criteria.logic - Must be 'AND' or 'OR'.
+ * @param {Array<Object>} input.criteria.rules - Array of rule objects with validation.
  * @param {string} [input.subject_status] - Optional status (defaults to ACTIVE).
  *
  * @returns {Object} Validated and normalized subject data.
@@ -243,7 +243,7 @@ function ValidateUpdateSubject(input) {
     block_id,
     coefficient,
     tests,
-    passing_criteria,
+    criteria,
     subject_status,
   } = input;
 
@@ -278,28 +278,28 @@ function ValidateUpdateSubject(input) {
   }
 
   if (
-    !passing_criteria ||
-    typeof passing_criteria !== "object" ||
-    !VALID_LOGIC_OPERATOR.includes(passing_criteria.logic)
+    !criteria ||
+    typeof criteria !== "object" ||
+    !VALID_LOGIC_OPERATOR.includes(criteria.logic)
   ) {
     throw CreateAppError(
-      "Invalid or missing passing_criteria.logic. Must be 'AND' or 'OR'.",
+      "Invalid or missing criteria.logic. Must be 'AND' or 'OR'.",
       "VALIDATION_ERROR",
-      { field: "passing_criteria.logic" }
+      { field: "criteria.logic" }
     );
   }
 
-  const { rules } = passing_criteria;
+  const { rules } = criteria;
   if (!Array.isArray(rules) || rules.length === 0) {
     throw CreateAppError(
-      "At least one rule is required in passing_criteria.rules",
+      "At least one rule is required in criteria.rules",
       "VALIDATION_ERROR",
-      { field: "passing_criteria.rules" }
+      { field: "criteria.rules" }
     );
   }
 
   const validatedRules = rules.map((rule, index) => {
-    const path = `passing_criteria.rules[${index}]`;
+    const path = `criteria.rules[${index}]`;
 
     if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
       throw CreateAppError(
@@ -355,7 +355,7 @@ function ValidateUpdateSubject(input) {
     };
   });
 
-  passing_criteria.rules = validatedRules;
+  criteria.rules = validatedRules;
 
   if (typeof coefficient !== "number" || coefficient < 0) {
     throw CreateAppError(
@@ -392,7 +392,7 @@ function ValidateUpdateSubject(input) {
     block_id,
     coefficient,
     tests: tests ?? [],
-    passing_criteria,
+    criteria,
     subject_status: status,
   };
 }

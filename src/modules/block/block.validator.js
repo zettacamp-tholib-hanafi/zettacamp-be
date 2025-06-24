@@ -25,7 +25,7 @@ const VALID_RULE_OPERATOR = ["EQ", "GTE", "GT", "LTE", "LT"];
  * @param {string} input.name - Required block name.
  * @param {string} [input.description] - Optional block description.
  * @param {string} input.block_status - Must be one of: ACTIVE, ARCHIVED, DELETED.
- * @param {Object} input.passing_criteria - Required passing criteria with logic and rules.
+ * @param {Object} input.criteria - Required passing criteria with logic and rules.
  * @param {string|Date} input.start_date - Required valid start date.
  * @param {string|Date} [input.end_date] - Optional end date, must be after start_date.
  * @param {Array<string>} [input.subjects] - Optional array of subject ObjectIds.
@@ -37,7 +37,7 @@ function ValidateCreateBlock(input) {
     name,
     description,
     block_status,
-    passing_criteria,
+    criteria,
     start_date,
     end_date,
     subjects,
@@ -65,26 +65,26 @@ function ValidateCreateBlock(input) {
     );
   }
 
-  if (!passing_criteria || typeof passing_criteria !== "object") {
+  if (!criteria || typeof criteria !== "object") {
     throw CreateAppError(
-      "Field 'passing_criteria' is required and must be an object.",
+      "Field 'criteria' is required and must be an object.",
       "VALIDATION_ERROR"
     );
   }
 
-  if (!VALID_LOGIC.includes(passing_criteria.logic)) {
+  if (!VALID_LOGIC.includes(criteria.logic)) {
     throw CreateAppError(
-      "Field 'passing_criteria.logic' must be 'AND' or 'OR'.",
+      "Field 'criteria.logic' must be 'AND' or 'OR'.",
       "VALIDATION_ERROR"
     );
   }
 
   if (
-    !Array.isArray(passing_criteria.rules) ||
-    passing_criteria.rules.length === 0
+    !Array.isArray(criteria.rules) ||
+    criteria.rules.length === 0
   ) {
     throw CreateAppError(
-      "Field 'passing_criteria.rules' must be a non-empty array.",
+      "Field 'criteria.rules' must be a non-empty array.",
       "VALIDATION_ERROR"
     );
   }
@@ -127,7 +127,7 @@ function ValidateCreateBlock(input) {
     }
   }
 
-  const validatedRules = passing_criteria.rules.map((rule, i) => {
+  const validatedRules = criteria.rules.map((rule, i) => {
     if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
       throw CreateAppError(
         `Rule[${i}] has invalid operator '${rule.operator}'.`,
@@ -182,8 +182,8 @@ function ValidateCreateBlock(input) {
     name: name.trim(),
     description: description ? description.trim() : null,
     block_status,
-    passing_criteria: {
-      logic: passing_criteria.logic,
+    criteria: {
+      logic: criteria.logic,
       rules: validatedRules,
     },
     start_date: startDateObj,
@@ -202,9 +202,9 @@ function ValidateCreateBlock(input) {
  * @param {string} input.name - Block name (required, non-empty).
  * @param {string} [input.description] - Optional description.
  * @param {string} input.block_status - Must be one of: ACTIVE, ARCHIVED, DELETED.
- * @param {Object} [input.passing_criteria] - Optional passing criteria config.
- * @param {string} input.passing_criteria.logic - Logical operator: AND or OR.
- * @param {Array} input.passing_criteria.rules - Rules array (required if criteria is present).
+ * @param {Object} [input.criteria] - Optional passing criteria config.
+ * @param {string} input.criteria.logic - Logical operator: AND or OR.
+ * @param {Array} input.criteria.rules - Rules array (required if criteria is present).
  * @param {string|Date} input.start_date - Required valid start date.
  * @param {string|Date} [input.end_date] - Optional end date (must be after start_date).
  * @param {Array<string>} [input.subjects] - Optional subject ObjectIds (must be valid).
@@ -216,7 +216,7 @@ function ValidateUpdateBlock(input) {
     name,
     description,
     block_status,
-    passing_criteria,
+    criteria,
     start_date,
     end_date,
     subjects,
@@ -237,25 +237,25 @@ function ValidateUpdateBlock(input) {
   }
 
   let validatedRules = null;
-  if (passing_criteria && typeof passing_criteria === "object") {
-    if (!VALID_LOGIC.includes(passing_criteria.logic)) {
+  if (criteria && typeof criteria === "object") {
+    if (!VALID_LOGIC.includes(criteria.logic)) {
       throw CreateAppError(
-        "Field 'passing_criteria.logic' must be 'AND' or 'OR'.",
+        "Field 'criteria.logic' must be 'AND' or 'OR'.",
         "VALIDATION_ERROR"
       );
     }
 
     if (
-      !Array.isArray(passing_criteria.rules) ||
-      passing_criteria.rules.length === 0
+      !Array.isArray(criteria.rules) ||
+      criteria.rules.length === 0
     ) {
       throw CreateAppError(
-        "Field 'passing_criteria.rules' must be a non-empty array.",
+        "Field 'criteria.rules' must be a non-empty array.",
         "VALIDATION_ERROR"
       );
     }
 
-    validatedRules = passing_criteria.rules.map((rule, i) => {
+    validatedRules = criteria.rules.map((rule, i) => {
       if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
         throw CreateAppError(
           `Rule[${i}] has invalid operator '${rule.operator}'.`,
@@ -358,9 +358,9 @@ function ValidateUpdateBlock(input) {
     name: name.trim(),
     description: description ? description.trim() : null,
     block_status,
-    passing_criteria: passing_criteria
+    criteria: criteria
       ? {
-          logic: passing_criteria.logic,
+          logic: criteria.logic,
           rules: validatedRules,
         }
       : null,

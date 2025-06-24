@@ -235,7 +235,7 @@ async function CreateSubject(_, { input }) {
       coefficient,
       tests,
       subject_status,
-      passing_criteria,
+      criteria,
     } = await ValidateCreateSubject(input);
 
     const subjectPayload = {
@@ -247,7 +247,7 @@ async function CreateSubject(_, { input }) {
       block_id,
       coefficient,
       tests: Array.isArray(tests) ? tests : [],
-      passing_criteria,
+      criteria,
       subject_status,
     };
 
@@ -305,7 +305,7 @@ async function UpdateSubject(_, { id, input }) {
       block_id,
       coefficient,
       tests,
-      passing_criteria,
+      criteria,
       subject_status,
     } = await ValidateUpdateSubject(input);
     const subjectId = await ValidateMongoId(id);
@@ -319,7 +319,7 @@ async function UpdateSubject(_, { id, input }) {
       block_id,
       coefficient,
       tests: Array.isArray(tests) ? tests : [],
-      passing_criteria,
+      criteria,
       subject_status,
     };
 
