@@ -8,7 +8,7 @@ const VALID_SUBJECT_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
 const DEFAULT_SUBJECT_STATUS = "ACTIVE";
 const VALID_CONDITION_TYPE = ["TEST_SCORE", "AVERAGE"];
 const LOGIC_ENUM = ["AND", "OR"];
-const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
+const OPERATOR_ENUM = ["==", ">=", ">", "<=", "<"];
 
 const subjectSchema = new Schema(
   {
