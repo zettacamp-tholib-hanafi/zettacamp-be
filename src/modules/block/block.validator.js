@@ -239,12 +239,12 @@ async function ValidateUpdateBlock(id, input) {
     end_date,
     subjects,
   } = input;
-  const existsSubject = await BlockModel.exists({
+  const existBlock = await BlockModel.exists({
     _id: id,
     subject_status: { $ne: "DELETED" },
   });
 
-  if (!existsSubject) {
+  if (!existBlock) {
     throw CreateAppError(
       `Subject with ID '${id}' not found or has been deleted.`,
       "VALIDATION_ERROR"
