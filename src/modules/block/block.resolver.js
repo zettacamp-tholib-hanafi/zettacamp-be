@@ -203,8 +203,9 @@ async function UpdateBlock(_, { id, input }) {
       start_date,
       end_date,
       subjects,
-    } = await ValidateUpdateBlock(input);
-    const blockId = await ValidateMongoId(id);
+      _id,
+    } = await ValidateUpdateBlock(id, input);
+    const blockId = await ValidateMongoId(_id);
 
     const blockUpdatePayload = {
       name,

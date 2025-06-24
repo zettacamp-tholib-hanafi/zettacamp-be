@@ -4,6 +4,9 @@ const { CreateAppError } = require("../../core/error");
 // *************** IMPORT LIBRARY ***************
 const mongoose = require("mongoose");
 
+// *************** IMPORT MODULE **************
+const BlockModel = require("./block.model");
+
 // *************** Enum
 const VALID_STATUSES = ["ACTIVE", "ARCHIVED", "DELETED"];
 const VALID_LOGIC = ["AND", "OR"];
@@ -33,7 +36,7 @@ const VALID_RULE_OPERATOR = ["EQ", "GTE", "GT", "LTE", "LT"];
  *
  * @returns {Object} Validated and normalized block data.
  */
-function ValidateCreateBlock(input) {
+async function ValidateCreateBlock(input) {
   const {
     name,
     description,
@@ -155,7 +158,7 @@ function ValidateCreateBlock(input) {
     }
 
     if (
-      (rule.type === "SUBJECT_PASS_STATUS") &&
+      rule.type === "SUBJECT_PASS_STATUS" &&
       (!rule.subject_id || !mongoose.Types.ObjectId.isValid(rule.subject_id))
     ) {
       throw CreateAppError(
@@ -226,7 +229,7 @@ function ValidateCreateBlock(input) {
  *
  * @returns {Object} Validated and sanitized block data ready for saving.
  */
-function ValidateUpdateBlock(input) {
+async function ValidateUpdateBlock(id, input) {
   const {
     name,
     description,
@@ -236,6 +239,17 @@ function ValidateUpdateBlock(input) {
     end_date,
     subjects,
   } = input;
+  const existsSubject = await BlockModel.exists({
+    _id: id,
+    subject_status: { $ne: "DELETED" },
+  });
+
+  if (!existsSubject) {
+    throw CreateAppError(
+      `Subject with ID '${id}' not found or has been deleted.`,
+      "VALIDATION_ERROR"
+    );
+  }
 
   if (!name || typeof name !== "string" || name.trim().length === 0) {
     throw CreateAppError(
@@ -251,7 +265,6 @@ function ValidateUpdateBlock(input) {
     );
   }
 
-  let validatedRules = null;
   if (criteria && typeof criteria === "object") {
     if (!VALID_LOGIC.includes(criteria.logic)) {
       throw CreateAppError(
@@ -266,59 +279,74 @@ function ValidateUpdateBlock(input) {
         "VALIDATION_ERROR"
       );
     }
-
-    validatedRules = criteria.rules.map((rule, i) => {
-      if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
-        throw CreateAppError(
-          `Rule[${i}] has invalid operator '${rule.operator}'.`,
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (!VALID_RULE_TYPES.includes(rule.type)) {
-        throw CreateAppError(
-          `Rule[${i}] has invalid type '${rule.type}'.`,
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (typeof rule.value !== "number") {
-        throw CreateAppError(
-          `Rule[${i}] 'value' must be a number.`,
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (
-        (rule.type === "SUBJECT_PASS_STATUS" ||
-          rule.type === "BLOCK_AVERAGE") &&
-        (!rule.subject_id || !mongoose.Types.ObjectId.isValid(rule.subject_id))
-      ) {
-        throw CreateAppError(
-          `Rule[${i}] 'subject_id' is required and must be valid.`,
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (
-        rule.type === "TEST_PASS_STATUS" &&
-        (!rule.test_id || !mongoose.Types.ObjectId.isValid(rule.test_id))
-      ) {
-        throw CreateAppError(
-          `Rule[${i}] 'test_id' is required and must be valid.`,
-          "VALIDATION_ERROR"
-        );
-      }
-
-      return {
-        type: rule.type,
-        subject_id: rule.subject_id || null,
-        test_id: rule.test_id || null,
-        operator: rule.operator,
-        value: rule.value,
-      };
-    });
   }
+  const validatedRules = criteria.rules.map((rule, index) => {
+    if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
+      throw CreateAppError(
+        `Rule[${index}] has invalid operator '${rule.operator}'.`,
+        "VALIDATION_ERROR"
+      );
+    }
+
+    if (!VALID_RULE_TYPES.includes(rule.type)) {
+      throw CreateAppError(
+        `Rule[${index}] has invalid type '${rule.type}'.`,
+        "VALIDATION_ERROR"
+      );
+    }
+
+    if (typeof rule.value !== "number" || rule.value <= 0) {
+      throw CreateAppError(
+        `Rule[${index}] 'value' must be a positive number.`,
+        "VALIDATION_ERROR"
+      );
+    }
+
+    if (!VALID_EXPECTED_OUTCOME.includes(rule.expected_outcome)) {
+      throw CreateAppError(
+        `Rule[${index}] 'expected_outcome' must be either 'PASS' or 'FAIL'.`,
+        "VALIDATION_ERROR"
+      );
+    }
+
+    if (
+      rule.type === "SUBJECT_PASS_STATUS" &&
+      (!rule.subject_id || !mongoose.Types.ObjectId.isValid(rule.subject_id))
+    ) {
+      throw CreateAppError(
+        `Rule[${index}] 'subject_id' is required and must be valid.`,
+        "VALIDATION_ERROR"
+      );
+    }
+
+    if (
+      rule.type === "TEST_PASS_STATUS" &&
+      (!rule.test_id || !mongoose.Types.ObjectId.isValid(rule.test_id))
+    ) {
+      throw CreateAppError(
+        `Rule[${index}] 'test_id' is required and must be valid.`,
+        "VALIDATION_ERROR"
+      );
+    }
+
+    if (rule.type === "BLOCK_AVERAGE") {
+      if (rule.subject_id || rule.test_id) {
+        throw CreateAppError(
+          `Rule[${index}] type 'BLOCK_AVERAGE' must not include 'subject_id' or 'test_id'.`,
+          "VALIDATION_ERROR"
+        );
+      }
+    }
+
+    return {
+      type: rule.type,
+      subject_id: rule.subject_id || null,
+      test_id: rule.test_id || null,
+      operator: rule.operator,
+      value: rule.value,
+      expected_outcome: rule.expected_outcome,
+    };
+  });
 
   const startDateObj = new Date(start_date);
   if (!start_date || isNaN(startDateObj.getTime())) {
@@ -367,6 +395,7 @@ function ValidateUpdateBlock(input) {
   }
 
   return {
+    _id: id,
     name: name.trim(),
     description: description ? description.trim() : null,
     block_status,
