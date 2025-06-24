@@ -6,6 +6,16 @@ const {
   workerData,
 } = require("worker_threads");
 
+// *************** IMPORT VALIDATOR **************
+const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id");
+
+// *************** IMPORT CORE ***************
+const { CreateAppError } = require("../../core/error");
+
+// *************** IMPORT MODULE **************
+const StudentTestResult = require("../studentTestResult/student_test_result.model");
+const ConnectDB = require("../../core/db");
+
 /**
  * RunTranscriptWorker
  * ------------------------------------------------------------------------------
@@ -22,10 +32,8 @@ function RunTranscriptWorker(student_id) {
         workerData: { student_id },
       });
 
-      console.log("WORKER");
-
       worker.once("online", function () {
-        console.log("Transcript worker successfully spawned");
+        console.log("Transcript worker successfully spawned at : ", TimeNow());
         resolve();
       });
 
@@ -50,16 +58,63 @@ function RunTranscriptWorker(student_id) {
 
 if (!isMainThread) {
   (async () => {
-    const { student_id } = workerData;
-    console.log("Worker start at: ", TimeNow());
-    setTimeout(() => {
+    try {
+      await ConnectDB();
+      const { student_id } = workerData;
+      const studentId = await ValidateMongoId(student_id);
+
+      const studentTestResult = await fetchStudentTestResult(studentId);
+      if (!studentTestResult) {
+        parentPort.postMessage({
+          success: false,
+          error: error.message || "Unknown Error in Transcript Worker",
+        });
+      }
       parentPort.postMessage({
         success: true,
         student_id,
         message: `Transcript calculated successfully at ${TimeNow()}`,
       });
-    }, 5000);
+    } catch (error) {
+      parentPort.postMessage({
+        success: false,
+        error: error.message || "Unknown Error in Transcript Worker",
+      });
+    }
   })();
+}
+
+/**
+ * Fetch all non-deleted Student Test Results for a specific student.
+ *
+ * @param {string} student_id - The ID of the student to retrieve test results for.
+ * @returns {Array} - List of StudentTestResult documents.
+ * @throws {AppError} - If no test results found for the student.
+ */
+async function fetchStudentTestResult(student_id) {
+  const result = await StudentTestResult.find({
+    student_id,
+    student_test_result_status: { $ne: "DELETED" },
+  });
+
+  if (!result || result.length === 0) {
+    throw CreateAppError("Student Test Result not found", "NOT_FOUND", {
+      student_id,
+    });
+  }
+
+  const missingTest = result.find((r) => !r.test_id);
+  if (missingTest) {
+    throw CreateAppError(
+      "Corrupted data: Missing test_id in result",
+      "INTERNAL_SERVER_ERROR",
+      {
+        result_id: missingTest._id,
+      }
+    );
+  }
+
+  return result;
 }
 
 function TimeNow() {
