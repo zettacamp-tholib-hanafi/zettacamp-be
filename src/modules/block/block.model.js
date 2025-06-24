@@ -48,7 +48,7 @@ const blockSchema = new Schema(
           subject_id: { type: Schema.Types.ObjectId, ref: "Subject" },
           test_id: { type: Schema.Types.ObjectId, ref: "Test" },
           operator: { type: String, enum: OPERATOR_ENUM, required: true },
-          value: { type: Number, required: true },
+          value: { type: Number, required: true , min: 0},
           expected_outcome: {
             type: String,
             required: true,
