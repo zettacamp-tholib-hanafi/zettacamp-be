@@ -170,40 +170,18 @@ async function CreateTest(_, { input }) {
 }
 
 /**
- * Updates an existing Test entity in the database.
+ * Update an existing test document.
  *
- * This mutation validates the input payload using `ValidateUpdateTest` and constructs
- * a test update payload. Optional fields like `description`, `passing_score`,
- * `attachments`, and `published_date` are handled gracefully with fallback values.
- *
- * On validation or database failure, the error is caught and rethrown using `HandleCaughtError`.
- *
- * @async
- * @function UpdateTest
  * @param {Object} _ - Unused parent resolver argument.
- * @param {Object} args - GraphQL resolver arguments.
- * @param {Object} args.input - The input payload for updating a test.
- * @param {string} args.input.id - The ID of the test to update.
- * @param {string} [args.input.name] - Updated name of the test.
- * @param {string} [args.input.subject_id] - Updated subject ID reference.
- * @param {string} [args.input.description] - Updated description.
- * @param {number} [args.input.weight] - Updated test weight (≥ 0).
- * @param {Array<Object>} [args.input.notations] - Updated notations.
- * @param {number} [args.input.total_score] - Updated total score.
- * @param {string} [args.input.grading_method] - Grading method (MANUAL or AUTO_GRADED).
- * @param {number} [args.input.passing_score] - Updated passing score.
- * @param {string} [args.input.test_status] - Updated test status (DRAFT, PUBLISHED, ARCHIVED, DELETED).
- * @param {string[]} [args.input.attachments] - Updated list of URL attachments.
- * @param {string} [args.input.published_date] - Updated published date if status is PUBLISHED.
- *
- * @returns {Promise<Object>} The updated Test document.
- *
- * @throws {AppError} Throws when validation fails or the update operation encounters an error.
+ * @param {Object} args - GraphQL arguments.
+ * @param {String} args.id - The ID of the test to update.
+ * @param {Object} args.input - The validated update input.
+ * @returns {Promise<Object>} The response containing updated test ID.
  */
-
 async function UpdateTest(_, { id, input }) {
   try {
     const testId = await ValidateMongoId(id);
+
     const {
       name,
       subject_id,
@@ -212,7 +190,7 @@ async function UpdateTest(_, { id, input }) {
       notations,
       total_score,
       grading_method,
-      passing_score,
+      criteria,
       test_status,
       attachments,
       published_date,
@@ -221,15 +199,15 @@ async function UpdateTest(_, { id, input }) {
     const testPayload = {
       name,
       subject_id,
-      description: description ? description : null,
+      description: description || null,
       weight,
       notations: Array.isArray(notations) ? notations : [],
       total_score,
-      grading_method: grading_method ? grading_method : null,
-      passing_score: passing_score !== undefined ? passing_score : null,
+      grading_method: grading_method || null,
+      criteria,
       test_status,
       attachments: Array.isArray(attachments) ? attachments : [],
-      published_date: published_date ? published_date : null,
+      published_date: published_date || null,
     };
 
     const updated = await Test.updateOne(
@@ -240,8 +218,9 @@ async function UpdateTest(_, { id, input }) {
     if (!updated || updated.matchedCount === 0) {
       throw CreateAppError("Test not found", "NOT_FOUND", { testId });
     }
-    const updateTestResponse = { id: testId };
-    return updateTestResponse;
+
+    const result = { id: testId };
+    return result;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to update test", "VALIDATION_ERROR");
   }
