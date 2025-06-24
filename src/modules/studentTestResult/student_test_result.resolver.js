@@ -12,10 +12,13 @@ const { ValidateCreateTask } = require("../task/task.validator.js");
 // *************** IMPORT UTILS ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 
-// *************** IMPORT CORE ***************
+// *************** IMPORT CORE ****************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
-const { RunTranscriptWorker } = require("./student_test_result.worker");
+// *************** IMPORT HELPER **************
+const {
+  RunTranscriptWorker,
+} = require("../calculationResult/calculation_result.worker.js");
 
 const VALID_STUDENT_TEST_RESULT_STATUS = [
   "GRADED",
@@ -462,7 +465,6 @@ async function EnterMarks(_, { input }) {
  *
  * @throws {AppError} If validation or update processes fail, returns an error wrapped by `HandleCaughtError`.
  */
-
 async function ValidateMarks(_, { id }) {
   try {
     const taskId = await ValidateMongoId(id);
@@ -476,9 +478,9 @@ async function ValidateMarks(_, { id }) {
         },
       }
     );
-    if (!updateStudent) {
+    if (updateStudent.modifiedCount === 0) {
       throw CreateAppError("Student Test Result not updated", "NOT_FOUND", {
-        StudentTestResult,
+        id: studentTestResult._id,
       });
     }
 
@@ -493,9 +495,9 @@ async function ValidateMarks(_, { id }) {
       }
     );
 
-    if (!updateTask) {
+    if (updateTask.modifiedCount === 0) {
       throw CreateAppError("Task not updated", "NOT_FOUND", {
-        updateTask,
+        id: task._id,
       });
     }
 
