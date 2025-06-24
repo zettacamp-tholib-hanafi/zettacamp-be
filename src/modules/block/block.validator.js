@@ -12,6 +12,7 @@ const VALID_RULE_TYPES = [
   "TEST_PASS_STATUS",
   "BLOCK_AVERAGE",
 ];
+const VALID_EXPECTED_OUTCOME = ["PASS", "FAIL"];
 const VALID_RULE_OPERATOR = ["EQ", "GTE", "GT", "LTE", "LT"];
 
 /**
@@ -79,10 +80,7 @@ function ValidateCreateBlock(input) {
     );
   }
 
-  if (
-    !Array.isArray(criteria.rules) ||
-    criteria.rules.length === 0
-  ) {
+  if (!Array.isArray(criteria.rules) || criteria.rules.length === 0) {
     throw CreateAppError(
       "Field 'criteria.rules' must be a non-empty array.",
       "VALIDATION_ERROR"
@@ -142,15 +140,22 @@ function ValidateCreateBlock(input) {
       );
     }
 
-    if (typeof rule.value !== "number") {
+    if (typeof rule.value !== "number" || rule.value <= 0) {
       throw CreateAppError(
-        `Rule[${i}] 'value' must be a number.`,
+        `Rule[${i}] 'value' must be a positive number.`,
+        "VALIDATION_ERROR"
+      );
+    }
+
+    if (!VALID_EXPECTED_OUTCOME.includes(rule.expected_outcome)) {
+      throw CreateAppError(
+        `Rule[${i}] 'expected_outcome' must be either 'PASS' or 'FAIL'.`,
         "VALIDATION_ERROR"
       );
     }
 
     if (
-      (rule.type === "SUBJECT_PASS_STATUS" || rule.type === "BLOCK_AVERAGE") &&
+      (rule.type === "SUBJECT_PASS_STATUS") &&
       (!rule.subject_id || !mongoose.Types.ObjectId.isValid(rule.subject_id))
     ) {
       throw CreateAppError(
@@ -169,12 +174,22 @@ function ValidateCreateBlock(input) {
       );
     }
 
+    if (rule.type === "BLOCK_AVERAGE") {
+      if (rule.subject_id || rule.test_id) {
+        throw CreateAppError(
+          `Rule[${i}] type 'BLOCK_AVERAGE' must not include 'subject_id' or 'test_id'.`,
+          "VALIDATION_ERROR"
+        );
+      }
+    }
+
     return {
       type: rule.type,
       subject_id: rule.subject_id || null,
       test_id: rule.test_id || null,
       operator: rule.operator,
       value: rule.value,
+      expected_outcome: rule.expected_outcome,
     };
   });
 
@@ -245,10 +260,7 @@ function ValidateUpdateBlock(input) {
       );
     }
 
-    if (
-      !Array.isArray(criteria.rules) ||
-      criteria.rules.length === 0
-    ) {
+    if (!Array.isArray(criteria.rules) || criteria.rules.length === 0) {
       throw CreateAppError(
         "Field 'criteria.rules' must be a non-empty array.",
         "VALIDATION_ERROR"
