@@ -6,26 +6,23 @@ const { CreateAppError } = require("../../core/error");
 
 // *************** IMPORT MODULE ***************
 const Test = require("./test.model");
-const Task = require("../task/task.model");
 const User = require("../user/user.model");
 
-// *************** CONSTANTS ***************
-const VALID_STATUS = ["DRAFT", "PUBLISHED", "ARCHIVED", "DELETED"];
-const VALID_GRADING_METHOD = ["MANUAL", "AUTO_GRADED"];
-const DEFAULT_GRADING_METHOD = "MANUAL";
+// *************** IMPORT UTILS ***************
+const {
+  TEST,
+  OPERATOR_ENUM,
+  EXPECTED_OUTCOME_ENUM,
+} = require("../../shared/utils/enum");
 
 /**
- * Validates and sanitizes input for creating a Test entity.
+ * Validates input for creating a Test.
  *
- * Ensures that all required fields are present and correct, including nested validations
- * like notations, attachments, and subject-level weight checks. Returns a validated object
- * ready for DB insertion.
- *
- * @param {Object} input - Input object for creating a test.
- * @returns {Promise<Object>} - Validated and sanitized test payload.
- *
- * @throws {AppError} - If any field is invalid or business logic constraint fails.
+ * @param {Object} input - Input data for the test.
+ * @returns {Promise<Object>} Validated and sanitized test payload with total_score included.
+ * @throws {AppError} If any validation rule fails.
  */
+
 async function ValidateCreateTest(input) {
   if (typeof input !== "object" || input === null) {
     throw CreateAppError("Invalid input format", "BAD_REQUEST");
@@ -39,7 +36,7 @@ async function ValidateCreateTest(input) {
     grading_method,
     test_status,
     attachments,
-    passing_score,
+    criteria,
     published_date,
   } = input;
 
@@ -99,29 +96,64 @@ async function ValidateCreateTest(input) {
     return notation_response;
   });
 
-  if (passing_score !== undefined) {
-    if (
-      typeof passing_score !== "number" ||
-      passing_score < 0 ||
-      passing_score > total_score
-    ) {
-      throw CreateAppError(
-        "Passing score must be between 0 and total_score.",
-        "VALIDATION_ERROR",
-        { field: "passing_score" }
-      );
-    }
+  // *************** Validate: criteria
+  if (typeof criteria !== "object" || criteria === null) {
+    throw CreateAppError("Criteria must be a valid object", "BAD_REQUEST", {
+      criteria,
+    });
   }
 
+  const { logic, rules } = criteria;
+
+  if (!LOGIC_ENUM.includes(logic)) {
+    throw CreateAppError("Invalid logic in criteria", "BAD_REQUEST", { logic });
+  }
+
+  if (!Array.isArray(rules) || rules.length === 0) {
+    throw CreateAppError("Rules must be a non-empty array", "BAD_REQUEST", {
+      rules,
+    });
+  }
+
+  const sanitizedRules = rules.map((rule, index) => {
+    const { operator, value, expected_outcome } = rule;
+
+    if (!OPERATOR_ENUM.includes(operator)) {
+      throw CreateAppError(
+        `Invalid operator in rule[${index}]`,
+        "BAD_REQUEST",
+        { operator }
+      );
+    }
+
+    if (typeof value !== "number" || value < 0 || value > 100) {
+      throw CreateAppError(
+        `Value must be between 0 and 100 in rule[${index}]`,
+        "BAD_REQUEST",
+        { value }
+      );
+    }
+
+    if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
+      throw CreateAppError(
+        `Invalid expected_outcome in rule[${index}]`,
+        "BAD_REQUEST",
+        { expected_outcome }
+      );
+    }
+
+    return { operator, value, expected_outcome };
+  });
+
   // *************** Validate: grading_method (optional)
-  if (grading_method && !VALID_GRADING_METHOD.includes(grading_method)) {
+  if (grading_method && !TEST.VALID_GRADING_METHOD.includes(grading_method)) {
     throw CreateAppError("Invalid grading method", "BAD_REQUEST", {
       grading_method,
     });
   }
 
   // *************** Validate: test_status
-  if (!test_status || !VALID_STATUS.includes(test_status)) {
+  if (!test_status || !TEST.VALID_STATUS.includes(test_status)) {
     throw CreateAppError("Invalid or missing test_status", "BAD_REQUEST", {
       test_status,
     });
@@ -158,7 +190,6 @@ async function ValidateCreateTest(input) {
     }
   }
 
-  // *************** Validate: total weight per subject (including this one)
   const existingTests = await Test.find({
     subject_id,
     test_status: { $ne: "DELETED" },
@@ -184,7 +215,10 @@ async function ValidateCreateTest(input) {
     grading_method: grading_method || "MANUAL",
     test_status,
     attachments: attachments || [],
-    passing_score,
+    criteria: {
+      logic,
+      rules: sanitizedRules,
+    },
     published_date,
   };
   return callbackTestPayload;
@@ -317,7 +351,7 @@ async function ValidateUpdateTest(id, input) {
   if (passing_score !== undefined) {
     if (
       typeof passing_score !== "number" ||
-      passing_score < 0 ||
+      passing_score <= 0 ||
       passing_score > total_score
     ) {
       throw CreateAppError(
@@ -329,14 +363,14 @@ async function ValidateUpdateTest(id, input) {
   }
 
   // *************** Validate: grading_method (optional)
-  if (grading_method && !VALID_GRADING_METHOD.includes(grading_method)) {
+  if (grading_method && !TEST.VALID_GRADING_METHOD.includes(grading_method)) {
     throw CreateAppError("Invalid grading method", "BAD_REQUEST", {
       grading_method,
     });
   }
 
   // *************** Validate: test_status
-  if (!test_status || !VALID_STATUS.includes(test_status)) {
+  if (!test_status || !TEST.VALID_STATUS.includes(test_status)) {
     throw CreateAppError("Invalid or missing test_status", "BAD_REQUEST", {
       test_status,
     });
@@ -412,7 +446,7 @@ async function ValidateUpdateTest(id, input) {
     weight,
     notations: sanitizedNotations,
     total_score,
-    grading_method: grading_method || DEFAULT_GRADING_METHOD,
+    grading_method: grading_method || TEST.DEFAULT_GRADING_METHOD,
     test_status,
     attachments: attachments || [],
     passing_score,
