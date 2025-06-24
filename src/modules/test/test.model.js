@@ -52,6 +52,7 @@ const testSchema = new Schema(
           type: Number,
           required: true,
           min: 0,
+          max: 100,
         },
       },
     ],
@@ -88,6 +89,7 @@ const testSchema = new Schema(
             type: Number,
             required: true,
             min: 0,
+            max: 100,
           },
           expected_outcome: {
             type: String,
