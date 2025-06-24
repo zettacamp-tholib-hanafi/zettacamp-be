@@ -103,7 +103,7 @@ async function fetchStudentTestResult(student_id) {
     });
   }
 
-  const missingTest = result.find((r) => !r.test_id);
+  const missingTest = result.find((result) => !result.test_id);
   if (missingTest) {
     throw CreateAppError(
       "Corrupted data: Missing test_id in result",
