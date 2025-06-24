@@ -503,7 +503,11 @@ async function ValidateMarks(_, { id }) {
 
     const student_id = ValidateMongoId(String(studentTestResult.student_id));
     if (student_id) {
-      RunTranscriptWorker(student_id);
+      try {
+        await RunTranscriptWorker(id);
+      } catch (err) {
+        throw CreateAppError("Transcript worker not started", "NOT_FOUND");
+      }
     } else {
       throw CreateAppError(
         "[Transcript Worker] student_id is missing — worker not triggered",
