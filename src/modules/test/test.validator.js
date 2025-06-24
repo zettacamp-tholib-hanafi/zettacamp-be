@@ -7,12 +7,14 @@ const { CreateAppError } = require("../../core/error");
 // *************** IMPORT MODULE ***************
 const Test = require("./test.model");
 const User = require("../user/user.model");
+const Subject = require("../subject/subject.model");
 
 // *************** IMPORT UTILS ***************
 const {
   TEST,
   OPERATOR_ENUM,
   EXPECTED_OUTCOME_ENUM,
+  LOGIC_ENUM,
 } = require("../../shared/utils/enum");
 
 /**
@@ -190,6 +192,17 @@ async function ValidateCreateTest(input) {
     }
   }
 
+  const existingSubjectId = await Subject.findOne({
+    _id: subject_id,
+    test_status: { $ne: "DELETED" },
+  });
+
+  if (!existingSubjectId) {
+    throw CreateAppError(`Subject ID is Not Found!`, "BAD_REQUEST", {
+      subject_id,
+    });
+  }
+
   const existingTests = await Test.find({
     subject_id,
     test_status: { $ne: "DELETED" },
@@ -249,6 +262,18 @@ async function ValidateUpdateTest(id, input) {
     attachments,
     published_date,
   } = input;
+
+  const existTest = await Test.exists({
+    _id: id,
+    test_status: { $ne: "DELETED" },
+  });
+
+  if (!existTest) {
+    throw CreateAppError(
+      `Test with ID '${id}' not found or has been deleted.`,
+      "VALIDATION_ERROR"
+    );
+  }
 
   // *************** Validate: name
   if (!name || typeof name !== "string" || name.trim() === "") {
@@ -394,6 +419,17 @@ async function ValidateUpdateTest(id, input) {
     }
   }
 
+  const existingSubjectId = await Subject.findOne({
+    _id: subject_id,
+    test_status: { $ne: "DELETED" },
+  });
+
+  if (!existingSubjectId) {
+    throw CreateAppError(`Subject ID is Not Found!`, "BAD_REQUEST", {
+      subject_id,
+    });
+  }
+
   // *************** Validate: weight quota
   const currentTest = await Test.findById(id).select("weight");
   if (!currentTest) {
@@ -418,6 +454,7 @@ async function ValidateUpdateTest(id, input) {
   }
 
   const callbackTestPayload = {
+    _id: id,
     name: name.trim(),
     subject_id,
     description: description ? description.trim() : null,
