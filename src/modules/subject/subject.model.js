@@ -8,7 +8,8 @@ const VALID_SUBJECT_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
 const DEFAULT_SUBJECT_STATUS = "ACTIVE";
 const VALID_CONDITION_TYPE = ["TEST_SCORE", "AVERAGE"];
 const LOGIC_ENUM = ["AND", "OR"];
-const OPERATOR_ENUM = ["==", ">=", ">", "<=", "<"];
+const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
+const VALID_EXPECTED_OUTCOME = ["PASS", "FAIL"];
 
 const subjectSchema = new Schema(
   {
@@ -74,6 +75,12 @@ const subjectSchema = new Schema(
             required: true,
           },
           value: { type: Number, required: true },
+          expected_outcome: {
+            type: String,
+            required: true,
+            enum: VALID_EXPECTED_OUTCOME,
+            trim: true,
+          },
         },
       ],
     },
