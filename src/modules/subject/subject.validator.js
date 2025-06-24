@@ -7,10 +7,12 @@ const {
   SUBJECT,
   OPERATOR_ENUM,
   LOGIC_ENUM,
+  EXPECTED_OUTCOME_ENUM,
 } = require("../../shared/utils/enum.js");
 
 // *************** IMPORT HELPER ***************
 const { CreateAppError } = require("../../core/error");
+const SubjectModel = require("./subject.model.js");
 
 /**
  * Validates and sanitizes input for creating a Subject entity.
@@ -35,7 +37,7 @@ const { CreateAppError } = require("../../core/error");
  *
  * @returns {Object} Validated and sanitized subject data.
  */
-function ValidateCreateSubject(input) {
+async function ValidateCreateSubject(input) {
   if (typeof input !== "object" || input === null) {
     throw CreateAppError("Invalid input format", "BAD_REQUEST");
   }
@@ -127,7 +129,7 @@ function ValidateCreateSubject(input) {
       );
     }
 
-    if (typeof rule.value !== "number") {
+    if (typeof rule.value !== "number" || rule.value <= 0) {
       throw CreateAppError(
         `rule.value must be a number at ${path}`,
         "VALIDATION_ERROR",
@@ -153,11 +155,25 @@ function ValidateCreateSubject(input) {
       );
     }
 
+    if (
+      !rule.expected_outcome ||
+      !EXPECTED_OUTCOME_ENUM.includes(rule.expected_outcome)
+    ) {
+      throw CreateAppError(
+        `Invalid or missing expected_outcome at ${path}. Must be one of ${EXPECTED_OUTCOME_ENUM.join(
+          ", "
+        )}`,
+        "VALIDATION_ERROR",
+        { field: `${path}.expected_outcome` }
+      );
+    }
+
     return {
       type: rule.type,
       operator: rule.operator,
       value: rule.value,
       test_id: rule.test_id ?? null,
+      expected_outcome: rule.expected_outcome,
     };
   });
 
@@ -227,7 +243,7 @@ function ValidateCreateSubject(input) {
  *
  * @returns {Object} Validated and normalized subject data.
  */
-function ValidateUpdateSubject(input) {
+async function ValidateUpdateSubject(id, input) {
   if (typeof input !== "object" || input === null) {
     throw CreateAppError("Invalid input format", "BAD_REQUEST");
   }
@@ -244,6 +260,18 @@ function ValidateUpdateSubject(input) {
     criteria,
     subject_status,
   } = input;
+
+  const existsSubject = await SubjectModel.exists({
+    _id: id,
+    subject_status: { $ne: "DELETED" },
+  });
+
+  if (!existsSubject) {
+    throw CreateAppError(
+      `Subject with ID '${id}' not found or has been deleted.`,
+      "VALIDATION_ERROR"
+    );
+  }
 
   if (!name || typeof name !== "string" || name.trim() === "") {
     throw CreateAppError("Subject name is required", "BAD_REQUEST", { name });
@@ -319,7 +347,7 @@ function ValidateUpdateSubject(input) {
       );
     }
 
-    if (typeof rule.value !== "number") {
+    if (typeof rule.value !== "number" || rule.number <= 0) {
       throw CreateAppError(
         `rule.value must be a number at ${path}`,
         "VALIDATION_ERROR",
@@ -345,11 +373,25 @@ function ValidateUpdateSubject(input) {
       );
     }
 
+    if (
+      !rule.expected_outcome ||
+      !EXPECTED_OUTCOME_ENUM.includes(rule.expected_outcome)
+    ) {
+      throw CreateAppError(
+        `Invalid or missing expected_outcome at ${path}. Must be one of ${EXPECTED_OUTCOME_ENUM.join(
+          ", "
+        )}`,
+        "VALIDATION_ERROR",
+        { field: `${path}.expected_outcome` }
+      );
+    }
+
     return {
       type: rule.type,
       operator: rule.operator,
       value: rule.value,
       test_id: rule.test_id ?? null,
+      expected_outcome: rule.expected_outcome,
     };
   });
 
@@ -382,6 +424,7 @@ function ValidateUpdateSubject(input) {
   }
 
   return {
+    _id: id,
     name: name.trim(),
     subject_code: subject_code.trim(),
     description: description ?? null,

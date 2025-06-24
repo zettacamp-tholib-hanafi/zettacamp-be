@@ -304,8 +304,9 @@ async function UpdateSubject(_, { id, input }) {
       tests,
       criteria,
       subject_status,
-    } = await ValidateUpdateSubject(input);
-    const subjectId = await ValidateMongoId(id);
+      _id,
+    } = await ValidateUpdateSubject(id, input);
+    const subjectId = await ValidateMongoId(_id);
 
     const subjectPayload = {
       name,
