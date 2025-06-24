@@ -39,6 +39,11 @@ module.exports = gql`
     LT
   }
 
+  enum SubjectExpectedOutcome {
+    PASS
+    FAIL
+  }
+
   type Subject {
     id: ID!
     name: String!
@@ -69,6 +74,7 @@ module.exports = gql`
     operator: PassingRuleOperator!
     value: Float!
     test_id: ID
+    expected_outcome: SubjectExpectedOutcome!
   }
 
   input CreateSubjectInput {
@@ -109,6 +115,7 @@ module.exports = gql`
     operator: PassingRuleOperator!
     value: Float!
     test_id: ID
+    expected_outcome: SubjectExpectedOutcome!
   }
 
   input SubjectFilter {
