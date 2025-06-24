@@ -19,9 +19,37 @@ module.exports = gql`
     DELETED
   }
 
+  enum TestOperator {
+    EQ
+    GTE
+    GT
+    LTE
+    LT
+  }
+
+  enum TestLogic {
+    AND
+    OR
+  }
+
+  enum TestExpectedOutcome {
+    PASS
+    FAIL
+  }
+
   type Notation {
     notation_text: String!
     max_points: Float!
+  }
+  type TestRule {
+    operator: TestOperator!
+    value: Float!
+    expected_outcome: TestExpectedOutcome!
+  }
+
+  type TestCriteria {
+    logic: TestLogic!
+    rules: [TestRule!]!
   }
 
   type Test {
@@ -34,7 +62,7 @@ module.exports = gql`
     notations: [Notation!]!
     total_score: Float
     grading_method: GradingMethod
-    passing_score: Float
+    criteria: TestCriteria!
     test_status: TestStatus!
     attachments: [String]
     published_date: Date
@@ -51,6 +79,17 @@ module.exports = gql`
     max_points: Float!
   }
 
+  input TestRuleInput {
+    operator: TestOperator!
+    value: Float!
+    expected_outcome: TestExpectedOutcome!
+  }
+
+  input TestCriteriaInput {
+    logic: TestLogic!
+    rules: [TestRuleInput!]!
+  }
+
   input CreateTestInput {
     name: String!
     subject_id: ID!
@@ -58,7 +97,7 @@ module.exports = gql`
     weight: Float!
     notations: [NotationInput!]!
     grading_method: GradingMethod
-    passing_score: Float
+    criteria: TestCriteriaInput!
     test_status: TestStatus!
     attachments: [String]
     published_date: Date
@@ -71,7 +110,7 @@ module.exports = gql`
     weight: Float!
     notations: [NotationInput!]!
     grading_method: GradingMethod
-    passing_score: Float
+    criteria: TestCriteriaInput!
     test_status: TestStatus!
     attachments: [String]
     published_date: Date
