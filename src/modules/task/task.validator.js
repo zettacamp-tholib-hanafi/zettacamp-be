@@ -164,17 +164,14 @@ async function ValidateUpdateTask(input) {
 async function ValidateAssignCorrector(taskId, input) {
   const { user_id, due_date } = input;
 
-  // Validate user_id
   if (!isValidObjectId(user_id)) {
     throw CreateAppError("Invalid corrector user_id", 400, "VALIDATION_ERROR");
   }
 
-  // Validate taskId
   if (!isValidObjectId(taskId)) {
     throw CreateAppError("Invalid task ID", 400, "VALIDATION_ERROR");
   }
 
-  // Find the task
   const assignTask = await Task.findOne({
     _id: taskId,
     task_type: "ASSIGN_CORRECTOR",

@@ -471,7 +471,10 @@ async function ValidateMarks(_, { id }) {
     const { task, studentTestResult } = await ValidateValidateMarks(taskId);
 
     const updateStudent = await StudentTestResult.updateOne(
-      { _id: studentTestResult._id },
+      {
+        _id: studentTestResult._id,
+        student_test_result_status: { $ne: "DELETED" },
+      },
       {
         $set: {
           mark_validated_date: new Date(),
@@ -501,10 +504,10 @@ async function ValidateMarks(_, { id }) {
       });
     }
 
-    const student_id = ValidateMongoId(String(studentTestResult.student_id));
+    const student_id = await ValidateMongoId(String(studentTestResult.student_id));
     if (student_id) {
       try {
-        await RunTranscriptWorker(id);
+        await RunTranscriptWorker(student_id);
       } catch (err) {
         throw CreateAppError("Transcript worker not started", "NOT_FOUND");
       }

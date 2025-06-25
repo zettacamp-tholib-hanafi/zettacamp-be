@@ -363,7 +363,6 @@ async function AssignCorrector(_, { id, input }, context) {
 
     // *************** Step 4: Send Email Notification
     const test = await Test.findById(assignTask.test_id).lean();
-    // const corrector = await User.findById(user_id).lean();
 
     // *************** For testing purposes
     const corrector = {
