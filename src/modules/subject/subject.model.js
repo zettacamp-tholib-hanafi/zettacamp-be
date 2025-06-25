@@ -58,7 +58,7 @@ const subjectSchema = new Schema(
 
     // Passing Criteria of Subject
     criteria: {
-      logic: { type: String, enum: LOGIC_ENUM, required: true },
+      logic: { type: String, enum: LOGIC_ENUM },
       rules: [
         {
           type: {

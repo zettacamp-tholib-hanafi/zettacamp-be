@@ -84,100 +84,97 @@ async function ValidateCreateSubject(input) {
       block_id,
     });
   }
-
-  if (
-    !criteria ||
-    typeof criteria !== "object" ||
-    !LOGIC_ENUM.includes(criteria.logic)
-  ) {
-    throw CreateAppError(
-      "Invalid or missing criteria.logic. Must be 'AND' or 'OR'.",
-      "VALIDATION_ERROR",
-      { field: "criteria.logic" }
-    );
-  }
-
-  const { rules } = criteria;
-  if (!Array.isArray(rules) || rules.length === 0) {
-    throw CreateAppError(
-      "At least one rule is required in criteria.rules",
-      "VALIDATION_ERROR",
-      { field: "criteria.rules" }
-    );
-  }
-
-  const validatedRules = rules.map((rule, index) => {
-    const path = `criteria.rules[${index}]`;
-
-    if (!OPERATOR_ENUM.includes(rule.operator)) {
+  if (criteria) {
+    if (typeof criteria !== "object" || !LOGIC_ENUM.includes(criteria.logic)) {
       throw CreateAppError(
-        `Invalid rule.operator at ${path}. Must be one of ${OPERATOR_ENUM.join(
-          ", "
-        )}`,
+        "Invalid or missing criteria.logic. Must be 'AND' or 'OR'.",
         "VALIDATION_ERROR",
-        { field: `${path}.operator` }
+        { field: "criteria.logic" }
       );
     }
 
-    if (!SUBJECT.VALID_CONDITION_TYPE.includes(rule.type)) {
+    const { rules } = criteria;
+    if (!Array.isArray(rules) || rules.length === 0) {
       throw CreateAppError(
-        `Invalid rule.type at ${path}. Must be one of ${SUBJECT.VALID_CONDITION_TYPE.join(
-          ", "
-        )}`,
+        "At least one rule is required in criteria.rules",
         "VALIDATION_ERROR",
-        { field: `${path}.type` }
+        { field: "criteria.rules" }
       );
     }
 
-    if (typeof rule.value !== "number" || rule.value <= 0) {
-      throw CreateAppError(
-        `rule.value must be a number at ${path}`,
-        "VALIDATION_ERROR",
-        { field: `${path}.value` }
-      );
-    }
+    const validatedRules = rules.map((rule, index) => {
+      const path = `criteria.rules[${index}]`;
 
-    if (rule.type === "TEST_SCORE") {
-      if (!rule.test_id || !ValidateMongoId(rule.test_id, false)) {
+      if (!OPERATOR_ENUM.includes(rule.operator)) {
         throw CreateAppError(
-          `test_id is required and must be a valid ObjectId for TEST_SCORE at ${path}`,
+          `Invalid rule.operator at ${path}. Must be one of ${OPERATOR_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR",
+          { field: `${path}.operator` }
+        );
+      }
+
+      if (!SUBJECT.VALID_CONDITION_TYPE.includes(rule.type)) {
+        throw CreateAppError(
+          `Invalid rule.type at ${path}. Must be one of ${SUBJECT.VALID_CONDITION_TYPE.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR",
+          { field: `${path}.type` }
+        );
+      }
+
+      if (typeof rule.value !== "number" || rule.value <= 0) {
+        throw CreateAppError(
+          `rule.value must be a number at ${path}`,
+          "VALIDATION_ERROR",
+          { field: `${path}.value` }
+        );
+      }
+
+      if (rule.type === "TEST_SCORE") {
+        if (!rule.test_id || !ValidateMongoId(rule.test_id, false)) {
+          throw CreateAppError(
+            `test_id is required and must be a valid ObjectId for TEST_SCORE at ${path}`,
+            "VALIDATION_ERROR",
+            { field: `${path}.test_id` }
+          );
+        }
+      }
+
+      if (rule.type === "AVERAGE" && rule.test_id) {
+        throw CreateAppError(
+          `test_id must not be provided for AVERAGE type at ${path}`,
           "VALIDATION_ERROR",
           { field: `${path}.test_id` }
         );
       }
-    }
 
-    if (rule.type === "AVERAGE" && rule.test_id) {
-      throw CreateAppError(
-        `test_id must not be provided for AVERAGE type at ${path}`,
-        "VALIDATION_ERROR",
-        { field: `${path}.test_id` }
-      );
-    }
+      if (
+        !rule.expected_outcome ||
+        !EXPECTED_OUTCOME_ENUM.includes(rule.expected_outcome)
+      ) {
+        throw CreateAppError(
+          `Invalid or missing expected_outcome at ${path}. Must be one of ${EXPECTED_OUTCOME_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR",
+          { field: `${path}.expected_outcome` }
+        );
+      }
 
-    if (
-      !rule.expected_outcome ||
-      !EXPECTED_OUTCOME_ENUM.includes(rule.expected_outcome)
-    ) {
-      throw CreateAppError(
-        `Invalid or missing expected_outcome at ${path}. Must be one of ${EXPECTED_OUTCOME_ENUM.join(
-          ", "
-        )}`,
-        "VALIDATION_ERROR",
-        { field: `${path}.expected_outcome` }
-      );
-    }
+      return {
+        type: rule.type,
+        operator: rule.operator,
+        value: rule.value,
+        test_id: rule.test_id ?? null,
+        expected_outcome: rule.expected_outcome,
+      };
+    });
 
-    return {
-      type: rule.type,
-      operator: rule.operator,
-      value: rule.value,
-      test_id: rule.test_id ?? null,
-      expected_outcome: rule.expected_outcome,
-    };
-  });
-
-  criteria.rules = validatedRules;
+    criteria.rules = validatedRules;
+  }
 
   if (typeof coefficient !== "number" || coefficient < 0) {
     throw CreateAppError(
@@ -214,7 +211,7 @@ async function ValidateCreateSubject(input) {
     block_id,
     coefficient,
     tests: tests ?? [],
-    criteria,
+    criteria: criteria ? criteria : {},
     subject_status: status,
   };
 }

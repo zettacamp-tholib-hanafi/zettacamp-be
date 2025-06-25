@@ -54,7 +54,7 @@ module.exports = gql`
     block_id: ID!
     coefficient: Float!
     tests: [Test]
-    criteria: SubjectPassingCriteria!
+    criteria: SubjectPassingCriteria
     subject_status: SubjectStatus!
     created_at: Date!
     created_by: String
@@ -65,7 +65,7 @@ module.exports = gql`
   }
 
   type SubjectPassingCriteria {
-    logic: PassingCriteriaLogic!
+    logic: PassingCriteriaLogic
     rules: [SubjectPassingRule!]!
   }
 
@@ -86,7 +86,7 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: SubjectPassingCriteriaInput!
+    criteria: SubjectPassingCriteriaInput
     subject_status: SubjectStatus!
     created_by: String
   }
@@ -100,7 +100,7 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: SubjectPassingCriteriaInput!
+    criteria: SubjectPassingCriteriaInput
     subject_status: SubjectStatus!
     updated_by: String
   }

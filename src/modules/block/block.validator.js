@@ -68,26 +68,94 @@ async function ValidateCreateBlock(input) {
       "VALIDATION_ERROR"
     );
   }
+  if (criteria) {
+    if (typeof criteria !== "object") {
+      throw CreateAppError(
+        "Field 'criteria' is required and must be an object.",
+        "VALIDATION_ERROR"
+      );
+    }
 
-  if (!criteria || typeof criteria !== "object") {
-    throw CreateAppError(
-      "Field 'criteria' is required and must be an object.",
-      "VALIDATION_ERROR"
-    );
-  }
+    if (!VALID_LOGIC.includes(criteria.logic)) {
+      throw CreateAppError(
+        "Field 'criteria.logic' must be 'AND' or 'OR'.",
+        "VALIDATION_ERROR"
+      );
+    }
 
-  if (!VALID_LOGIC.includes(criteria.logic)) {
-    throw CreateAppError(
-      "Field 'criteria.logic' must be 'AND' or 'OR'.",
-      "VALIDATION_ERROR"
-    );
-  }
+    if (!Array.isArray(criteria.rules) || criteria.rules.length === 0) {
+      throw CreateAppError(
+        "Field 'criteria.rules' must be a non-empty array.",
+        "VALIDATION_ERROR"
+      );
+    }
+    const validatedRules = criteria.rules.map((rule, i) => {
+      if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
+        throw CreateAppError(
+          `Rule[${i}] has invalid operator '${rule.operator}'.`,
+          "VALIDATION_ERROR"
+        );
+      }
 
-  if (!Array.isArray(criteria.rules) || criteria.rules.length === 0) {
-    throw CreateAppError(
-      "Field 'criteria.rules' must be a non-empty array.",
-      "VALIDATION_ERROR"
-    );
+      if (!VALID_RULE_TYPES.includes(rule.type)) {
+        throw CreateAppError(
+          `Rule[${i}] has invalid type '${rule.type}'.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (typeof rule.value !== "number" || rule.value <= 0) {
+        throw CreateAppError(
+          `Rule[${i}] 'value' must be a positive number.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!VALID_EXPECTED_OUTCOME.includes(rule.expected_outcome)) {
+        throw CreateAppError(
+          `Rule[${i}] 'expected_outcome' must be either 'PASS' or 'FAIL'.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (
+        rule.type === "SUBJECT_PASS_STATUS" &&
+        (!rule.subject_id || !mongoose.Types.ObjectId.isValid(rule.subject_id))
+      ) {
+        throw CreateAppError(
+          `Rule[${i}] 'subject_id' is required and must be valid.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (
+        rule.type === "TEST_PASS_STATUS" &&
+        (!rule.test_id || !mongoose.Types.ObjectId.isValid(rule.test_id))
+      ) {
+        throw CreateAppError(
+          `Rule[${i}] 'test_id' is required and must be valid.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (rule.type === "BLOCK_AVERAGE") {
+        if (rule.subject_id || rule.test_id) {
+          throw CreateAppError(
+            `Rule[${i}] type 'BLOCK_AVERAGE' must not include 'subject_id' or 'test_id'.`,
+            "VALIDATION_ERROR"
+          );
+        }
+      }
+
+      return {
+        type: rule.type,
+        subject_id: rule.subject_id || null,
+        test_id: rule.test_id || null,
+        operator: rule.operator,
+        value: rule.value,
+        expected_outcome: rule.expected_outcome,
+      };
+    });
   }
 
   if (description !== undefined && typeof description !== "string") {
@@ -128,82 +196,16 @@ async function ValidateCreateBlock(input) {
     }
   }
 
-  const validatedRules = criteria.rules.map((rule, i) => {
-    if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
-      throw CreateAppError(
-        `Rule[${i}] has invalid operator '${rule.operator}'.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (!VALID_RULE_TYPES.includes(rule.type)) {
-      throw CreateAppError(
-        `Rule[${i}] has invalid type '${rule.type}'.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (typeof rule.value !== "number" || rule.value <= 0) {
-      throw CreateAppError(
-        `Rule[${i}] 'value' must be a positive number.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (!VALID_EXPECTED_OUTCOME.includes(rule.expected_outcome)) {
-      throw CreateAppError(
-        `Rule[${i}] 'expected_outcome' must be either 'PASS' or 'FAIL'.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (
-      rule.type === "SUBJECT_PASS_STATUS" &&
-      (!rule.subject_id || !mongoose.Types.ObjectId.isValid(rule.subject_id))
-    ) {
-      throw CreateAppError(
-        `Rule[${i}] 'subject_id' is required and must be valid.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (
-      rule.type === "TEST_PASS_STATUS" &&
-      (!rule.test_id || !mongoose.Types.ObjectId.isValid(rule.test_id))
-    ) {
-      throw CreateAppError(
-        `Rule[${i}] 'test_id' is required and must be valid.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (rule.type === "BLOCK_AVERAGE") {
-      if (rule.subject_id || rule.test_id) {
-        throw CreateAppError(
-          `Rule[${i}] type 'BLOCK_AVERAGE' must not include 'subject_id' or 'test_id'.`,
-          "VALIDATION_ERROR"
-        );
-      }
-    }
-
-    return {
-      type: rule.type,
-      subject_id: rule.subject_id || null,
-      test_id: rule.test_id || null,
-      operator: rule.operator,
-      value: rule.value,
-      expected_outcome: rule.expected_outcome,
-    };
-  });
-
   return {
     name: name.trim(),
     description: description ? description.trim() : null,
     block_status,
-    criteria: {
-      logic: criteria.logic,
-      rules: validatedRules,
-    },
+    criteria: criteria
+      ? {
+          logic: criteria.logic,
+          rules: validatedRules,
+        }
+      : {},
     start_date: startDateObj,
     end_date: endDateObj,
     subjects: subjects || [],
