@@ -113,6 +113,11 @@ async function runTranscriptCore(student_id) {
     throw CreateAppError("Missing subject", "DATA_MISSING");
   }
 
+  const subjectResults = CalculateSubjectResults(testResults, subjects);
+  if (!subjectResults) {
+    throw CreateAppError("Error calculate subject result", "DATA_MISSING");
+  }
+
   const blockIds = subjects.map((subject) => String(subject.block_id));
   const blocks = await LoadBlocksByIds(blockIds);
   if (!blocks) {
@@ -212,9 +217,9 @@ function CalculateTestResults(tests, studentTestResults) {
       );
     }
 
-    const averageMark = roundFloat(resultEntry.average_mark || 0);
-    const weight = roundFloat(test.weight || 0);
-    const weightedMark = roundFloat(averageMark * weight);
+    const averageMark = RoundFloat(resultEntry.average_mark || 0);
+    const weight = RoundFloat(test.weight || 0);
+    const weightedMark = RoundFloat(averageMark * weight);
 
     const { logic, rules } = test.criteria || {};
     if (!logic || !Array.isArray(rules)) {
@@ -243,6 +248,7 @@ function CalculateTestResults(tests, studentTestResults) {
 
     return {
       test_id: test._id,
+      subject_id: test.subject_id,
       average_mark: averageMark,
       weighted_mark: weightedMark,
       criteria: {
@@ -254,6 +260,69 @@ function CalculateTestResults(tests, studentTestResults) {
   });
   return result;
 }
+
+/**
+ * Calculate subject results based on grouped test results and subject metadata.
+ *
+ * @param {Array<Object>} testResults - All student test results.
+ * @param {Array<Object>} subjects - List of subject definitions with criteria and coefficient.
+ * @returns {Array<Object>} - Subject result list with PASS/FAIL status and detailed info.
+ */
+function CalculateSubjectResults(testResults, subjects) {
+  const resultCalculation = subjects.map((subject) => {
+    const subjectId = String(subject._id);
+
+    // *************** Get all test results for the current subject
+    const relatedTestResults = testResults.filter((testResult) => {
+      return String(testResult.subject_id) === subjectId;
+    });
+
+    // *************** Calculate total weighted mark
+    const totalWeightedMark = relatedTestResults
+      .map((testResult) => Number(testResult.weighted_mark || 0))
+      .reduce((accumulator, current) => accumulator + current, 0);
+
+    const coefficient = Number(subject.coefficient || 1);
+    const totalMark = RoundFloat(coefficient * totalWeightedMark, 2);
+
+    // *************** Evaluate all criteria rules
+    const ruleEvaluations = subject.criteria.rules.map((rule) => {
+      if (rule.type === "TEST_SCORE") {
+        const matchingTest = relatedTestResults.find((testResult) => {
+          return String(testResult.test_id) === String(rule.test_id);
+        });
+        const testScore = matchingTest
+          ? Number(matchingTest.average_mark || 0)
+          : 0;
+        return EvaluateRule(testScore, rule.operator, rule.value);
+      }
+
+      if (rule.type === "AVERAGE") {
+        return EvaluateRule(totalMark, rule.operator, rule.value);
+      }
+
+      return false;
+    });
+
+    const logicOperator = subject.criteria.logic || "AND";
+    const passed =
+      logicOperator === "AND"
+        ? ruleEvaluations.every(Boolean)
+        : ruleEvaluations.some(Boolean);
+
+    return {
+      subject_id: subject._id,
+      block_id: subject.block_id,
+      total_mark: totalMark,
+      criteria: subject.criteria,
+      subject_result: passed ? "PASS" : "FAIL",
+      test_results: relatedTestResults,
+    };
+  });
+
+  return resultCalculation;
+}
+
 /**
  * Round a float number to a fixed number of decimal places.
  *
@@ -261,7 +330,7 @@ function CalculateTestResults(tests, studentTestResults) {
  * @param {number} decimals - Number of digits after the decimal point.
  * @returns {number} Rounded float.
  */
-function roundFloat(value, decimals = 2) {
+function RoundFloat(value, decimals = 2) {
   if (typeof value !== "number") return 0;
   const factor = Math.pow(10, decimals);
   return Math.round(value * factor) / factor;
