@@ -46,7 +46,7 @@ module.exports = gql`
   }
 
   input BlockPassingCriteriaInput {
-    logic: BlockPassingCriteriaOperator
+    logic: [BlockPassingCriteriaOperator!]
     rules: [PassingRuleInput!]
   }
 
@@ -60,7 +60,7 @@ module.exports = gql`
   }
 
   type BlockPassingCriteria {
-    logic: BlockPassingCriteriaOperator!
+    logic: [BlockPassingCriteriaOperator!]
     rules: [PassingRule!]!
   }
 
