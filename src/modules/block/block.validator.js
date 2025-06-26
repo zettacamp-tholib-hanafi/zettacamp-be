@@ -74,9 +74,13 @@ async function ValidateCreateBlock(input) {
       );
     }
 
-    if (!LOGIC_ENUM.includes(criteria.logic)) {
+    if (
+      !Array.isArray(criteria.logic) ||
+      criteria.logic.length === 0 ||
+      !criteria.logic.every((logicItem) => LOGIC_ENUM.includes(logicItem))
+    ) {
       throw CreateAppError(
-        "Field 'criteria.logic' must be 'AND' or 'OR'.",
+        "Field 'criteria.logic' must be a non-empty array containing only 'AND' or 'OR'.",
         "VALIDATION_ERROR"
       );
     }
@@ -267,9 +271,13 @@ async function ValidateUpdateBlock(id, input) {
   let validatedRules = null;
 
   if (criteria && typeof criteria === "object") {
-    if (!LOGIC_ENUM.includes(criteria.logic)) {
+    if (
+      !Array.isArray(criteria.logic) ||
+      criteria.logic.length === 0 ||
+      !criteria.logic.every((logicItem) => LOGIC_ENUM.includes(logicItem))
+    ) {
       throw CreateAppError(
-        "Field 'criteria.logic' must be 'AND' or 'OR'.",
+        "Field 'criteria.logic' must be a non-empty array containing only 'AND' or 'OR'.",
         "VALIDATION_ERROR"
       );
     }
