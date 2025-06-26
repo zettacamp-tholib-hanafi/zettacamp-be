@@ -138,7 +138,14 @@ async function CalculateTestResults(tests, studentTestResults) {
       );
     }
 
-    const averageMark = RoundFloat(resultEntry.average_mark || 0);
+    const marks = resultEntry.marks || [];
+    const totalMarks = marks.reduce(
+      (accumulator, mark) => accumulator + (mark.mark || 0),
+      0
+    );
+    const averageMark = RoundFloat(
+      marks.length ? totalMarks / marks.length : 0
+    );
     const weight = RoundFloat(test.weight || 0);
     const weightedMark = RoundFloat(averageMark * weight);
 
@@ -151,8 +158,14 @@ async function CalculateTestResults(tests, studentTestResults) {
 
     const evaluations = rules.map((rule) => {
       const { operator, value, expected_outcome } = rule;
-      const actual = EvaluateRule(averageMark, operator, value);
-      return String(actual).toUpperCase() === expected_outcome;
+
+      const result = EvaluateRule(
+        averageMark,
+        operator,
+        value,
+        expected_outcome
+      );
+      return result;
     });
 
     let isPass = false;
@@ -200,22 +213,27 @@ function CalculateSubjectResults(testResults, subjects) {
       .reduce((accumulator, current) => accumulator + current, 0);
 
     const coefficient = Number(subject.coefficient || 1);
-    const totalMark = RoundFloat(coefficient * totalWeightedMark, 2);
+    const lengthTestReuslt = relatedTestResults.length;
+    const totalMark = RoundFloat(
+      coefficient * (totalWeightedMark / lengthTestReuslt),
+      2
+    );
 
     // *************** Evaluate all criteria rules
     const ruleEvaluations = subject.criteria.rules.map((rule) => {
-      if (rule.type === "TEST_SCORE") {
+      const { test_id, value, operator, type, expected_outcome } = rule;
+      if (type === "TEST_SCORE") {
         const matchingTest = relatedTestResults.find((testResult) => {
-          return String(testResult.test_id) === String(rule.test_id);
+          return String(testResult.test_id) === String(test_id);
         });
         const testScore = matchingTest
           ? Number(matchingTest.average_mark || 0)
           : 0;
-        return EvaluateRule(testScore, rule.operator, rule.value);
+        return EvaluateRule(testScore, operator, value, expected_outcome);
       }
 
-      if (rule.type === "AVERAGE") {
-        return EvaluateRule(totalMark, rule.operator, rule.value);
+      if (type === "AVERAGE") {
+        return EvaluateRule(totalMark, operator, value, expected_outcome);
       }
 
       return false;
@@ -284,11 +302,11 @@ async function CalculateBlockResults(subjectResults, blocks) {
 
     // *************** Evaluate rules
     const ruleEvaluations = rules.map((rule) => {
-      const { type, operator, value } = rule;
+      const { type, operator, value, expected_outcome } = rule;
 
       // *************** Rule type: BLOCK_AVERAGE
       if (type === "BLOCK_AVERAGE") {
-        return EvaluateRule(totalBlockMark, operator, value);
+        return EvaluateRule(totalBlockMark, operator, value, expected_outcome);
       }
 
       // *************** Rule type: SUBJECT_PASS_STATUS
@@ -298,27 +316,40 @@ async function CalculateBlockResults(subjectResults, blocks) {
             String(subjectResult.subject_id) === String(rule.subject_id)
         );
         if (!matchingSubject) return false;
-        return matchingSubject.subject_result === RESULT_PASS;
+
+        const subjectStatusAsNumber = matchingSubject.total_mark;
+
+        return EvaluateRule(
+          subjectStatusAsNumber,
+          operator,
+          value,
+          expected_outcome
+        );
       }
 
       // *************** Rule type: TEST_PASS_STATUS
       if (type === "TEST_PASS_STATUS") {
-        const subjectWithMatchingTest = subjectResultsForBlock.find(
-          (subjectResult) =>
-            subjectResult.test_results.some(
-              (testResult) =>
-                String(testResult.test_id) === String(rule.test_id)
-            )
+        const subject = subjectResultsForBlock.find((s) =>
+          s.test_results.some((t) => String(t.test_id) === String(rule.test_id))
         );
-        if (!subjectWithMatchingTest) return false;
+        if (!subject) return false;
 
-        const matchingTestResult = subjectWithMatchingTest.test_results.find(
-          (testResult) => String(testResult.test_id) === String(rule.test_id)
+        const test = subject.test_results.find(
+          (t) => String(t.test_id) === String(rule.test_id)
         );
-        return matchingTestResult?.test_result === RESULT_PASS;
+        if (!test) return false;
+
+        const testStatusAsNumber = test.test_result === "PASS" ? 1 : 0;
+
+        return EvaluateRule(
+          testStatusAsNumber,
+          operator,
+          value,
+          expected_outcome
+        );
       }
 
-      return false;
+      return false; // fallback
     });
 
     // *************** Evaluate final block result based on logic
@@ -347,35 +378,45 @@ async function CalculateBlockResults(subjectResults, blocks) {
 }
 
 /**
- * Evaluate a single rule condition.
+ * Evaluate whether a given mark satisfies a rule with a specific operator and expected outcome.
  *
- * @param {number} mark - The average mark to evaluate.
- * @param {string} operator - Comparison operator.
- * @param {number} value - Threshold to compare with.
- * @returns {boolean} Evaluation result.
+ * @param {number} mark - The numeric mark to evaluate.
+ * @param {string} operator - The comparison operator: GT, GTE, LT, LTE, EQ.
+ * @param {number} value - The target value for comparison.
+ * @param {string} expectedOutcome - The expected outcome if condition is met ("PASS" or "FAIL").
+ * @returns {boolean} - Returns true if the rule evaluates to the expected outcome, false otherwise.
  */
-function EvaluateRule(mark, operator, value) {
+function EvaluateRule(mark, operator, value, expectedOutcome) {
+  let conditionResult;
+
   switch (operator) {
     case "GT":
-      return mark > value;
+      conditionResult = mark > value;
+      break;
     case "GTE":
-      return mark >= value;
+      conditionResult = mark >= value;
+      break;
     case "LT":
-      return mark < value;
+      conditionResult = mark < value;
+      break;
     case "LTE":
-      return mark <= value;
+      conditionResult = mark <= value;
+      break;
     case "EQ":
-      return mark === value;
+      conditionResult = mark === value;
+      break;
     default:
       throw CreateAppError(
         "Invalid operator in criteria rule",
         "INVALID_OPERATOR",
-        {
-          operator,
-        }
+        { operator }
       );
   }
+  const actualOutcome = conditionResult ? "PASS" : "FAIL";
+
+  return actualOutcome === expectedOutcome;
 }
+
 /**
  * Persist the final transcript calculation result for a student.
  *
@@ -394,7 +435,7 @@ async function CreateCalculationResult(student_id, blockResults) {
     overall_result: allBlockPass ? RESULT_PASS : RESULT_FAIL,
     results: blockResults,
     calculation_result_status: CALCULATION_STATUS,
-    calculated_at: new Date(),
+    created_at: new Date(),
   };
 
   await CalculationResult.create(createCalculationResultPayload);
