@@ -9,11 +9,12 @@ const {
 
 // *************** IMPORT UTILS ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const {
+  BLOCK,
+} = require("../../shared/utils/enum");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-
-const VALID_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
 
 // *************** QUERY ***************
 
@@ -39,7 +40,7 @@ async function GetAllBlocks(_, { filter }) {
     const query = {};
 
     if (filter && filter.block_status) {
-      if (!VALID_STATUS.includes(filter.block_status)) {
+      if (!BLOCK.VALID_STATUS.includes(filter.block_status)) {
         const handlingError = CreateAppError(
           "Invalid block_status filter value",
           "BAD_REQUEST",
@@ -81,7 +82,7 @@ async function GetOneBlock(_, { id, filter }) {
     const query = { _id: blockId };
 
     if (filter && filter.block_status) {
-      if (!VALID_STATUS.includes(filter.block_status)) {
+      if (!BLOCK.VALID_STATUS.includes(filter.block_status)) {
         const handlingError = CreateAppError(
           "Invalid block_status filter value",
           "BAD_REQUEST",

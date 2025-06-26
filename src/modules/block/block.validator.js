@@ -7,16 +7,13 @@ const mongoose = require("mongoose");
 // *************** IMPORT MODULE **************
 const BlockModel = require("./block.model");
 
-// *************** Enum
-const VALID_STATUSES = ["ACTIVE", "ARCHIVED", "DELETED"];
-const VALID_LOGIC = ["AND", "OR"];
-const VALID_RULE_TYPES = [
-  "SUBJECT_PASS_STATUS",
-  "TEST_PASS_STATUS",
-  "BLOCK_AVERAGE",
-];
-const VALID_EXPECTED_OUTCOME = ["PASS", "FAIL"];
-const VALID_RULE_OPERATOR = ["EQ", "GTE", "GT", "LTE", "LT"];
+// *************** IMPORT UTILS ***************
+const {
+  BLOCK,
+  LOGIC_ENUM,
+  EXPECTED_OUTCOME_ENUM,
+  OPERATOR_ENUM,
+} = require("../../shared/utils/enum");
 
 /**
  * Validates and sanitizes input for creating a Block entity.
@@ -54,7 +51,7 @@ async function ValidateCreateBlock(input) {
     );
   }
 
-  if (!block_status || !VALID_STATUSES.includes(block_status)) {
+  if (!block_status || !BLOCK.VALID_STATUS.includes(block_status)) {
     throw CreateAppError(
       "Field 'block_status' is required and must be one of ACTIVE, ARCHIVED, DELETED.",
       "VALIDATION_ERROR"
@@ -68,6 +65,7 @@ async function ValidateCreateBlock(input) {
       "VALIDATION_ERROR"
     );
   }
+  let validatedRules = null;
   if (criteria) {
     if (typeof criteria !== "object") {
       throw CreateAppError(
@@ -76,7 +74,7 @@ async function ValidateCreateBlock(input) {
       );
     }
 
-    if (!VALID_LOGIC.includes(criteria.logic)) {
+    if (!LOGIC_ENUM.includes(criteria.logic)) {
       throw CreateAppError(
         "Field 'criteria.logic' must be 'AND' or 'OR'.",
         "VALIDATION_ERROR"
@@ -89,15 +87,15 @@ async function ValidateCreateBlock(input) {
         "VALIDATION_ERROR"
       );
     }
-    const validatedRules = criteria.rules.map((rule, i) => {
-      if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
+    validatedRules = criteria.rules.map((rule, i) => {
+      if (!OPERATOR_ENUM.includes(rule.operator)) {
         throw CreateAppError(
           `Rule[${i}] has invalid operator '${rule.operator}'.`,
           "VALIDATION_ERROR"
         );
       }
 
-      if (!VALID_RULE_TYPES.includes(rule.type)) {
+      if (!BLOCK.RULE_TYPE.includes(rule.type)) {
         throw CreateAppError(
           `Rule[${i}] has invalid type '${rule.type}'.`,
           "VALIDATION_ERROR"
@@ -111,7 +109,7 @@ async function ValidateCreateBlock(input) {
         );
       }
 
-      if (!VALID_EXPECTED_OUTCOME.includes(rule.expected_outcome)) {
+      if (!EXPECTED_OUTCOME_ENUM.includes(rule.expected_outcome)) {
         throw CreateAppError(
           `Rule[${i}] 'expected_outcome' must be either 'PASS' or 'FAIL'.`,
           "VALIDATION_ERROR"
@@ -260,7 +258,7 @@ async function ValidateUpdateBlock(id, input) {
     );
   }
 
-  if (!block_status || !VALID_STATUSES.includes(block_status)) {
+  if (!block_status || !BLOCK.VALID_STATUS.includes(block_status)) {
     throw CreateAppError(
       "Field 'block_status' is required and must be one of ACTIVE, ARCHIVED, DELETED.",
       "VALIDATION_ERROR"
@@ -269,7 +267,7 @@ async function ValidateUpdateBlock(id, input) {
   let validatedRules = null;
 
   if (criteria && typeof criteria === "object") {
-    if (!VALID_LOGIC.includes(criteria.logic)) {
+    if (!LOGIC_ENUM.includes(criteria.logic)) {
       throw CreateAppError(
         "Field 'criteria.logic' must be 'AND' or 'OR'.",
         "VALIDATION_ERROR"
@@ -283,14 +281,14 @@ async function ValidateUpdateBlock(id, input) {
       );
     }
     validatedRules = criteria.rules.map((rule, index) => {
-      if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
+      if (!OPERATOR_ENUM.includes(rule.operator)) {
         throw CreateAppError(
           `Rule[${index}] has invalid operator '${rule.operator}'.`,
           "VALIDATION_ERROR"
         );
       }
 
-      if (!VALID_RULE_TYPES.includes(rule.type)) {
+      if (!BLOCK.RULE_TYPE.includes(rule.type)) {
         throw CreateAppError(
           `Rule[${index}] has invalid type '${rule.type}'.`,
           "VALIDATION_ERROR"
@@ -304,7 +302,7 @@ async function ValidateUpdateBlock(id, input) {
         );
       }
 
-      if (!VALID_EXPECTED_OUTCOME.includes(rule.expected_outcome)) {
+      if (!EXPECTED_OUTCOME_ENUM.includes(rule.expected_outcome)) {
         throw CreateAppError(
           `Rule[${index}] 'expected_outcome' must be either 'PASS' or 'FAIL'.`,
           "VALIDATION_ERROR"

@@ -1,15 +1,13 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-const VALID_BLOCK_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
-const LOGIC_ENUM = ["AND", "OR"];
-const BLOCK_RULE_TYPE_ENUM = [
-  "SUBJECT_PASS_STATUS",
-  "TEST_PASS_STATUS",
-  "BLOCK_AVERAGE",
-];
-const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
-const VALID_EXPECTED_OUTCOME = ["PASS", "FAIL"];
+// ************** IMPORT UTILS *************
+const {
+  BLOCK,
+  LOGIC_ENUM,
+  OPERATOR_ENUM,
+  VALID_EXPECTED_OUTCOME,
+} = require("../../shared/utils/enum");
 
 const blockSchema = new Schema(
   {
@@ -31,7 +29,7 @@ const blockSchema = new Schema(
     block_status: {
       type: String,
       required: true,
-      enum: VALID_BLOCK_STATUS,
+      enum: BLOCK.VALID_STATUS,
       trim: true,
     },
 
@@ -42,13 +40,13 @@ const blockSchema = new Schema(
         {
           type: {
             type: String,
-            enum: BLOCK_RULE_TYPE_ENUM,
+            enum: BLOCK.RULE_TYPE,
             required: true,
           },
           subject_id: { type: Schema.Types.ObjectId, ref: "Subject" },
           test_id: { type: Schema.Types.ObjectId, ref: "Test" },
           operator: { type: String, enum: OPERATOR_ENUM, required: true },
-          value: { type: Number, required: true , min: 0},
+          value: { type: Number, required: true, min: 0 },
           expected_outcome: {
             type: String,
             required: true,

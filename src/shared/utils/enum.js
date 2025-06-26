@@ -1,3 +1,20 @@
+// *************** Global Enum
+const LOGIC_ENUM = ["AND", "OR"];
+const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
+const EXPECTED_OUTCOME_ENUM = ["PASS", "FAIL"];
+
+// ************** Block Enum
+const VALID_BLOCK_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
+const RULE_BLOCK_TYPE = [
+  "SUBJECT_PASS_STATUS",
+  "TEST_PASS_STATUS",
+  "BLOCK_AVERAGE",
+];
+const BLOCK = {
+  VALID_STATUS: VALID_BLOCK_STATUS,
+  RULE_TYPE: RULE_BLOCK_TYPE,
+};
+
 // ************** Subject Enum
 const VALID_SUBJECT_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
 const VALID_SUBJECT_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
@@ -35,14 +52,10 @@ const CALCULATION_RESULT = {
   DEFAULT_STATUS: DEFAULT_CALCULATION_RESULT_STATUS,
 };
 
-// *************** Global Enum
-const LOGIC_ENUM = ["AND", "OR"];
-const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
-const EXPECTED_OUTCOME_ENUM = ["PASS", "FAIL"];
-
 // *************** EXPORT MODULE ***************
 
 module.exports = {
+  BLOCK,
   SUBJECT,
   TEST,
   CALCULATION_RESULT,
