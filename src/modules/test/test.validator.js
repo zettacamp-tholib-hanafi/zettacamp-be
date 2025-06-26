@@ -117,8 +117,15 @@ async function ValidateCreateTest(input) {
 
   const { logic, rules } = criteria;
 
-  if (!LOGIC_ENUM.includes(logic)) {
-    throw CreateAppError("Invalid logic in criteria", "BAD_REQUEST", { logic });
+  if (
+    !Array.isArray(logic) ||
+    logic.length === 0 ||
+    !logic.every((logicItem) => LOGIC_ENUM.includes(logicItem))
+  ) {
+    throw CreateAppError(
+      "Field 'logic' must be a non-empty array containing only 'AND' or 'OR'.",
+      "VALIDATION_ERROR"
+    );
   }
 
   if (!Array.isArray(rules) || rules.length === 0) {
@@ -361,8 +368,15 @@ async function ValidateUpdateTest(id, input) {
 
   const { logic, rules } = criteria;
 
-  if (!LOGIC_ENUM.includes(logic)) {
-    throw CreateAppError("Invalid logic in criteria", "BAD_REQUEST", { logic });
+  if (
+    !Array.isArray(logic) ||
+    logic.length === 0 ||
+    !logic.every((logicItem) => LOGIC_ENUM.includes(logicItem))
+  ) {
+    throw CreateAppError(
+      "Field 'logic' must be a non-empty array containing only 'AND' or 'OR'.",
+      "VALIDATION_ERROR"
+    );
   }
 
   if (!Array.isArray(rules) || rules.length === 0) {
