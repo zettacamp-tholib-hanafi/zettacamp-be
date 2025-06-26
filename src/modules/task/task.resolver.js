@@ -62,7 +62,7 @@ async function GetAllTasks(_, { filter }) {
         );
       }
       query.task_status = filter.task_status;
-    } 
+    }
 
     // *************** Filter: task_type
     if (filter && filter.task_type) {
@@ -136,7 +136,7 @@ async function GetOneTask(_, { id, filter }) {
         );
       }
       query.task_status = filter.task_status;
-    } 
+    }
 
     // *************** Filter: task_type
     if (filter && filter.task_type) {
@@ -374,7 +374,7 @@ async function AssignCorrector(_, { id, input }, context) {
       .lean();
 
     const studentNames = students
-      .map((s) => `${s.first_name} ${s.last_name}`)
+      .map((student) => `${student.first_name} ${student.last_name}`)
       .join(", ");
     const emailPayload = {
       to: corrector.email,

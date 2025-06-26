@@ -317,10 +317,10 @@ async function CalculateBlockResults(subjectResults, blocks) {
         );
         if (!matchingSubject) return false;
 
-        const subjectStatusAsNumber = matchingSubject.total_mark;
+        const totalMarkSubject = matchingSubject.total_mark;
 
         return EvaluateRule(
-          subjectStatusAsNumber,
+          totalMarkSubject,
           operator,
           value,
           expected_outcome
@@ -329,24 +329,21 @@ async function CalculateBlockResults(subjectResults, blocks) {
 
       // *************** Rule type: TEST_PASS_STATUS
       if (type === "TEST_PASS_STATUS") {
-        const subject = subjectResultsForBlock.find((s) =>
-          s.test_results.some((t) => String(t.test_id) === String(rule.test_id))
+        const subject = subjectResultsForBlock.find((subject) =>
+          subject.test_results.some(
+            (testResult) => String(testResult.test_id) === String(rule.test_id)
+          )
         );
         if (!subject) return false;
 
         const test = subject.test_results.find(
-          (t) => String(t.test_id) === String(rule.test_id)
+          (testResult) => String(testResult.test_id) === String(rule.test_id)
         );
         if (!test) return false;
 
-        const testStatusAsNumber = test.test_result === "PASS" ? 1 : 0;
+        const averageMarkTest = test.average_mark;
 
-        return EvaluateRule(
-          testStatusAsNumber,
-          operator,
-          value,
-          expected_outcome
-        );
+        return EvaluateRule(averageMarkTest, operator, value, expected_outcome);
       }
 
       return false; // fallback
@@ -438,9 +435,27 @@ async function CreateCalculationResult(student_id, blockResults) {
     created_at: new Date(),
   };
 
-  await CalculationResult.create(createCalculationResultPayload);
+  const updateCalculationResultStudent = await CalculationResult.updateOne(
+    {
+      student_id,
+      calculation_result_status: { $ne: "DELETED" },
+    },
+    {
+      $set: createCalculationResultPayload,
+    },
+    { upsert: true }
+  );
+  if (updateCalculationResultStudent.modifiedCount === 0) {
+    throw CreateAppError(
+      "Calculation Result not created or updated",
+      "NOT_FOUND",
+      {
+        student_id,
+      }
+    );
+  }
 
-  await TranscriptLogFile(student_id, createCalculationResultPayload);
+  TranscriptLogFile(student_id, createCalculationResultPayload);
 }
 
 /**

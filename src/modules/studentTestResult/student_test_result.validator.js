@@ -113,7 +113,9 @@ async function ValidateCreateStudentTestResult(input) {
     }
 
     const matchedNotation = Array.isArray(test.notations)
-      ? test.notations.find((n) => n.notation_text === item.notation_text)
+      ? test.notations.find(
+          (notation) => notation.notation_text === item.notation_text
+        )
       : null;
 
     if (!matchedNotation) {
@@ -276,7 +278,9 @@ async function ValidateUpdateStudentTestResult(input) {
     }
 
     const matchedNotation = Array.isArray(test.notations)
-      ? test.notations.find((n) => n.notation_text === item.notation_text)
+      ? test.notations.find(
+          (notation) => notation.notation_text === item.notation_text
+        )
       : null;
 
     if (!matchedNotation) {
