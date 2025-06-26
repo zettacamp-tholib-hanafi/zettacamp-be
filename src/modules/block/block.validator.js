@@ -266,6 +266,7 @@ async function ValidateUpdateBlock(id, input) {
       "VALIDATION_ERROR"
     );
   }
+  let validatedRules = null;
 
   if (criteria && typeof criteria === "object") {
     if (!VALID_LOGIC.includes(criteria.logic)) {
@@ -281,74 +282,74 @@ async function ValidateUpdateBlock(id, input) {
         "VALIDATION_ERROR"
       );
     }
-  }
-  const validatedRules = criteria.rules.map((rule, index) => {
-    if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
-      throw CreateAppError(
-        `Rule[${index}] has invalid operator '${rule.operator}'.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (!VALID_RULE_TYPES.includes(rule.type)) {
-      throw CreateAppError(
-        `Rule[${index}] has invalid type '${rule.type}'.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (typeof rule.value !== "number" || rule.value <= 0) {
-      throw CreateAppError(
-        `Rule[${index}] 'value' must be a positive number.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (!VALID_EXPECTED_OUTCOME.includes(rule.expected_outcome)) {
-      throw CreateAppError(
-        `Rule[${index}] 'expected_outcome' must be either 'PASS' or 'FAIL'.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (
-      rule.type === "SUBJECT_PASS_STATUS" &&
-      (!rule.subject_id || !mongoose.Types.ObjectId.isValid(rule.subject_id))
-    ) {
-      throw CreateAppError(
-        `Rule[${index}] 'subject_id' is required and must be valid.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (
-      rule.type === "TEST_PASS_STATUS" &&
-      (!rule.test_id || !mongoose.Types.ObjectId.isValid(rule.test_id))
-    ) {
-      throw CreateAppError(
-        `Rule[${index}] 'test_id' is required and must be valid.`,
-        "VALIDATION_ERROR"
-      );
-    }
-
-    if (rule.type === "BLOCK_AVERAGE") {
-      if (rule.subject_id || rule.test_id) {
+    validatedRules = criteria.rules.map((rule, index) => {
+      if (!VALID_RULE_OPERATOR.includes(rule.operator)) {
         throw CreateAppError(
-          `Rule[${index}] type 'BLOCK_AVERAGE' must not include 'subject_id' or 'test_id'.`,
+          `Rule[${index}] has invalid operator '${rule.operator}'.`,
           "VALIDATION_ERROR"
         );
       }
-    }
 
-    return {
-      type: rule.type,
-      subject_id: rule.subject_id || null,
-      test_id: rule.test_id || null,
-      operator: rule.operator,
-      value: rule.value,
-      expected_outcome: rule.expected_outcome,
-    };
-  });
+      if (!VALID_RULE_TYPES.includes(rule.type)) {
+        throw CreateAppError(
+          `Rule[${index}] has invalid type '${rule.type}'.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (typeof rule.value !== "number" || rule.value <= 0) {
+        throw CreateAppError(
+          `Rule[${index}] 'value' must be a positive number.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!VALID_EXPECTED_OUTCOME.includes(rule.expected_outcome)) {
+        throw CreateAppError(
+          `Rule[${index}] 'expected_outcome' must be either 'PASS' or 'FAIL'.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (
+        rule.type === "SUBJECT_PASS_STATUS" &&
+        (!rule.subject_id || !mongoose.Types.ObjectId.isValid(rule.subject_id))
+      ) {
+        throw CreateAppError(
+          `Rule[${index}] 'subject_id' is required and must be valid.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (
+        rule.type === "TEST_PASS_STATUS" &&
+        (!rule.test_id || !mongoose.Types.ObjectId.isValid(rule.test_id))
+      ) {
+        throw CreateAppError(
+          `Rule[${index}] 'test_id' is required and must be valid.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (rule.type === "BLOCK_AVERAGE") {
+        if (rule.subject_id || rule.test_id) {
+          throw CreateAppError(
+            `Rule[${index}] type 'BLOCK_AVERAGE' must not include 'subject_id' or 'test_id'.`,
+            "VALIDATION_ERROR"
+          );
+        }
+      }
+
+      return {
+        type: rule.type,
+        subject_id: rule.subject_id || null,
+        test_id: rule.test_id || null,
+        operator: rule.operator,
+        value: rule.value,
+        expected_outcome: rule.expected_outcome,
+      };
+    });
+  }
 
   const startDateObj = new Date(start_date);
   if (!start_date || isNaN(startDateObj.getTime())) {

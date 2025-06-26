@@ -106,7 +106,7 @@ module.exports = gql`
   }
 
   input SubjectPassingCriteriaInput {
-    logic: PassingCriteriaLogic!
+    logic: PassingCriteriaLogic
     rules: [SubjectPassingRuleInput!]!
   }
 

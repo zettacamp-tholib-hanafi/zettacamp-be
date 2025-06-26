@@ -53,6 +53,16 @@ async function ValidateCreateTest(input) {
       subject_id,
     });
   }
+  const subject = await Subject.findOne({
+    _id: subject_id,
+    subject_status: { $ne: "DELETED" }, // optional: jika pakai soft delete
+  });
+
+  if (!subject) {
+    throw CreateAppError("Subject not found", "NOT_FOUND", {
+      subject_id,
+    });
+  }
 
   // *************** Validate: weight
   if (typeof weight !== "number" || weight < 0) {
@@ -283,6 +293,16 @@ async function ValidateUpdateTest(id, input) {
   // *************** Validate: subject_id
   if (!subject_id || !isValidObjectId(subject_id)) {
     throw CreateAppError("Invalid or missing subject_id", "BAD_REQUEST", {
+      subject_id,
+    });
+  }
+  const subject = await Subject.findOne({
+    _id: subject_id,
+    subject_status: { $ne: "DELETED" }, // optional: jika pakai soft delete
+  });
+
+  if (!subject) {
+    throw CreateAppError("Subject not found", "NOT_FOUND", {
       subject_id,
     });
   }
