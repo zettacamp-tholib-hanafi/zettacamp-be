@@ -95,11 +95,20 @@ async function ValidateCreateSubject(input) {
   }
 
   if (criteria) {
-    if (typeof criteria !== "object" || !LOGIC_ENUM.includes(criteria.logic)) {
+    if (typeof criteria !== "object") {
       throw CreateAppError(
-        "Invalid or missing criteria.logic. Must be 'AND' or 'OR'.",
-        "VALIDATION_ERROR",
-        { field: "criteria.logic" }
+        "Field 'criteria' is required and must be an object.",
+        "VALIDATION_ERROR"
+      );
+    }
+    if (
+      !Array.isArray(criteria.logic) ||
+      criteria.logic.length === 0 ||
+      !criteria.logic.every((logicItem) => LOGIC_ENUM.includes(logicItem))
+    ) {
+      throw CreateAppError(
+        "Field 'criteria.logic' must be a non-empty array containing only 'AND' or 'OR'.",
+        "VALIDATION_ERROR"
       );
     }
 
@@ -317,18 +326,24 @@ async function ValidateUpdateSubject(id, input) {
   if (!block) {
     throw CreateAppError("Block not found", "NOT_FOUND", { block_id });
   }
-  if(criteria){
-    if (
-      typeof criteria !== "object" ||
-      !LOGIC_ENUM.includes(criteria.logic)
-    ) {
+  if (criteria) {
+    if (typeof criteria !== "object") {
       throw CreateAppError(
-        "Invalid or missing criteria.logic. Must be 'AND' or 'OR'.",
-        "VALIDATION_ERROR",
-        { field: "criteria.logic" }
+        "Field 'criteria' is required and must be an object.",
+        "VALIDATION_ERROR"
       );
     }
-  
+    if (
+      !Array.isArray(criteria.logic) ||
+      criteria.logic.length === 0 ||
+      !criteria.logic.every((logicItem) => LOGIC_ENUM.includes(logicItem))
+    ) {
+      throw CreateAppError(
+        "Field 'criteria.logic' must be a non-empty array containing only 'AND' or 'OR'.",
+        "VALIDATION_ERROR"
+      );
+    }
+
     const { rules } = criteria;
     if (!Array.isArray(rules) || rules.length === 0) {
       throw CreateAppError(
@@ -337,10 +352,10 @@ async function ValidateUpdateSubject(id, input) {
         { field: "criteria.rules" }
       );
     }
-  
+
     const validatedRules = rules.map((rule, index) => {
       const path = `criteria.rules[${index}]`;
-  
+
       if (!OPERATOR_ENUM.includes(rule.operator)) {
         throw CreateAppError(
           `Invalid rule.operator at ${path}. Must be one of ${OPERATOR_ENUM.join(
@@ -350,7 +365,7 @@ async function ValidateUpdateSubject(id, input) {
           { field: `${path}.operator` }
         );
       }
-  
+
       if (!SUBJECT.VALID_CONDITION_TYPE.includes(rule.type)) {
         throw CreateAppError(
           `Invalid rule.type at ${path}. Must be one of ${SUBJECT.VALID_CONDITION_TYPE.join(
@@ -360,7 +375,7 @@ async function ValidateUpdateSubject(id, input) {
           { field: `${path}.type` }
         );
       }
-  
+
       if (typeof rule.value !== "number" || rule.number <= 0) {
         throw CreateAppError(
           `rule.value must be a number at ${path}`,
@@ -368,7 +383,7 @@ async function ValidateUpdateSubject(id, input) {
           { field: `${path}.value` }
         );
       }
-  
+
       if (rule.type === "TEST_SCORE") {
         if (!rule.test_id || !ValidateMongoId(rule.test_id, false)) {
           throw CreateAppError(
@@ -378,7 +393,7 @@ async function ValidateUpdateSubject(id, input) {
           );
         }
       }
-  
+
       if (rule.type === "AVERAGE" && rule.test_id) {
         throw CreateAppError(
           `test_id must not be provided for AVERAGE type at ${path}`,
@@ -386,7 +401,7 @@ async function ValidateUpdateSubject(id, input) {
           { field: `${path}.test_id` }
         );
       }
-  
+
       if (
         !rule.expected_outcome ||
         !EXPECTED_OUTCOME_ENUM.includes(rule.expected_outcome)
@@ -399,7 +414,7 @@ async function ValidateUpdateSubject(id, input) {
           { field: `${path}.expected_outcome` }
         );
       }
-  
+
       return {
         type: rule.type,
         operator: rule.operator,
@@ -408,7 +423,7 @@ async function ValidateUpdateSubject(id, input) {
         expected_outcome: rule.expected_outcome,
       };
     });
-  
+
     criteria.rules = validatedRules;
   }
 
