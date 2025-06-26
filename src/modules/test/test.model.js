@@ -74,7 +74,7 @@ const testSchema = new Schema(
     // Test passing criteria
     criteria: {
       logic: {
-        type: String,
+        type: [String],
         enum: LOGIC_ENUM,
         required: true,
       },
