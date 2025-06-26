@@ -66,8 +66,6 @@ async function GetAllStudentTestResults(_, { filter }) {
         );
       }
       query.student_test_result_status = filter.student_test_result_status;
-    } else {
-      query.student_test_result_status = DEFAULT_STUDENT_TEST_RESULT_STATUS;
     }
 
     // *************** Filter: student_id
@@ -139,9 +137,7 @@ async function GetOneStudentTestResult(_, { id, filter }) {
         );
       }
       query.student_test_result_status = filter.student_test_result_status;
-    } else {
-      query.student_test_result_status = DEFAULT_STUDENT_TEST_RESULT_STATUS;
-    }
+    } 
 
     // *************** Filter: student_id
     if (filter && filter.student_id) {

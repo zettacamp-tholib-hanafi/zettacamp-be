@@ -62,9 +62,7 @@ async function GetAllTasks(_, { filter }) {
         );
       }
       query.task_status = filter.task_status;
-    } else {
-      query.task_status = DEFAULT_TASK_STATUS;
-    }
+    } 
 
     // *************** Filter: task_type
     if (filter && filter.task_type) {
@@ -138,9 +136,7 @@ async function GetOneTask(_, { id, filter }) {
         );
       }
       query.task_status = filter.task_status;
-    } else {
-      query.task_status = DEFAULT_TASK_STATUS;
-    }
+    } 
 
     // *************** Filter: task_type
     if (filter && filter.task_type) {

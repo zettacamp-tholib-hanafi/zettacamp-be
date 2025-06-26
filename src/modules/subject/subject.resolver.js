@@ -57,10 +57,7 @@ async function GetAllSubjects(_, { filter }) {
         );
       }
       query.subject_status = filter.subject_status;
-    } else {
-      // *************** Default to ACTIVE
-      query.subject_status = "ACTIVE";
-    }
+    } 
 
     // *************** Filter: level
     if (filter && filter.level) {
@@ -147,10 +144,7 @@ async function GetOneSubject(_, { id, filter }) {
         );
       }
       query.subject_status = filter.subject_status;
-    } else {
-      // *************** Default to ACTIVE
-      query.subject_status = "ACTIVE";
-    }
+    } 
 
     // *************** Filter: level
     if (filter && filter.level) {

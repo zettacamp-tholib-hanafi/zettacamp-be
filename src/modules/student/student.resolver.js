@@ -51,9 +51,7 @@ async function GetAllStudents(_, { filter }) {
           );
         }
         query.student_status = filter.student_status;
-      } else {
-        query.student_status = "ACTIVE";
-      }
+      } 
       if (filter.academic_status) {
         if (!VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
           throw CreateAppError(
@@ -110,9 +108,7 @@ async function GetOneStudent(_, { id, filter }) {
           );
         }
         query.student_status = filter.student_status;
-      } else {
-        query.student_status = "ACTIVE";
-      }
+      } 
       if (filter.academic_status) {
         if (!VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
           throw CreateAppError(

@@ -46,8 +46,6 @@ async function GetAllTests(_, { filter }) {
         );
       }
       query.test_status = filter.test_status;
-    } else {
-      query.test_status = "ACTIVE";
     }
     if (filter && filter.grading_method) {
       if (!TEST.VALID_GRADING_METHOD.includes(filter.grading_method)) {
@@ -97,9 +95,7 @@ async function GetOneTest(_, { id, filter }) {
         );
       }
       query.test_status = filter.test_status;
-    } else {
-      query.test_status = "ACTIVE";
-    }
+    } 
     if (filter && filter.grading_method) {
       if (!TEST.VALID_GRADING_METHOD.includes(filter.grading_method)) {
         throw CreateAppError(

@@ -48,8 +48,6 @@ async function GetAllBlocks(_, { filter }) {
         throw handlingError;
       }
       query.block_status = filter.block_status;
-    } else {
-      query.block_status = "ACTIVE";
     }
     const findBlocks = await Block.find(query);
     return findBlocks;
@@ -92,8 +90,6 @@ async function GetOneBlock(_, { id, filter }) {
         throw handlingError;
       }
       query.block_status = filter.block_status;
-    } else {
-      query.block_status = "ACTIVE";
     }
 
     const block = await Block.findOne(query);
