@@ -48,7 +48,7 @@ module.exports = gql`
   }
 
   type TestCriteria {
-    logic: TestLogic!
+    logic: [TestLogic!]
     rules: [TestRule!]!
   }
 
@@ -86,7 +86,7 @@ module.exports = gql`
   }
 
   input TestCriteriaInput {
-    logic: TestLogic!
+    logic: [TestLogic!]
     rules: [TestRuleInput!]!
   }
 
