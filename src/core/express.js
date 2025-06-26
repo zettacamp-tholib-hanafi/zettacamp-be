@@ -23,6 +23,9 @@ async function ExpressRun() {
     console.log(`GraphQL Playground ready at http://localhost:${PORT}/graphql`);
   });
 }
+
+// *************** EXPORT MODULE ***************
+
 module.exports = {
   ExpressRun,
 };

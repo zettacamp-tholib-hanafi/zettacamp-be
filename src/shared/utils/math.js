@@ -11,6 +11,7 @@ function RoundFloat(value, decimals = 2) {
   return Math.round(value * factor) / factor;
 }
 
+// *************** EXPORT MODULE ***************
 module.exports = {
   RoundFloat,
 };

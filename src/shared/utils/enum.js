@@ -40,6 +40,8 @@ const LOGIC_ENUM = ["AND", "OR"];
 const OPERATOR_ENUM = ["EQ", "GTE", "GT", "LTE", "LT"];
 const EXPECTED_OUTCOME_ENUM = ["PASS", "FAIL"];
 
+// *************** EXPORT MODULE ***************
+
 module.exports = {
   SUBJECT,
   TEST,

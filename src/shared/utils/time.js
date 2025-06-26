@@ -5,6 +5,7 @@ function TimeNow() {
   const seconds = String(now.getSeconds()).padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 }
+// *************** EXPORT MODULE ***************
 
 module.exports = {
   TimeNow,
