@@ -53,16 +53,6 @@ async function ValidateCreateTest(input) {
       subject_id,
     });
   }
-  const subject = await Subject.findOne({
-    _id: subject_id,
-    subject_status: { $ne: "DELETED" }, // optional: jika pakai soft delete
-  });
-
-  if (!subject) {
-    throw CreateAppError("Subject not found", "NOT_FOUND", {
-      subject_id,
-    });
-  }
 
   // *************** Validate: weight
   if (typeof weight !== "number" || weight < 0) {
@@ -81,6 +71,7 @@ async function ValidateCreateTest(input) {
   }
 
   let total_score = 0;
+  const notationTextSet = new Set();
   const sanitizedNotations = notations.map((notation, index) => {
     const { notation_text, max_points } = notation;
 
@@ -89,6 +80,12 @@ async function ValidateCreateTest(input) {
         `notation_text is required and must be a string at index ${index}`,
         "BAD_REQUEST",
         { notation_text }
+      );
+    }
+    if (notationTextSet.has(notation_text)) {
+      throw CreateAppError(
+        "Duplicate notation_text not allowed",
+        "BAD_REQUEST"
       );
     }
 
@@ -102,67 +99,77 @@ async function ValidateCreateTest(input) {
 
     total_score += max_points;
     const notation_response = {
-      notation_text: notation_text.trim(),
+      notation_text: notation_text,
       max_points,
     };
     return notation_response;
   });
 
+  let validatedCriteria = null;
   // *************** Validate: criteria
-  if (typeof criteria !== "object" || criteria === null) {
-    throw CreateAppError("Criteria must be a valid object", "BAD_REQUEST", {
-      criteria,
+  if (criteria) {
+    if (!Array.isArray(criteria) || criteria.length === 0) {
+      throw CreateAppError(
+        "Field 'criteria' must be a non-empty array.",
+        "VALIDATION_ERROR"
+      );
+    }
+    validatedCriteria = criteria.map((rule, index) => {
+      const { logical_operator, type, operator, value, expected_outcome } =
+        rule;
+
+      if (
+        index === 0 &&
+        logical_operator !== null &&
+        logical_operator !== undefined
+      ) {
+        throw CreateAppError(
+          `Rule[${index}] should not have 'logical_operator'. It must be null or omitted.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (index > 0 && !LOGIC_ENUM.includes(logical_operator)) {
+        throw CreateAppError(
+          `Rule[${index}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!OPERATOR_ENUM.includes(operator)) {
+        throw CreateAppError(
+          `Rule[${index}] has invalid operator '${operator}'`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (typeof value !== "number" || value < 0) {
+        throw CreateAppError(
+          `Rule[${index}] 'value' must be a positive number`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
+        throw CreateAppError(
+          `Rule[${index}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      return {
+        logical_operator: index === 0 ? null : logical_operator,
+        type,
+        operator,
+        value,
+        expected_outcome,
+      };
     });
   }
-
-  const { logic, rules } = criteria;
-
-  if (
-    !Array.isArray(logic) ||
-    logic.length === 0 ||
-    !logic.every((logicItem) => LOGIC_ENUM.includes(logicItem))
-  ) {
-    throw CreateAppError(
-      "Field 'logic' must be a non-empty array containing only 'AND' or 'OR'.",
-      "VALIDATION_ERROR"
-    );
-  }
-
-  if (!Array.isArray(rules) || rules.length === 0) {
-    throw CreateAppError("Rules must be a non-empty array", "BAD_REQUEST", {
-      rules,
-    });
-  }
-
-  const sanitizedRules = rules.map((rule, index) => {
-    const { operator, value, expected_outcome } = rule;
-
-    if (!OPERATOR_ENUM.includes(operator)) {
-      throw CreateAppError(
-        `Invalid operator in rule[${index}]`,
-        "BAD_REQUEST",
-        { operator }
-      );
-    }
-
-    if (typeof value !== "number" || value < 0 || value > 100) {
-      throw CreateAppError(
-        `Value must be between 0 and 100 in rule[${index}]`,
-        "BAD_REQUEST",
-        { value }
-      );
-    }
-
-    if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
-      throw CreateAppError(
-        `Invalid expected_outcome in rule[${index}]`,
-        "BAD_REQUEST",
-        { expected_outcome }
-      );
-    }
-
-    return { operator, value, expected_outcome };
-  });
 
   // *************** Validate: grading_method (optional)
   if (grading_method && !TEST.VALID_GRADING_METHOD.includes(grading_method)) {
@@ -211,7 +218,7 @@ async function ValidateCreateTest(input) {
 
   const existingSubjectId = await Subject.findOne({
     _id: subject_id,
-    test_status: { $ne: "DELETED" },
+    subject_status: { $ne: "DELETED" },
   });
 
   if (!existingSubjectId) {
@@ -245,10 +252,7 @@ async function ValidateCreateTest(input) {
     grading_method: grading_method || "MANUAL",
     test_status,
     attachments: attachments || [],
-    criteria: {
-      logic,
-      rules: sanitizedRules,
-    },
+    criteria: validatedCriteria,
     published_date,
   };
   return callbackTestPayload;
@@ -305,7 +309,7 @@ async function ValidateUpdateTest(id, input) {
   }
   const subject = await Subject.findOne({
     _id: subject_id,
-    subject_status: { $ne: "DELETED" }, // optional: jika pakai soft delete
+    subject_status: { $ne: "DELETED" },
   });
 
   if (!subject) {
@@ -333,6 +337,8 @@ async function ValidateUpdateTest(id, input) {
   }
 
   let total_score = 0;
+  const notationTextSet = new Set();
+
   const sanitizedNotations = notations.map((notation, index) => {
     const { notation_text, max_points } = notation;
 
@@ -341,6 +347,13 @@ async function ValidateUpdateTest(id, input) {
         `notation_text is required and must be a string at index ${index}`,
         "BAD_REQUEST",
         { notation_text }
+      );
+    }
+
+    if (notationTextSet.has(notation_text)) {
+      throw CreateAppError(
+        "Duplicate notation_text not allowed",
+        "BAD_REQUEST"
       );
     }
 
@@ -354,66 +367,76 @@ async function ValidateUpdateTest(id, input) {
 
     total_score += max_points;
     return {
-      notation_text: notation_text.trim(),
+      notation_text: notation_text,
       max_points,
     };
   });
 
   // *************** Validate: criteria
-  if (typeof criteria !== "object" || criteria === null) {
-    throw CreateAppError("Criteria must be a valid object", "BAD_REQUEST", {
-      criteria,
+  let validatedCriteria = null;
+  if (criteria) {
+    if (!Array.isArray(criteria) || criteria.length === 0) {
+      throw CreateAppError(
+        "Field 'criteria' must be a non-empty array.",
+        "VALIDATION_ERROR"
+      );
+    }
+    validatedCriteria = criteria.map((rule, index) => {
+      const { logical_operator, type, operator, value, expected_outcome } =
+        rule;
+
+      if (
+        index === 0 &&
+        logical_operator !== null &&
+        logical_operator !== undefined
+      ) {
+        throw CreateAppError(
+          `Rule[${index}] should not have 'logical_operator'. It must be null or omitted.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (index > 0 && !LOGIC_ENUM.includes(logical_operator)) {
+        throw CreateAppError(
+          `Rule[${index}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!OPERATOR_ENUM.includes(operator)) {
+        throw CreateAppError(
+          `Rule[${index}] has invalid operator '${operator}'`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (typeof value !== "number" || value < 0) {
+        throw CreateAppError(
+          `Rule[${index}] 'value' must be a positive number`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
+        throw CreateAppError(
+          `Rule[${index}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      return {
+        logical_operator: index === 0 ? null : logical_operator,
+        type,
+        operator,
+        value,
+        expected_outcome,
+      };
     });
   }
-
-  const { logic, rules } = criteria;
-
-  if (
-    !Array.isArray(logic) ||
-    logic.length === 0 ||
-    !logic.every((logicItem) => LOGIC_ENUM.includes(logicItem))
-  ) {
-    throw CreateAppError(
-      "Field 'logic' must be a non-empty array containing only 'AND' or 'OR'.",
-      "VALIDATION_ERROR"
-    );
-  }
-
-  if (!Array.isArray(rules) || rules.length === 0) {
-    throw CreateAppError("Rules must be a non-empty array", "BAD_REQUEST", {
-      rules,
-    });
-  }
-
-  const sanitizedRules = rules.map((rule, index) => {
-    const { operator, value, expected_outcome } = rule;
-
-    if (!OPERATOR_ENUM.includes(operator)) {
-      throw CreateAppError(
-        `Invalid operator in rule[${index}]`,
-        "BAD_REQUEST",
-        { operator }
-      );
-    }
-
-    if (typeof value !== "number" || value < 0 || value > 100) {
-      throw CreateAppError(
-        `Value must be between 0 and 100 in rule[${index}]`,
-        "BAD_REQUEST",
-        { value }
-      );
-    }
-
-    if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
-      throw CreateAppError(
-        `Invalid expected_outcome in rule[${index}]`,
-        "BAD_REQUEST",
-        { expected_outcome }
-      );
-    }
-
-    return { operator, value, expected_outcome };
-  });
 
   // *************** Validate: grading_method (optional)
   if (grading_method && !TEST.VALID_GRADING_METHOD.includes(grading_method)) {
@@ -453,17 +476,6 @@ async function ValidateUpdateTest(id, input) {
     }
   }
 
-  const existingSubjectId = await Subject.findOne({
-    _id: subject_id,
-    test_status: { $ne: "DELETED" },
-  });
-
-  if (!existingSubjectId) {
-    throw CreateAppError(`Subject ID is Not Found!`, "BAD_REQUEST", {
-      subject_id,
-    });
-  }
-
   // *************** Validate: weight quota
   const currentTest = await Test.findById(id).select("weight");
   if (!currentTest) {
@@ -496,10 +508,7 @@ async function ValidateUpdateTest(id, input) {
     notations: sanitizedNotations,
     total_score,
     grading_method: grading_method || TEST.DEFAULT_GRADING_METHOD,
-    criteria: {
-      logic,
-      rules: sanitizedRules,
-    },
+    criteria: validatedCriteria,
     test_status,
     attachments: attachments || [],
     published_date,
