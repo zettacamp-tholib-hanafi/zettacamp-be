@@ -56,32 +56,41 @@ const subjectSchema = new Schema(
       ref: "Block",
     },
 
-    // Passing Criteria of Subject
-    criteria: {
-      logic: { type: [String], enum: LOGIC_ENUM },
-      rules: [
-        {
-          type: {
-            type: String,
-            enum: SUBJECT.VALID_CONDITION_TYPE,
-            required: true,
-          },
-          test_id: { type: Schema.Types.ObjectId, ref: "Test" },
-          operator: {
-            type: String,
-            enum: OPERATOR_ENUM,
-            required: true,
-          },
-          value: { type: Number, required: true },
-          expected_outcome: {
-            type: String,
-            required: true,
-            enum: VALID_EXPECTED_OUTCOME,
-            trim: true,
-          },
+    // Criteria of Subject
+
+    criteria: [
+      {
+        logical_operator: {
+          type: String,
+          enum: LOGIC_ENUM,
         },
-      ],
-    },
+        type: {
+          type: String,
+          enum: SUBJECT.VALID_CONDITION_TYPE,
+          required: true,
+        },
+        test_id: {
+          type: Schema.Types.ObjectId,
+          ref: "Test",
+        },
+        operator: {
+          type: String,
+          enum: OPERATOR_ENUM,
+          required: true,
+        },
+        value: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        expected_outcome: {
+          type: String,
+          required: true,
+          enum: VALID_EXPECTED_OUTCOME,
+          trim: true,
+        },
+      },
+    ],
 
     // Subject coefficient
     coefficient: {
