@@ -61,7 +61,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: [BlockPassingCriteria!]!
+    criteria: [BlockPassingCriteria!]
     start_date: Date!
     end_date: Date
     subjects: [Subject!]
