@@ -45,6 +45,7 @@ async function RunTranscriptCore(student_id) {
   }
 
   const testResults = await CalculateTestResults(tests, studentTestResults);
+  console.log("TEST_RESULT:", testResults);
   if (!testResults) {
     throw CreateAppError("Error calculate test result", "DATA_MISSING");
   }
@@ -149,15 +150,16 @@ async function CalculateTestResults(tests, studentTestResults) {
     const weight = RoundFloat(test.weight || 0);
     const weightedMark = RoundFloat(averageMark * weight);
 
-    const { logic, rules } = test.criteria || {};
-    if (!logic || !Array.isArray(rules)) {
-      throw CreateAppError("Invalid criteria format", "INVALID_CRITERIA", {
+    const criteria = test.criteria;
+    if (criteria.length === 0) {
+      throw CreateAppError("criteria not found", "DATA_INTEGRITY_ERROR", {
         test_id: test._id,
       });
     }
 
-    const evaluations = rules.map((rule) => {
-      const { operator, value, expected_outcome } = rule;
+    const evaluatedCriteria = criteria.map((criteriaItem, index) => {
+      const { logical_operator, operator, value, expected_outcome } =
+        criteriaItem;
 
       const result = EvaluateRule(
         averageMark,
@@ -165,20 +167,38 @@ async function CalculateTestResults(tests, studentTestResults) {
         value,
         expected_outcome
       );
-      return result;
+
+      return {
+        result,
+        logical_operator,
+        index,
+      };
     });
 
-    let isPass = false;
-    if (logic === "OR") {
-      isPass = evaluations.some(Boolean);
-    } else if (logic === "AND") {
-      isPass = evaluations.every(Boolean);
-    } else {
-      throw CreateAppError("Invalid logic in criteria", "INVALID_LOGIC", {
+    const isPass = evaluatedCriteria.reduce((result, current, index) => {
+      if (index === 0) return current.result;
+
+      const logicalOperator = current.logical_operator;
+      if (!logicalOperator && index > 0) {
+        throw CreateAppError(
+          "Missing Logical Operator",
+          "INVALID_LOGIC_CHAIN",
+          {
+            test_id: test._id,
+            index: current.index,
+          }
+        );
+      }
+
+      if (logicalOperator === "AND") return result && current.result;
+      if (logicalOperator === "OR") return result || current.result;
+
+      throw CreateAppError("Invalid Logical Operator", "INVALID_LOGIC", {
         test_id: test._id,
-        logic,
+        index: current.index,
+        logical_operator: logicalOperator,
       });
-    }
+    }, null);
 
     return {
       test_id: test._id,
