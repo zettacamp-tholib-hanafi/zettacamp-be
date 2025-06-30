@@ -33,29 +33,45 @@ const blockSchema = new Schema(
       trim: true,
     },
 
-    // Passing criteria Operator of the block
-    criteria: {
-      logic: { type: [String], enum: LOGIC_ENUM },
-      rules: [
-        {
-          type: {
-            type: String,
-            enum: BLOCK.RULE_TYPE,
-            required: true,
-          },
-          subject_id: { type: Schema.Types.ObjectId, ref: "Subject" },
-          test_id: { type: Schema.Types.ObjectId, ref: "Test" },
-          operator: { type: String, enum: OPERATOR_ENUM, required: true },
-          value: { type: Number, required: true, min: 0 },
-          expected_outcome: {
-            type: String,
-            required: true,
-            enum: VALID_EXPECTED_OUTCOME,
-            trim: true,
-          },
+    // Criteria Operator of the block
+
+    criteria: [
+      {
+        logic: {
+          type: String,
+          enum: LOGIC_ENUM,
         },
-      ],
-    },
+        type: {
+          type: String,
+          enum: BLOCK.RULE_TYPE,
+          required: true,
+        },
+        subject_id: {
+          type: Schema.Types.ObjectId,
+          ref: "Subject",
+        },
+        test_id: {
+          type: Schema.Types.ObjectId,
+          ref: "Test",
+        },
+        operator: {
+          type: String,
+          enum: OPERATOR_ENUM,
+          required: true,
+        },
+        value: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        expected_outcome: {
+          type: String,
+          required: true,
+          enum: VALID_EXPECTED_OUTCOME,
+          trim: true,
+        },
+      },
+    ],
 
     // Start date of the block
     start_date: {
