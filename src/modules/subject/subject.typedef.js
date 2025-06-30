@@ -21,7 +21,7 @@ module.exports = gql`
     DELETED
   }
 
-  enum PassingCriteriaLogic {
+  enum SubjectLogicalOperator {
     AND
     OR
   }
@@ -54,7 +54,7 @@ module.exports = gql`
     block_id: ID!
     coefficient: Float!
     tests: [Test]
-    criteria: SubjectPassingCriteria
+    criteria: [SubjectPassingCriteria!]!
     subject_status: SubjectStatus!
     created_at: Date!
     created_by: String
@@ -65,11 +65,7 @@ module.exports = gql`
   }
 
   type SubjectPassingCriteria {
-    logic: [PassingCriteriaLogic!]
-    rules: [SubjectPassingRule!]!
-  }
-
-  type SubjectPassingRule {
+    logical_operator: SubjectLogicalOperator
     type: PassingRuleType!
     operator: PassingRuleOperator!
     value: Float!
@@ -86,7 +82,7 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: SubjectPassingCriteriaInput
+    criteria: [SubjectPassingCriteriaInput!]!
     subject_status: SubjectStatus!
     created_by: String
   }
@@ -100,17 +96,13 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: SubjectPassingCriteriaInput
+    criteria: [SubjectPassingCriteriaInput!]
     subject_status: SubjectStatus!
     updated_by: String
   }
 
   input SubjectPassingCriteriaInput {
-    logic: [PassingCriteriaLogic!]
-    rules: [SubjectPassingRuleInput!]!
-  }
-
-  input SubjectPassingRuleInput {
+    logical_operator: SubjectLogicalOperator
     type: PassingRuleType!
     operator: PassingRuleOperator!
     value: Float!
