@@ -45,7 +45,6 @@ async function RunTranscriptCore(student_id) {
   }
 
   const testResults = await CalculateTestResults(tests, studentTestResults);
-  console.log("TEST_RESULT:", testResults);
   if (!testResults) {
     throw CreateAppError("Error calculate test result", "DATA_MISSING");
   }
@@ -57,7 +56,6 @@ async function RunTranscriptCore(student_id) {
   }
 
   const subjectResults = await CalculateSubjectResults(testResults, subjects);
-  console.log("SUBJECT_RESULT:", subjectResults);
   if (!subjectResults) {
     throw CreateAppError("Error calculate subject result", "DATA_MISSING");
   }
@@ -68,7 +66,6 @@ async function RunTranscriptCore(student_id) {
     throw CreateAppError("Missing block", "DATA_MISSING");
   }
   const blockResults = await CalculateBlockResults(subjectResults, blocks);
-  console.log("BLOCK_RESULT:", blockResults);
   if (!blockResults) {
     throw CreateAppError("Error calculate subject result", "DATA_MISSING");
   }
@@ -362,7 +359,6 @@ async function CalculateBlockResults(subjectResults, blocks) {
       },
       { totalMarkSum: 0, coefficientSum: 0 }
     );
-    console.log("HHHHH", totalMarkSum, coefficientSum);
     const totalBlockMark =
       coefficientSum > 0 ? RoundFloat(totalMarkSum / coefficientSum, 2) : 0;
 
