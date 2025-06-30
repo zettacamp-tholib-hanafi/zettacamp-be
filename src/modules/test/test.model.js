@@ -71,34 +71,32 @@ const testSchema = new Schema(
       trim: true,
     },
 
-    // Test passing criteria
-    criteria: {
-      logic: {
-        type: [String],
-        enum: LOGIC_ENUM,
-        required: true,
-      },
-      rules: [
-        {
-          operator: {
-            type: String,
-            enum: OPERATOR_ENUM,
-            required: true,
-          },
-          value: {
-            type: Number,
-            required: true,
-            min: 0,
-            max: 100,
-          },
-          expected_outcome: {
-            type: String,
-            enum: EXPECTED_OUTCOME_ENUM,
-            required: true,
-          },
+    // Test criteria
+    criteria: [
+      {
+        logical_operator: {
+          type: String,
+          enum: LOGIC_ENUM,
+          required: false,
         },
-      ],
-    },
+        operator: {
+          type: String,
+          enum: OPERATOR_ENUM,
+          required: true,
+        },
+        value: {
+          type: Number,
+          required: true,
+          min: 0,
+          max: 100,
+        },
+        expected_outcome: {
+          type: String,
+          enum: EXPECTED_OUTCOME_ENUM,
+          required: true,
+        },
+      },
+    ],
 
     // Status of the test
     test_status: {
