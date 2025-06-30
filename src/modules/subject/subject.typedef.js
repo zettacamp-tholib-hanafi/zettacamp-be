@@ -82,7 +82,7 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: [SubjectPassingCriteriaInput!]!
+    criteria: [SubjectPassingCriteriaInput!]
     subject_status: SubjectStatus!
     created_by: String
   }
