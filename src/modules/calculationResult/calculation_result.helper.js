@@ -57,6 +57,7 @@ async function RunTranscriptCore(student_id) {
   }
 
   const subjectResults = await CalculateSubjectResults(testResults, subjects);
+  console.log("SUBJECT_RESULT:", subjectResults);
   if (!subjectResults) {
     throw CreateAppError("Error calculate subject result", "DATA_MISSING");
   }
@@ -151,10 +152,14 @@ async function CalculateTestResults(tests, studentTestResults) {
     const weightedMark = RoundFloat(averageMark * weight);
 
     const criteria = test.criteria;
-    if (criteria.length === 0) {
-      throw CreateAppError("criteria not found", "DATA_INTEGRITY_ERROR", {
-        test_id: test._id,
-      });
+    if (!Array.isArray(criteria) || criteria.length === 0) {
+      throw CreateAppError(
+        "Criteria not found or invalid",
+        "DATA_INTEGRITY_ERROR",
+        {
+          test_id: test._id,
+        }
+      );
     }
 
     const evaluatedCriteria = criteria.map((criteriaItem, index) => {
@@ -234,42 +239,87 @@ function CalculateSubjectResults(testResults, subjects) {
 
     const coefficient = Number(subject.coefficient || 1);
     const lengthTestReuslt = relatedTestResults.length;
-    const totalMark = RoundFloat(
-      coefficient * (totalWeightedMark / lengthTestReuslt),
-      2
-    );
+    let totalMark = RoundFloat(totalWeightedMark / lengthTestReuslt, 2);
 
     // *************** Evaluate all criteria rules
-    const ruleEvaluations = subject.criteria.rules.map((rule) => {
-      const { test_id, value, operator, type, expected_outcome } = rule;
+    const criteria = subject.criteria;
+    if (!Array.isArray(criteria) || criteria.length === 0) {
+      throw CreateAppError(
+        "Invalid or missing subject criteria",
+        "INVALID_CRITERIA",
+        {
+          subject_id: subject._id,
+        }
+      );
+    }
+
+    const evaluatedCriteria = criteria.map((criteriaItem, index) => {
+      const {
+        logical_operator,
+        type,
+        test_id,
+        operator,
+        value,
+        expected_outcome,
+      } = criteriaItem;
+      let actualValue;
+
       if (type === "TEST_SCORE") {
-        const matchingTest = relatedTestResults.find((testResult) => {
-          return String(testResult.test_id) === String(test_id);
+        const testResult = relatedTestResults.find(
+          (testResult) => String(testResult.test_id) === String(test_id)
+        );
+        actualValue = testResult ? Number(testResult.average_mark || 0) : 0;
+      } else if (type === "AVERAGE") {
+        actualValue = totalMark;
+      } else {
+        throw CreateAppError("Unsupported rule type", "INVALID_RULE_TYPE", {
+          subject_id: subject._id,
+          rule_index: index,
+          type,
         });
-        const testScore = matchingTest
-          ? Number(matchingTest.average_mark || 0)
-          : 0;
-        return EvaluateRule(testScore, operator, value, expected_outcome);
       }
 
-      if (type === "AVERAGE") {
-        return EvaluateRule(totalMark, operator, value, expected_outcome);
-      }
-
-      return false;
+      const result = EvaluateRule(
+        actualValue,
+        operator,
+        value,
+        expected_outcome
+      );
+      return {
+        result,
+        logical_operator,
+        index,
+      };
     });
 
-    const logicOperator = subject.criteria.logic || "AND";
-    const passed =
-      logicOperator === "AND"
-        ? ruleEvaluations.every(Boolean)
-        : ruleEvaluations.some(Boolean);
+    const isPass = evaluatedCriteria.reduce((result, current, index) => {
+      if (index === 0) return current.result;
+
+      const logicalOperator = current.logical_operator;
+      if (!logicalOperator) {
+        throw CreateAppError(
+          "Missing logical operator",
+          "INVALID_LOGIC_CHAIN",
+          {
+            subject_id: subject._id,
+            index: current.index,
+          }
+        );
+      }
+
+      if (logicalOperator === "AND") return result && current.result;
+      if (logicalOperator === "OR") return result || current.result;
+
+      throw CreateAppError("Invalid logical operator", "INVALID_LOGIC", {
+        subject_id: subject._id,
+      });
+    }, undefined);
 
     return {
       subject_id: subject._id,
       block_id: subject.block_id,
       total_mark: totalMark,
-      subject_result: passed ? RESULT_PASS : RESULT_FAIL,
+      subject_result: isPass ? RESULT_PASS : RESULT_FAIL,
       test_results: relatedTestResults,
     };
   });
