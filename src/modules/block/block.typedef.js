@@ -12,7 +12,7 @@ module.exports = gql`
     DELETED
   }
 
-  enum BlockPassingCriteriaOperator {
+  enum BlockLogicalOperator {
     AND
     OR
   }
@@ -36,21 +36,8 @@ module.exports = gql`
     FAIL
   }
 
-  input PassingRuleInput {
-    type: BlockRuleType!
-    subject_id: ID
-    test_id: ID
-    operator: Operator!
-    value: Float!
-    expected_outcome: BlockExpectedOutcome!
-  }
-
   input BlockPassingCriteriaInput {
-    logic: [BlockPassingCriteriaOperator!]
-    rules: [PassingRuleInput!]
-  }
-
-  type PassingRule {
+    logical_operator: BlockLogicalOperator
     type: BlockRuleType!
     subject_id: ID
     test_id: ID
@@ -60,8 +47,13 @@ module.exports = gql`
   }
 
   type BlockPassingCriteria {
-    logic: [BlockPassingCriteriaOperator!]
-    rules: [PassingRule!]!
+    logical_operator: BlockLogicalOperator
+    type: BlockRuleType!
+    subject_id: ID
+    test_id: ID
+    operator: Operator!
+    value: Float!
+    expected_outcome: BlockExpectedOutcome!
   }
 
   type Block {
@@ -69,7 +61,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: BlockPassingCriteria
+    criteria: [BlockPassingCriteria!]!
     start_date: Date!
     end_date: Date
     subjects: [Subject!]
@@ -85,7 +77,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: BlockPassingCriteriaInput
+    criteria: [BlockPassingCriteriaInput!]!
     start_date: Date!
     end_date: Date
     subjects: [ID!]
@@ -95,7 +87,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: BlockPassingCriteriaInput
+    criteria: [BlockPassingCriteriaInput!]
     start_date: Date!
     end_date: Date
     subjects: [ID!]

@@ -37,7 +37,7 @@ const blockSchema = new Schema(
 
     criteria: [
       {
-        logic: {
+        logical_operator: {
           type: String,
           enum: LOGIC_ENUM,
         },
