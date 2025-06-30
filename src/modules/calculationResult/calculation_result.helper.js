@@ -68,6 +68,7 @@ async function RunTranscriptCore(student_id) {
     throw CreateAppError("Missing block", "DATA_MISSING");
   }
   const blockResults = await CalculateBlockResults(subjectResults, blocks);
+  console.log("BLOCK_RESULT:", blockResults);
   if (!blockResults) {
     throw CreateAppError("Error calculate subject result", "DATA_MISSING");
   }
@@ -239,7 +240,12 @@ function CalculateSubjectResults(testResults, subjects) {
 
     const coefficient = Number(subject.coefficient || 1);
     const lengthTestReuslt = relatedTestResults.length;
-    let totalMark = RoundFloat(totalWeightedMark / lengthTestReuslt, 2);
+    const averageMark =
+      relatedTestResults
+        .map((averageMark) => Number(averageMark.average_mark || 0))
+        .reduce((accumulator, current) => accumulator + current, 0) /
+      lengthTestReuslt;
+    let totalMark = RoundFloat(coefficient * totalWeightedMark, 2);
 
     // *************** Evaluate all criteria rules
     const criteria = subject.criteria;
@@ -270,7 +276,7 @@ function CalculateSubjectResults(testResults, subjects) {
         );
         actualValue = testResult ? Number(testResult.average_mark || 0) : 0;
       } else if (type === "AVERAGE") {
-        actualValue = totalMark;
+        actualValue = averageMark;
       } else {
         throw CreateAppError("Unsupported rule type", "INVALID_RULE_TYPE", {
           subject_id: subject._id,
@@ -320,6 +326,7 @@ function CalculateSubjectResults(testResults, subjects) {
       block_id: subject.block_id,
       total_mark: totalMark,
       subject_result: isPass ? RESULT_PASS : RESULT_FAIL,
+      coefficient: subject.coefficient,
       test_results: relatedTestResults,
     };
   });
@@ -344,25 +351,25 @@ async function CalculateBlockResults(subjectResults, blocks) {
     });
 
     // *************** Compute average total_mark across all subjects in this block
-    const totalMarksPerSubject = subjectResultsForBlock.map((subjectResult) =>
-      Number(subjectResult.total_mark || 0)
+    const { totalMarkSum, coefficientSum } = subjectResultsForBlock.reduce(
+      (acc, subjectResult) => {
+        const coef = Number(subjectResult.coefficient || 1);
+        const mark = Number(subjectResult.total_mark || 0);
+
+        acc.totalMarkSum += mark;
+        acc.coefficientSum += coef;
+        return acc;
+      },
+      { totalMarkSum: 0, coefficientSum: 0 }
     );
-
+    console.log("HHHHH", totalMarkSum, coefficientSum);
     const totalBlockMark =
-      totalMarksPerSubject.length > 0
-        ? RoundFloat(
-            totalMarksPerSubject.reduce(
-              (sum, subjectMark) => sum + subjectMark,
-              0
-            ) / totalMarksPerSubject.length,
-            2
-          )
-        : 0;
+      coefficientSum > 0 ? RoundFloat(totalMarkSum / coefficientSum, 2) : 0;
 
-    const { logic, rules } = block.criteria || {};
-    if (!logic || !Array.isArray(rules)) {
+    const criteria = block.criteria;
+    if (!Array.isArray(criteria) || criteria.length === 0) {
       throw CreateAppError(
-        "Invalid block criteria format",
+        "Invalid or missing block criteria",
         "INVALID_CRITERIA",
         {
           block_id: block._id,
@@ -370,69 +377,86 @@ async function CalculateBlockResults(subjectResults, blocks) {
       );
     }
 
-    // *************** Evaluate rules
-    const ruleEvaluations = rules.map((rule) => {
-      const { type, operator, value, expected_outcome } = rule;
+    // *************** Evaluate criteria rules
+    const evaluatedCriteria = criteria.map((rule, index) => {
+      const {
+        logical_operator,
+        type,
+        operator,
+        value,
+        expected_outcome,
+        subject_id,
+        test_id,
+      } = rule;
 
-      // *************** Rule type: BLOCK_AVERAGE
+      let actualValue;
+
       if (type === "BLOCK_AVERAGE") {
-        return EvaluateRule(totalBlockMark, operator, value, expected_outcome);
-      }
-
-      // *************** Rule type: SUBJECT_PASS_STATUS
-      if (type === "SUBJECT_PASS_STATUS") {
-        const matchingSubject = subjectResultsForBlock.find(
+        actualValue = totalMarkSum;
+      } else if (type === "SUBJECT_PASS_STATUS") {
+        const subject = subjectResultsForBlock.find(
           (subjectResult) =>
-            String(subjectResult.subject_id) === String(rule.subject_id)
+            String(subjectResult.subject_id) === String(subject_id)
         );
-        if (!matchingSubject) return false;
-
-        const totalMarkSubject = matchingSubject.total_mark;
-
-        return EvaluateRule(
-          totalMarkSubject,
-          operator,
-          value,
-          expected_outcome
-        );
-      }
-
-      // *************** Rule type: TEST_PASS_STATUS
-      if (type === "TEST_PASS_STATUS") {
-        const subject = subjectResultsForBlock.find((subject) =>
-          subject.test_results.some(
-            (testResult) => String(testResult.test_id) === String(rule.test_id)
+        if (!subject) return { result: false, logical_operator, index };
+        actualValue = subject.total_mark;
+      } else if (type === "TEST_PASS_STATUS") {
+        const subject = subjectResultsForBlock.find((subjectResult) =>
+          subjectResult.test_results.some(
+            (testResult) => String(testResult.test_id) === String(test_id)
           )
         );
-        if (!subject) return false;
+        if (!subject) return { result: false, logical_operator, index };
 
         const test = subject.test_results.find(
-          (testResult) => String(testResult.test_id) === String(rule.test_id)
+          (testResult) => String(testResult.test_id) === String(test_id)
         );
-        if (!test) return false;
+        if (!test) return { result: false, logical_operator, index };
 
-        const averageMarkTest = test.average_mark;
-
-        return EvaluateRule(averageMarkTest, operator, value, expected_outcome);
+        actualValue = test.average_mark;
+      } else {
+        throw CreateAppError("Unsupported rule type", "INVALID_RULE_TYPE", {
+          block_id: block._id,
+          rule_index: index,
+          type,
+        });
       }
 
-      return false; // fallback
+      const result = EvaluateRule(
+        actualValue,
+        operator,
+        value,
+        expected_outcome
+      );
+      return { result, logical_operator, index };
     });
 
-    // *************** Evaluate final block result based on logic
-    let isBlockPass = false;
-    if (logic === "AND") {
-      isBlockPass = ruleEvaluations.every(Boolean);
-    } else if (logic === "OR") {
-      isBlockPass = ruleEvaluations.some(Boolean);
-    } else {
-      throw CreateAppError("Invalid block logic", "INVALID_LOGIC", {
-        block_id: block._id,
-        logic,
-      });
-    }
+    // *************** Evaluate logical chain
+    const isBlockPass = evaluatedCriteria.reduce((acc, curr, index) => {
+      if (index === 0) return curr.result;
 
-    // *************** Final block result object
+      const op = curr.logical_operator;
+      if (!op) {
+        throw CreateAppError(
+          "Missing logical operator",
+          "INVALID_LOGIC_CHAIN",
+          {
+            block_id: block._id,
+            index: curr.index,
+          }
+        );
+      }
+
+      if (op === "AND") return acc && curr.result;
+      if (op === "OR") return acc || curr.result;
+
+      throw CreateAppError("Invalid logical operator", "INVALID_LOGIC", {
+        block_id: block._id,
+        index: curr.index,
+        logical_operator: op,
+      });
+    }, undefined);
+
     return {
       block_id: block._id,
       total_mark: totalBlockMark,
