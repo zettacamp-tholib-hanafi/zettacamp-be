@@ -12,7 +12,6 @@ const CalculationResult = require("../calculationResult/calculation_result.model
 
 // *************** IMPORT UTILITIES ***************
 const { TimeNow } = require("../../shared/utils/time");
-const { RoundFloat } = require("../../shared/utils/math");
 
 const {
   LoadTestsByIds,
@@ -146,11 +145,11 @@ async function CalculateTestResults(tests, studentTestResults) {
       (accumulator, mark) => accumulator + (mark.mark || 0),
       0
     );
-    const averageMark = RoundFloat(
-      marks.length ? totalMarks / marks.length : 0
+    const averageMark = Number(
+      (marks.length ? totalMarks / marks.length : 0).toFixed(2)
     );
-    const weight = RoundFloat(test.weight || 0);
-    const weightedMark = RoundFloat(averageMark * weight);
+    const weight = Number((test.weight || 0).toFixed(2));
+    const weightedMark = Number((averageMark * weight).toFixed(2));
 
     const criteria = test.criteria;
     if (!Array.isArray(criteria) || criteria.length === 0) {
@@ -245,7 +244,7 @@ function CalculateSubjectResults(testResults, subjects) {
         .map((averageMark) => Number(averageMark.average_mark || 0))
         .reduce((accumulator, current) => accumulator + current, 0) /
       lengthTestReuslt;
-    let totalMark = RoundFloat(coefficient * totalWeightedMark, 2);
+    let totalMark = Number((coefficient * totalWeightedMark).toFixed(2));
 
     // *************** Evaluate all criteria rules
     const criteria = subject.criteria;
@@ -366,7 +365,9 @@ async function CalculateBlockResults(subjectResults, blocks) {
       { totalMarkSum: 0, coefficientSum: 0 }
     );
     const totalBlockMark =
-      coefficientSum > 0 ? RoundFloat(totalMarkSum / coefficientSum, 2) : 0;
+      coefficientSum > 0
+        ? Number((totalMarkSum / coefficientSum).toFixed(2))
+        : 0;
 
     const criteria = block.criteria;
     if (!Array.isArray(criteria) || criteria.length === 0) {
