@@ -204,10 +204,12 @@ async function ValidateCreateBlock(input) {
         "VALIDATION_ERROR"
       );
     }
-    for (const id of subjects) {
-      if (!isValidObjectId(id)) {
-        throw CreateAppError(`Invalid subject ID: ${id}`, "VALIDATION_ERROR");
-      }
+    const invalidId = subjects.find((id) => !isValidObjectId(id));
+    if (invalidId) {
+      throw CreateAppError(
+        `Invalid subject ID: ${invalidId}`,
+        "VALIDATION_ERROR"
+      );
     }
   }
 
@@ -424,10 +426,12 @@ async function ValidateUpdateBlock(id, input) {
         "VALIDATION_ERROR"
       );
     }
-    for (const id of subjects) {
-      if (!isValidObjectId(id)) {
-        throw CreateAppError(`Invalid subject ID: ${id}`, "VALIDATION_ERROR");
-      }
+    const invalidId = subjects.find((id) => !isValidObjectId(id));
+    if (invalidId) {
+      throw CreateAppError(
+        `Invalid subject ID: ${invalidId}`,
+        "VALIDATION_ERROR"
+      );
     }
   }
 

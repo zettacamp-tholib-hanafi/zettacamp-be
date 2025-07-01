@@ -85,16 +85,14 @@ async function ValidateCreateStudentTestResult(input) {
   const maxTotalScore =
     typeof test.total_score === "number" ? test.total_score : 100;
 
-  for (let i = 0; i < marks.length; i++) {
-    const item = marks[i];
-
+  marks.forEach((item, index) => {
     if (
       !item.notation_text ||
       typeof item.notation_text !== "string" ||
       item.notation_text.trim() === ""
     ) {
       throw CreateAppError(
-        `notation_text in marks[${i}] is required and must be a non-empty string`,
+        `notation_text in marks[${index}] is required and must be a non-empty string`,
         "BAD_REQUEST",
         { notation: item }
       );
@@ -106,7 +104,7 @@ async function ValidateCreateStudentTestResult(input) {
       item.mark > maxTotalScore
     ) {
       throw CreateAppError(
-        `mark in marks[${i}] must be a number between 0 and total_score (${maxTotalScore})`,
+        `mark in marks[${index}] must be a number between 0 and total_score (${maxTotalScore})`,
         "BAD_REQUEST",
         { notation: item }
       );
@@ -128,12 +126,12 @@ async function ValidateCreateStudentTestResult(input) {
 
     if (item.mark > matchedNotation.max_points) {
       throw CreateAppError(
-        `mark in marks[${i}] exceeds max_points (${matchedNotation.max_points}) for notation "${item.notation_text}"`,
+        `mark in marks[${index}] exceeds max_points (${matchedNotation.max_points}) for notation "${item.notation_text}"`,
         "BAD_REQUEST",
         { notation: item }
       );
     }
-  }
+  });
 
   const callbackStudentTestResultPayload = {
     student_id: student_id.trim(),
@@ -250,16 +248,14 @@ async function ValidateUpdateStudentTestResult(input) {
   const maxTotalScore =
     typeof test.total_score === "number" ? test.total_score : 100;
 
-  for (let i = 0; i < marks.length; i++) {
-    const item = marks[i];
-
+  marks.forEach((item, index) => {
     if (
       !item.notation_text ||
       typeof item.notation_text !== "string" ||
       item.notation_text.trim() === ""
     ) {
       throw CreateAppError(
-        `notation_text in marks[${i}] is required and must be a non-empty string`,
+        `notation_text in marks[${index}] is required and must be a non-empty string`,
         "BAD_REQUEST",
         { notation: item }
       );
@@ -271,7 +267,7 @@ async function ValidateUpdateStudentTestResult(input) {
       item.mark > maxTotalScore
     ) {
       throw CreateAppError(
-        `mark in marks[${i}] must be a number between 0 and total_score (${maxTotalScore})`,
+        `mark in marks[${index}] must be a number between 0 and total_score (${maxTotalScore})`,
         "BAD_REQUEST",
         { notation: item }
       );
@@ -293,12 +289,12 @@ async function ValidateUpdateStudentTestResult(input) {
 
     if (item.mark > matchedNotation.max_points) {
       throw CreateAppError(
-        `mark in marks[${i}] exceeds max_points (${matchedNotation.max_points}) for notation "${item.notation_text}"`,
+        `mark in marks[${index}] exceeds max_points (${matchedNotation.max_points}) for notation "${item.notation_text}"`,
         "BAD_REQUEST",
         { notation: item }
       );
     }
-  }
+  });
 
   const callbackStudentTestResultPayload = {
     student_id: student_id.trim(),
