@@ -7,7 +7,7 @@ const { isValidObjectId } = require("mongoose");
 // *************** IMPORT MODULE **************
 const BlockModel = require("./block.model");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const {
   BLOCK,
   LOGIC_ENUM,

@@ -12,7 +12,7 @@ const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id");
 // *************** IMPORT CORE ***************
 const { ConnectDB, DisconnectDB } = require("../../core/db");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { TimeNow } = require("../../shared/utils/time");
 
 // *************** IMPORT HELPER FUNCTION ***************

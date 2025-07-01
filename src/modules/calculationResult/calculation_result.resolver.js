@@ -7,7 +7,7 @@ const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { CALCULATION_RESULT } = require("../../shared/utils/enum.js");
 
 // *************** QUERY ***************

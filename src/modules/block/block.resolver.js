@@ -7,7 +7,7 @@ const {
   ValidateUpdateBlock,
 } = require("./block.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const {
   BLOCK,

@@ -9,7 +9,7 @@ const Test = require("./test.model");
 const User = require("../user/user.model");
 const Subject = require("../subject/subject.model");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const {
   TEST,
   OPERATOR_ENUM,

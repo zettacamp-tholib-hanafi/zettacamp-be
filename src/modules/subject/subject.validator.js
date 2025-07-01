@@ -1,7 +1,7 @@
 // *************** IMPORT LIBRARY ***************
 const { isValidObjectId } = require("mongoose");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const {
   SUBJECT,
   OPERATOR_ENUM,

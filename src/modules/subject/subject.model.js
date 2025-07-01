@@ -1,7 +1,7 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-// ************** IMPORT UTILS *************
+// ************** IMPORT UTILITIES *************
 const {
   SUBJECT,
   LOGIC_ENUM,

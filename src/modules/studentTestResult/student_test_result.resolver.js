@@ -9,7 +9,7 @@ const {
 } = require("./student_test_result.validator.js");
 const { ValidateCreateTask } = require("../task/task.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 
 // *************** IMPORT CORE ****************

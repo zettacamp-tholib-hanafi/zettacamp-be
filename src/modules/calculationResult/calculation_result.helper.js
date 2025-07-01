@@ -10,7 +10,7 @@ const { CreateAppError } = require("../../core/error");
 const StudentTestResult = require("../studentTestResult/student_test_result.model");
 const CalculationResult = require("../calculationResult/calculation_result.model");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { TimeNow } = require("../../shared/utils/time");
 const { RoundFloat } = require("../../shared/utils/math");
 

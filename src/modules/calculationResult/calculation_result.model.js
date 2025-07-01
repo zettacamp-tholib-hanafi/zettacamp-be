@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const {
   EXPECTED_OUTCOME_ENUM,
   CALCULATION_RESULT,

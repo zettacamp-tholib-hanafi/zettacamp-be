@@ -15,7 +15,7 @@ const {
   ValidateEnterMarks,
 } = require("./task.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 
 // *************** IMPORT CORE ***************

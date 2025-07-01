@@ -10,7 +10,7 @@ const {
   ValidateAssignCorrector,
 } = require("./test.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { TEST } = require("../../shared/utils/enum.js");
 
