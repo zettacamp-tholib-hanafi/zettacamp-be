@@ -9,15 +9,12 @@ const { CreateAppError } = require("../../core/error");
 // *************** IMPORT MODULE **************
 const StudentTestResult = require("../studentTestResult/student_test_result.model");
 const CalculationResult = require("../calculationResult/calculation_result.model");
+const Block = require("../block/block.model");
+const Subject = require("../subject/subject.model");
+const Test = require("../test/test.model");
 
 // *************** IMPORT UTILITIES ***************
 const { TimeNow } = require("../../shared/utils/time");
-
-const {
-  LoadTestsByIds,
-  LoadSubjectsByIds,
-  LoadBlocksByIds,
-} = require("./calculation_result.loader");
 
 const RESULT_PASS = "PASS";
 const RESULT_FAIL = "FAIL";
@@ -37,18 +34,14 @@ async function RunTranscriptCore(student_id) {
     throw CreateAppError("Missing test result", "DATA_MISSING");
   }
 
-  const testIds = studentTestResults.map((result) => String(result.test_id));
-  const tests = await LoadTestsByIds(testIds);
-  if (!tests) {
-    throw CreateAppError("Missing test", "DATA_MISSING");
-  }
-
-  const testResults = await CalculateTestResults(tests, studentTestResults);
+  const testResults = await CalculateTestResults(studentTestResults);
   if (!testResults) {
     throw CreateAppError("Error calculate test result", "DATA_MISSING");
   }
 
-  const subjectIds = tests.map((test) => String(test.subject_id));
+  const subjectIds = testResults.map((testResult) =>
+    String(testResult.subject_id)
+  );
   const subjects = await LoadSubjectsByIds(subjectIds);
   if (!subjects) {
     throw CreateAppError("Missing subject", "DATA_MISSING");
@@ -95,7 +88,7 @@ async function FetchStudentTestResult(student_id) {
     student_id,
     student_test_result_status: { $ne: STATUS_DELETED },
     mark_validated_date: { $ne: null },
-  });
+  }).populate("test_id");
 
   if (!result || result.length === 0) {
     throw CreateAppError("Student Test Result not found", "NOT_FOUND", {
@@ -118,29 +111,22 @@ async function FetchStudentTestResult(student_id) {
 }
 
 /**
- * Evaluate test-level results with rule-based criteria.
+ * Calculate test results using populated test data inside studentTestResults
  *
- * @param {Array<Object>} tests - Array of Test documents.
- * @param {Array<Object>} studentTestResults - Array of StudentTestResult documents.
- * @returns {Array<Object>} List of processed test evaluation results.
+ * @param {Array<Object>} studentTestResults - Array of student test results with populated test_id
+ * @returns {Array<Object>} - Calculated results per test
+ * @throws {AppError} - If data is incomplete or corrupted
  */
-async function CalculateTestResults(tests, studentTestResults) {
-  const result = tests.map((test) => {
-    const resultEntry = studentTestResults.find(
-      (result) => String(result.test_id) === String(test._id)
-    );
+async function CalculateTestResults(studentTestResults) {
+  const result = studentTestResults.map((resultEntry) => {
+    const test = resultEntry.test_id;
 
-    if (!resultEntry) {
-      throw CreateAppError(
-        "No result found for test_id",
-        "DATA_INTEGRITY_ERROR",
-        {
-          test_id: test._id,
-        }
-      );
+    if (!test || !test._id) {
+      throw CreateAppError("Missing populated test data", "DATA_CORRUPTED", {
+        result_id: resultEntry._id,
+      });
     }
-
-    const averageMark = resultEntry.average_mark;
+    const averageMark = Number(resultEntry.average_mark || 0);
     const weight = Number(test.weight || 0);
     const weightedMark = Number((averageMark * weight).toFixed(2));
 
@@ -206,6 +192,7 @@ async function CalculateTestResults(tests, studentTestResults) {
       test_result: isTestPass ? RESULT_PASS : RESULT_FAIL,
     };
   });
+
   return result;
 }
 
@@ -550,6 +537,63 @@ async function CreateCalculationResult(student_id, blockResults) {
 
   TranscriptLogFile(student_id, createCalculationResultPayload);
   return createCalculationResultPayload;
+}
+
+/**
+ * Return unique list of ObjectId strings
+ *
+ * @param {Array<any>} ids - List of ObjectId or strings
+ * @returns {Array<string>} - Deduplicated string ids
+ */
+const UniqueIds = (ids) => [...new Set(ids.map(String))];
+
+/**
+ * Load subject documents from DB by a list of subject IDs
+ *
+ * @param {Array<string>} subjectIds - Array of subject ObjectId strings
+ * @returns {Promise<Array<Object>>} - Array of subject documents
+ * @throws {AppError} - If input is invalid or query fails
+ */
+async function LoadSubjectsByIds(subjectIds) {
+  if (!Array.isArray(subjectIds) || subjectIds.length === 0) {
+    throw CreateAppError(
+      "subjectIds must be a non-empty array",
+      "BAD_REQUEST",
+      {
+        subject_id: subjectIds,
+      }
+    );
+  }
+  const rawSubjectIds = UniqueIds(subjectIds);
+
+  const subjects = await Subject.find({
+    _id: { $in: rawSubjectIds },
+    subject_status: { $ne: "DELETED" },
+  }).lean();
+
+  return subjects;
+}
+/**
+ * Load block documents from DB by a list of block IDs
+ *
+ * @param {Array<string>} blockIds - Array of block ObjectId strings
+ * @returns {Promise<Array<Object>>} - Array of block documents
+ * @throws {AppError} - If input is invalid or query fails
+ */
+async function LoadBlocksByIds(blockIds) {
+  if (!Array.isArray(blockIds) || blockIds.length === 0) {
+    throw CreateAppError("blockIds must be a non-empty array", "BAD_REQUEST", {
+      block_id: blockIds,
+    });
+  }
+  const rawBlockIds = UniqueIds(blockIds);
+
+  const blocks = await Block.find({
+    _id: { $in: rawBlockIds },
+    block_status: { $ne: "DELETED" },
+  }).lean();
+
+  return blocks;
 }
 
 /**
