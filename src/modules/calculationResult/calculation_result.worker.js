@@ -31,41 +31,39 @@ const {
  * @returns {Promise<void>} Resolves when worker is spawned.
  */
 function RunTranscriptWorker(student_id) {
-  return new Promise(function (resolve, reject) {
-    try {
-      const worker = new Worker(__filename, {
-        workerData: { student_id },
-      });
+  try {
+    const worker = new Worker(__filename, {
+      workerData: { student_id },
+    });
 
-      worker.once("online", function () {
-        console.info("Transcript worker successfully spawned at : ", TimeNow());
-        resolve();
-      });
+    worker.once("online", function () {
+      console.info("Transcript worker successfully spawned at : ", TimeNow());
+    });
 
-      worker.on("message", function (result) {
-        console.info("Worker run successfully:", result);
-        if (result.success == false) {
-          WriteWorkerLog(result.error);
-        }
-      });
+    worker.on("message", function (result) {
+      console.info("Worker run successfully:", result);
+      if (result.success == false) {
+        WriteWorkerLog(result.error);
+      }
+    });
 
-      worker.on("error", function (error) {
-        const errorMessage = `Worker run error: ${error}`;
+    worker.on("error", function (error) {
+      const errorMessage = `Worker run error: ${error}`;
+      WriteWorkerLog(errorMessage);
+      console.error("Worker run error:", errorMessage);
+    });
+
+    worker.on("exit", function (code) {
+      if (code !== 0) {
+        const errorMessage = `Worker stopped with exit code ${code}`;
         WriteWorkerLog(errorMessage);
-        console.error("Worker run error:", errorMessage);
-      });
-
-      worker.on("exit", function (code) {
-        if (code !== 0) {
-          const errorMessage = `Worker stopped with exit code ${code}`;
-          WriteWorkerLog(errorMessage);
-          console.error(errorMessage);
-        }
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
+        console.error(errorMessage);
+      }
+    });
+  } catch (error) {
+    WriteWorkerLog(error);
+    console.error(error);
+  }
 }
 
 if (!isMainThread) {
