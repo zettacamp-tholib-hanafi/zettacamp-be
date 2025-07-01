@@ -70,11 +70,14 @@ async function RunTranscriptCore(student_id) {
     throw CreateAppError("Error calculate subject result", "DATA_MISSING");
   }
 
-  await CreateCalculationResult(student_id, blockResults);
+  const result = await CreateCalculationResult(student_id, blockResults);
 
   const sucessWorker = parentPort.postMessage({
     success: true,
-    student_id,
+    data: {
+      student_id,
+      result,
+    },
     message: `Transcript calculated successfully at ${TimeNow()}`,
   });
 
@@ -178,7 +181,7 @@ async function CalculateTestResults(tests, studentTestResults) {
       };
     });
 
-    const isPass = evaluatedCriteria.reduce((result, current, index) => {
+    const isTestPass = evaluatedCriteria.reduce((oldResult, current, index) => {
       if (index === 0) return current.result;
 
       const logicalOperator = current.logical_operator;
@@ -193,22 +196,22 @@ async function CalculateTestResults(tests, studentTestResults) {
         );
       }
 
-      if (logicalOperator === "AND") return result && current.result;
-      if (logicalOperator === "OR") return result || current.result;
+      if (logicalOperator === "AND") return oldResult && current.result;
+      if (logicalOperator === "OR") return oldResult || current.result;
 
       throw CreateAppError("Invalid Logical Operator", "INVALID_LOGIC", {
         test_id: test._id,
         index: current.index,
         logical_operator: logicalOperator,
       });
-    }, null);
+    }, undefined);
 
     return {
       test_id: test._id,
       subject_id: test.subject_id,
       average_mark: averageMark,
       weighted_mark: weightedMark,
-      test_result: isPass ? RESULT_PASS : RESULT_FAIL,
+      test_result: isTestPass ? RESULT_PASS : RESULT_FAIL,
     };
   });
   return result;
@@ -295,34 +298,37 @@ function CalculateSubjectResults(testResults, subjects) {
       };
     });
 
-    const isPass = evaluatedCriteria.reduce((result, current, index) => {
-      if (index === 0) return current.result;
+    const isSubjectPass = evaluatedCriteria.reduce(
+      (oldResult, current, index) => {
+        if (index === 0) return current.result;
 
-      const logicalOperator = current.logical_operator;
-      if (!logicalOperator) {
-        throw CreateAppError(
-          "Missing logical operator",
-          "INVALID_LOGIC_CHAIN",
-          {
-            subject_id: subject._id,
-            index: current.index,
-          }
-        );
-      }
+        const logicalOperator = current.logical_operator;
+        if (!logicalOperator) {
+          throw CreateAppError(
+            "Missing logical operator",
+            "INVALID_LOGIC_CHAIN",
+            {
+              subject_id: subject._id,
+              index: current.index,
+            }
+          );
+        }
 
-      if (logicalOperator === "AND") return result && current.result;
-      if (logicalOperator === "OR") return result || current.result;
+        if (logicalOperator === "AND") return oldResult && current.result;
+        if (logicalOperator === "OR") return oldResult || current.result;
 
-      throw CreateAppError("Invalid logical operator", "INVALID_LOGIC", {
-        subject_id: subject._id,
-      });
-    }, undefined);
+        throw CreateAppError("Invalid logical operator", "INVALID_LOGIC", {
+          subject_id: subject._id,
+        });
+      },
+      undefined
+    );
 
     return {
       subject_id: subject._id,
       block_id: subject.block_id,
       total_mark: totalMark,
-      subject_result: isPass ? RESULT_PASS : RESULT_FAIL,
+      subject_result: isSubjectPass ? RESULT_PASS : RESULT_FAIL,
       coefficient: subject.coefficient,
       test_results: relatedTestResults,
     };
@@ -388,7 +394,7 @@ async function CalculateBlockResults(subjectResults, blocks) {
       let actualValue;
 
       if (type === "BLOCK_AVERAGE") {
-        actualValue = totalMarkSum;
+        actualValue = totalBlockMark;
       } else if (type === "SUBJECT_PASS_STATUS") {
         const subject = subjectResultsForBlock.find(
           (subjectResult) =>
@@ -428,30 +434,33 @@ async function CalculateBlockResults(subjectResults, blocks) {
     });
 
     // *************** Evaluate logical chain
-    const isBlockPass = evaluatedCriteria.reduce((acc, curr, index) => {
-      if (index === 0) return curr.result;
+    const isBlockPass = evaluatedCriteria.reduce(
+      (oldResult, current, index) => {
+        if (index === 0) return current.result;
 
-      const op = curr.logical_operator;
-      if (!op) {
-        throw CreateAppError(
-          "Missing logical operator",
-          "INVALID_LOGIC_CHAIN",
-          {
-            block_id: block._id,
-            index: curr.index,
-          }
-        );
-      }
+        const op = current.logical_operator;
+        if (!op) {
+          throw CreateAppError(
+            "Missing logical operator",
+            "INVALID_LOGIC_CHAIN",
+            {
+              block_id: block._id,
+              index: current.index,
+            }
+          );
+        }
 
-      if (op === "AND") return acc && curr.result;
-      if (op === "OR") return acc || curr.result;
+        if (op === "AND") return oldResult && current.result;
+        if (op === "OR") return oldResult || current.result;
 
-      throw CreateAppError("Invalid logical operator", "INVALID_LOGIC", {
-        block_id: block._id,
-        index: curr.index,
-        logical_operator: op,
-      });
-    }, undefined);
+        throw CreateAppError("Invalid logical operator", "INVALID_LOGIC", {
+          block_id: block._id,
+          index: current.index,
+          logical_operator: op,
+        });
+      },
+      undefined
+    );
 
     return {
       block_id: block._id,
@@ -546,6 +555,7 @@ async function CreateCalculationResult(student_id, blockResults) {
   }
 
   TranscriptLogFile(student_id, createCalculationResultPayload);
+  return createCalculationResultPayload;
 }
 
 /**
@@ -576,6 +586,32 @@ function TranscriptLogFile(studentId, transcriptData) {
   }
 }
 
+/**
+ * Write worker-related logs into worker_error.log inside logs folder
+ *
+ * @param {string} logMessage - Message to be written to the log file
+ */
+function WriteWorkerLog(logMessage) {
+  const timestamp = new Date().toISOString();
+  const fullLog = `[${timestamp}] ${logMessage}\n`;
+
+  try {
+    const logDir = path.resolve(__dirname, "../../logs");
+    const logFilePath = path.join(logDir, "worker_error.log");
+
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+
+    fs.appendFileSync(logFilePath, fullLog, "utf8");
+  } catch (writeError) {
+    console.error(
+      "[WorkerLogWriteError] Failed to write log file.",
+      writeError
+    );
+  }
+}
+
 module.exports = {
   RunTranscriptCore,
   FetchStudentTestResult,
@@ -585,4 +621,5 @@ module.exports = {
   EvaluateRule,
   CreateCalculationResult,
   TranscriptLogFile,
+  WriteWorkerLog,
 };

@@ -16,7 +16,10 @@ const { ConnectDB, DisconnectDB } = require("../../core/db");
 const { TimeNow } = require("../../shared/utils/time");
 
 // *************** IMPORT HELPER FUNCTION ***************
-const { RunTranscriptCore } = require("./calculation_result.helper");
+const {
+  RunTranscriptCore,
+  WriteWorkerLog,
+} = require("./calculation_result.helper");
 
 /**
  * RunTranscriptWorker
@@ -41,15 +44,22 @@ function RunTranscriptWorker(student_id) {
 
       worker.on("message", function (result) {
         console.info("Worker run successfully:", result);
+        if (result.success == false) {
+          WriteWorkerLog(result.error);
+        }
       });
 
       worker.on("error", function (error) {
-        console.error("Worker run error:", error);
+        const errorMessage = `Worker run error: ${error}`;
+        WriteWorkerLog(errorMessage);
+        console.error("Worker run error:", errorMessage);
       });
 
       worker.on("exit", function (code) {
         if (code !== 0) {
-          console.error("Worker stopped with exit code", code);
+          const errorMessage = `Worker stopped with exit code ${code}`;
+          WriteWorkerLog(errorMessage);
+          console.error(errorMessage);
         }
       });
     } catch (error) {
