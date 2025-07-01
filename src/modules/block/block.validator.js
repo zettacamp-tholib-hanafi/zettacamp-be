@@ -1,4 +1,4 @@
-// *************** IMPORT HELPER ***************
+// *************** IMPORT CORE ***************
 const { CreateAppError } = require("../../core/error");
 
 // *************** IMPORT LIBRARY ***************

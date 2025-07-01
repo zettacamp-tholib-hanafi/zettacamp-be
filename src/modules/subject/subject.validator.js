@@ -1,3 +1,6 @@
+// *************** IMPORT CORE ***************
+const { CreateAppError } = require("../../core/error");
+
 // *************** IMPORT LIBRARY ***************
 const { isValidObjectId } = require("mongoose");
 
@@ -9,8 +12,7 @@ const {
   EXPECTED_OUTCOME_ENUM,
 } = require("../../shared/utils/enum.js");
 
-// *************** IMPORT HELPER ***************
-const { CreateAppError } = require("../../core/error");
+// *************** IMPORT HELPER FUNCTION ***************
 const SubjectModel = require("./subject.model.js");
 const Block = require("../block/block.model.js");
 

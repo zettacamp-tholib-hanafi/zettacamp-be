@@ -5,7 +5,7 @@ const StudentTestResult = require("../studentTestResult/student_test_result.mode
 const Student = require("../student/student.model.js");
 const User = require("../user/user.model.js");
 
-// *************** IMPORT HELPER ***************
+// *************** IMPORT HELPER FUNCTION ***************
 const { SendEmailViaSendGrid } = require("./task.helper.js");
 // *************** IMPORT VALIDATOR ***************
 const {
