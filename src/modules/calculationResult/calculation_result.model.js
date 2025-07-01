@@ -124,5 +124,5 @@ const CalculationResultSchema = new Schema(
   }
 );
 
-// *************** EXPORT MODEL ***************
+// *************** EXPORT MODULE ***************
 module.exports = mongoose.model("CalculationResult", CalculationResultSchema);

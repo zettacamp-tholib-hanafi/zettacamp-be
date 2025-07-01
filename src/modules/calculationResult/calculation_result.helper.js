@@ -612,6 +612,7 @@ function WriteWorkerLog(logMessage) {
   }
 }
 
+// *************** EXPORT MODULE **************
 module.exports = {
   RunTranscriptCore,
   FetchStudentTestResult,

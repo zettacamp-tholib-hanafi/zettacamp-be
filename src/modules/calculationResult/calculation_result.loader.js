@@ -33,6 +33,8 @@ async function LoadBlocksByIds(block_ids) {
   return await Loaders.block.loadMany(blockIds);
 }
 
+// *************** EXPORT MODULE **************
+
 module.exports = {
   LoadTestsByIds,
   LoadSubjectsByIds,
