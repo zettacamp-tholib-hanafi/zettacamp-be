@@ -6,7 +6,7 @@ const {
   SUBJECT,
   LOGIC_ENUM,
   OPERATOR_ENUM,
-  VALID_EXPECTED_OUTCOME,
+  EXPECTED_OUTCOME_ENUM,
 } = require("../../shared/utils/enum");
 
 const subjectSchema = new Schema(
@@ -86,7 +86,7 @@ const subjectSchema = new Schema(
         expected_outcome: {
           type: String,
           required: true,
-          enum: VALID_EXPECTED_OUTCOME,
+          enum: EXPECTED_OUTCOME_ENUM,
           trim: true,
         },
       },
