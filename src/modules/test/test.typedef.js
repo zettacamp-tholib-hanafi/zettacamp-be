@@ -19,34 +19,16 @@ module.exports = gql`
     DELETED
   }
 
-  enum TestOperator {
-    EQ
-    GTE
-    GT
-    LTE
-    LT
-  }
-
-  enum TestLogicalOperator {
-    AND
-    OR
-  }
-
-  enum TestExpectedOutcome {
-    PASS
-    FAIL
-  }
-
   type Notation {
     notation_text: String!
     max_points: Float!
   }
 
   type TestCriteria {
-    logical_operator: TestLogicalOperator
-    operator: TestOperator!
+    logical_operator: LogicalOperator
+    operator: RuleOperator!
     value: Float!
-    expected_outcome: TestExpectedOutcome!
+    expected_outcome: ExpectedOutcome!
   }
 
   type Test {
@@ -77,10 +59,10 @@ module.exports = gql`
   }
 
   input TestCriteriaInput {
-    logical_operator: TestLogicalOperator
-    operator: TestOperator!
+    logical_operator: LogicalOperator
+    operator: RuleOperator!
     value: Float!
-    expected_outcome: TestExpectedOutcome!
+    expected_outcome: ExpectedOutcome!
   }
 
   input CreateTestInput {

@@ -12,48 +12,30 @@ module.exports = gql`
     DELETED
   }
 
-  enum BlockLogicalOperator {
-    AND
-    OR
-  }
-
   enum BlockRuleType {
     SUBJECT_PASS_STATUS
     TEST_PASS_STATUS
     BLOCK_AVERAGE
   }
 
-  enum Operator {
-    EQ
-    GTE
-    GT
-    LTE
-    LT
-  }
-
-  enum BlockExpectedOutcome {
-    PASS
-    FAIL
-  }
-
   input BlockPassingCriteriaInput {
-    logical_operator: BlockLogicalOperator
+    logical_operator: LogicalOperator
     type: BlockRuleType!
     subject_id: ID
     test_id: ID
-    operator: Operator!
+    operator: RuleOperator!
     value: Float!
-    expected_outcome: BlockExpectedOutcome!
+    expected_outcome: ExpectedOutcome!
   }
 
   type BlockPassingCriteria {
-    logical_operator: BlockLogicalOperator
+    logical_operator: LogicalOperator
     type: BlockRuleType!
     subject_id: ID
     test_id: ID
-    operator: Operator!
+    operator: RuleOperator!
     value: Float!
-    expected_outcome: BlockExpectedOutcome!
+    expected_outcome: ExpectedOutcome!
   }
 
   type Block {

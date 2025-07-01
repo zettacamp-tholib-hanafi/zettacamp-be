@@ -21,27 +21,9 @@ module.exports = gql`
     DELETED
   }
 
-  enum SubjectLogicalOperator {
-    AND
-    OR
-  }
-
   enum PassingRuleType {
     TEST_SCORE
     AVERAGE
-  }
-
-  enum PassingRuleOperator {
-    EQ
-    GTE
-    GT
-    LTE
-    LT
-  }
-
-  enum SubjectExpectedOutcome {
-    PASS
-    FAIL
   }
 
   type Subject {
@@ -65,12 +47,12 @@ module.exports = gql`
   }
 
   type SubjectPassingCriteria {
-    logical_operator: SubjectLogicalOperator
+    logical_operator: LogicalOperator
     type: PassingRuleType!
-    operator: PassingRuleOperator!
+    operator: RuleOperator!
     value: Float!
     test_id: ID
-    expected_outcome: SubjectExpectedOutcome!
+    expected_outcome: ExpectedOutcome!
   }
 
   input CreateSubjectInput {
@@ -102,12 +84,12 @@ module.exports = gql`
   }
 
   input SubjectPassingCriteriaInput {
-    logical_operator: SubjectLogicalOperator
+    logical_operator: LogicalOperator
     type: PassingRuleType!
-    operator: PassingRuleOperator!
+    operator: RuleOperator!
     value: Float!
     test_id: ID
-    expected_outcome: SubjectExpectedOutcome!
+    expected_outcome: ExpectedOutcome!
   }
 
   input SubjectFilter {
