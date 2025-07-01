@@ -7,15 +7,12 @@ const {
   ValidateUpdateSubject,
 } = require("./subject.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { SUBJECT } = require("../../shared/utils/enum.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-
-const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
-const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
-const VALID_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
 
 // *************** QUERY ***************
 
@@ -52,7 +49,7 @@ async function GetAllSubjects(_, { filter }) {
 
     // *************** Filter: subject_status
     if (filter && filter.subject_status) {
-      if (!VALID_STATUS.includes(filter.subject_status)) {
+      if (!SUBJECT.VALID_STATUS.includes(filter.subject_status)) {
         throw CreateAppError(
           "Invalid subject_status filter value",
           "BAD_REQUEST",
@@ -60,14 +57,11 @@ async function GetAllSubjects(_, { filter }) {
         );
       }
       query.subject_status = filter.subject_status;
-    } else {
-      // *************** Default to ACTIVE
-      query.subject_status = "ACTIVE";
-    }
+    } 
 
     // *************** Filter: level
     if (filter && filter.level) {
-      if (!VALID_LEVEL.includes(filter.level)) {
+      if (!SUBJECT.VALID_LEVEL.includes(filter.level)) {
         throw CreateAppError("Invalid level filter value", "BAD_REQUEST", {
           level: filter.level,
         });
@@ -77,7 +71,7 @@ async function GetAllSubjects(_, { filter }) {
 
     // *************** Filter: category
     if (filter && filter.category) {
-      if (!VALID_CATEGORY.includes(filter.category)) {
+      if (!SUBJECT.VALID_CATEGORY.includes(filter.category)) {
         throw CreateAppError("Invalid category filter value", "BAD_REQUEST", {
           category: filter.category,
         });
@@ -142,7 +136,7 @@ async function GetOneSubject(_, { id, filter }) {
 
     // *************** Filter: subject_status
     if (filter && filter.subject_status) {
-      if (!VALID_STATUS.includes(filter.subject_status)) {
+      if (!SUBJECT.VALID_STATUS.includes(filter.subject_status)) {
         throw CreateAppError(
           "Invalid subject_status filter value",
           "BAD_REQUEST",
@@ -150,14 +144,11 @@ async function GetOneSubject(_, { id, filter }) {
         );
       }
       query.subject_status = filter.subject_status;
-    } else {
-      // *************** Default to ACTIVE
-      query.subject_status = "ACTIVE";
-    }
+    } 
 
     // *************** Filter: level
     if (filter && filter.level) {
-      if (!VALID_LEVEL.includes(filter.level)) {
+      if (!SUBJECT.VALID_LEVEL.includes(filter.level)) {
         throw CreateAppError("Invalid level filter value", "BAD_REQUEST", {
           level: filter.level,
         });
@@ -167,7 +158,7 @@ async function GetOneSubject(_, { id, filter }) {
 
     // *************** Filter: category
     if (filter && filter.category) {
-      if (!VALID_CATEGORY.includes(filter.category)) {
+      if (!SUBJECT.VALID_CATEGORY.includes(filter.category)) {
         throw CreateAppError("Invalid category filter value", "BAD_REQUEST", {
           category: filter.category,
         });
@@ -235,7 +226,7 @@ async function CreateSubject(_, { input }) {
       coefficient,
       tests,
       subject_status,
-      passing_criteria,
+      criteria,
     } = await ValidateCreateSubject(input);
 
     const subjectPayload = {
@@ -247,7 +238,7 @@ async function CreateSubject(_, { input }) {
       block_id,
       coefficient,
       tests: Array.isArray(tests) ? tests : [],
-      passing_criteria,
+      criteria,
       subject_status,
     };
 
@@ -305,10 +296,11 @@ async function UpdateSubject(_, { id, input }) {
       block_id,
       coefficient,
       tests,
-      passing_criteria,
+      criteria,
       subject_status,
-    } = await ValidateUpdateSubject(input);
-    const subjectId = await ValidateMongoId(id);
+      _id,
+    } = await ValidateUpdateSubject(id, input);
+    const subjectId = await ValidateMongoId(_id);
 
     const subjectPayload = {
       name,
@@ -319,7 +311,7 @@ async function UpdateSubject(_, { id, input }) {
       block_id,
       coefficient,
       tests: Array.isArray(tests) ? tests : [],
-      passing_criteria,
+      criteria,
       subject_status,
     };
 

@@ -60,7 +60,6 @@ const studentTestResultSchema = new Schema(
     // Date when the marks were validated
     mark_validated_date: {
       type: Date,
-      default: Date.now,
     },
 
     // ID of the corrector or teacher who graded the test

@@ -6,26 +6,25 @@ const { CreateAppError } = require("../../core/error");
 
 // *************** IMPORT MODULE ***************
 const Test = require("./test.model");
-const Task = require("../task/task.model");
 const User = require("../user/user.model");
+const Subject = require("../subject/subject.model");
 
-// *************** CONSTANTS ***************
-const VALID_STATUS = ["DRAFT", "PUBLISHED", "ARCHIVED", "DELETED"];
-const VALID_GRADING_METHOD = ["MANUAL", "AUTO_GRADED"];
-const DEFAULT_GRADING_METHOD = "MANUAL";
+// *************** IMPORT UTILITIES ***************
+const {
+  TEST,
+  OPERATOR_ENUM,
+  EXPECTED_OUTCOME_ENUM,
+  LOGIC_ENUM,
+} = require("../../shared/utils/enum");
 
 /**
- * Validates and sanitizes input for creating a Test entity.
+ * Validates input for creating a Test.
  *
- * Ensures that all required fields are present and correct, including nested validations
- * like notations, attachments, and subject-level weight checks. Returns a validated object
- * ready for DB insertion.
- *
- * @param {Object} input - Input object for creating a test.
- * @returns {Promise<Object>} - Validated and sanitized test payload.
- *
- * @throws {AppError} - If any field is invalid or business logic constraint fails.
+ * @param {Object} input - Input data for the test.
+ * @returns {Promise<Object>} Validated and sanitized test payload with total_score included.
+ * @throws {AppError} If any validation rule fails.
  */
+
 async function ValidateCreateTest(input) {
   if (typeof input !== "object" || input === null) {
     throw CreateAppError("Invalid input format", "BAD_REQUEST");
@@ -39,7 +38,7 @@ async function ValidateCreateTest(input) {
     grading_method,
     test_status,
     attachments,
-    passing_score,
+    criteria,
     published_date,
   } = input;
 
@@ -72,6 +71,7 @@ async function ValidateCreateTest(input) {
   }
 
   let total_score = 0;
+  const notationTextSet = new Set();
   const sanitizedNotations = notations.map((notation, index) => {
     const { notation_text, max_points } = notation;
 
@@ -82,8 +82,14 @@ async function ValidateCreateTest(input) {
         { notation_text }
       );
     }
+    if (notationTextSet.has(notation_text)) {
+      throw CreateAppError(
+        "Duplicate notation_text not allowed",
+        "BAD_REQUEST"
+      );
+    }
 
-    if (typeof max_points !== "number" || max_points < 0) {
+    if (typeof max_points !== "number" || max_points < 0 || max_points > 100) {
       throw CreateAppError(
         `max_points must be a non-negative number at index ${index}`,
         "BAD_REQUEST",
@@ -93,35 +99,87 @@ async function ValidateCreateTest(input) {
 
     total_score += max_points;
     const notation_response = {
-      notation_text: notation_text.trim(),
+      notation_text: notation_text,
       max_points,
     };
     return notation_response;
   });
 
-  if (passing_score !== undefined) {
-    if (
-      typeof passing_score !== "number" ||
-      passing_score < 0 ||
-      passing_score > total_score
-    ) {
+  let validatedCriteria = null;
+  // *************** Validate: criteria
+  if (criteria) {
+    if (!Array.isArray(criteria) || criteria.length === 0) {
       throw CreateAppError(
-        "Passing score must be between 0 and total_score.",
-        "VALIDATION_ERROR",
-        { field: "passing_score" }
+        "Field 'criteria' must be a non-empty array.",
+        "VALIDATION_ERROR"
       );
     }
+    validatedCriteria = criteria.map((rule, index) => {
+      const { logical_operator, type, operator, value, expected_outcome } =
+        rule;
+
+      if (
+        index === 0 &&
+        logical_operator !== null &&
+        logical_operator !== undefined
+      ) {
+        throw CreateAppError(
+          `Rule[${index}] should not have 'logical_operator'. It must be null or omitted.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (index > 0 && !LOGIC_ENUM.includes(logical_operator)) {
+        throw CreateAppError(
+          `Rule[${index}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!OPERATOR_ENUM.includes(operator)) {
+        throw CreateAppError(
+          `Rule[${index}] has invalid operator '${operator}'`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (typeof value !== "number" || value < 0) {
+        throw CreateAppError(
+          `Rule[${index}] 'value' must be a positive number`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
+        throw CreateAppError(
+          `Rule[${index}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      return {
+        logical_operator: index === 0 ? null : logical_operator,
+        type,
+        operator,
+        value,
+        expected_outcome,
+      };
+    });
   }
 
   // *************** Validate: grading_method (optional)
-  if (grading_method && !VALID_GRADING_METHOD.includes(grading_method)) {
+  if (grading_method && !TEST.VALID_GRADING_METHOD.includes(grading_method)) {
     throw CreateAppError("Invalid grading method", "BAD_REQUEST", {
       grading_method,
     });
   }
 
   // *************** Validate: test_status
-  if (!test_status || !VALID_STATUS.includes(test_status)) {
+  if (!test_status || !TEST.VALID_STATUS.includes(test_status)) {
     throw CreateAppError("Invalid or missing test_status", "BAD_REQUEST", {
       test_status,
     });
@@ -158,7 +216,17 @@ async function ValidateCreateTest(input) {
     }
   }
 
-  // *************** Validate: total weight per subject (including this one)
+  const existingSubjectId = await Subject.findOne({
+    _id: subject_id,
+    subject_status: { $ne: "DELETED" },
+  });
+
+  if (!existingSubjectId) {
+    throw CreateAppError(`Subject ID is Not Found!`, "BAD_REQUEST", {
+      subject_id,
+    });
+  }
+
   const existingTests = await Test.find({
     subject_id,
     test_status: { $ne: "DELETED" },
@@ -184,63 +252,20 @@ async function ValidateCreateTest(input) {
     grading_method: grading_method || "MANUAL",
     test_status,
     attachments: attachments || [],
-    passing_score,
+    criteria: validatedCriteria,
     published_date,
   };
   return callbackTestPayload;
 }
 
 /**
- * Validate and sanitize input for updating a Test entity.
+ * Validates input for updating a Test entity.
  *
- * This function ensures the provided input adheres to all business logic and schema
- * requirements for a valid test update. It throws detailed validation errors using
- * `CreateAppError` if any input is invalid. On success, it returns a sanitized payload
- * that can be used directly for updating the database.
- *
- * ### Validations Performed:
- * - Checks that the input is a valid object.
- * - Validates `name` as a non-empty string.
- * - Validates `subject_id` as a valid Mongo ObjectId.
- * - Ensures `weight` is a non-negative number.
- * - Ensures `notations` is a non-empty array of valid objects.
- * - Ensures each notation has valid `notation_text` and `max_points`.
- * - Validates optional `passing_score` is between 0 and the computed `total_score`.
- * - Ensures `grading_method` is one of the allowed values (if provided).
- * - Ensures `test_status` is valid and required.
- * - Validates `attachments` as an array if present.
- * - Validates `published_date` only exists and is valid if status is `PUBLISHED`.
- * - Ensures total test weights per subject (including current update) do not exceed 1.0.
- *
- * @async
- * @function ValidateUpdateTest
- * @param {Object} input - The input object containing fields to update a Test.
- * @param {string} input.name - Name of the test.
- * @param {string} input.subject_id - MongoDB ObjectId of the subject.
- * @param {number} input.weight - Test weight, must be >= 0.
- * @param {Array<Object>} input.notations - Array of notation objects.
- * @param {string} input.notations[].notation_text - Description of the notation.
- * @param {number} input.notations[].max_points - Maximum score for the notation.
- * @param {string} [input.grading_method] - Grading method (optional).
- * @param {string} input.test_status - Test status, must be one of the allowed ENUMs.
- * @param {Array<string>} [input.attachments] - Optional list of URLs.
- * @param {number} [input.passing_score] - Optional minimum score required to pass.
- * @param {string} [input.published_date] - Optional ISO date string (only if status is `PUBLISHED`).
- *
- * @throws {AppError} Will throw an error if any validation fails.
- *
- * @returns {Promise<Object>} Sanitized and validated payload ready for update.
- * @returns {string} return.name - Trimmed test name.
- * @returns {string} return.subject_id - Original valid subject ID.
- * @returns {number} return.weight - Validated weight.
- * @returns {Array<Object>} return.notations - Cleaned list of notations.
- * @returns {number} return.total_score - Sum of all `max_points` from notations.
- * @returns {string} return.grading_method - Validated or default grading method.
- * @returns {string} return.test_status - Validated test status.
- * @returns {Array<string>} return.attachments - Validated or default attachment list.
- * @returns {number} [return.passing_score] - Validated passing score, if present.
+ * @param {String} id - MongoDB ObjectId of the Test to update.
+ * @param {Object} input - Input object conforming to UpdateTestInput typedef.
+ * @returns {Promise<Object>} - Sanitized and validated payload.
+ * @throws {AppError} - On invalid structure, types, or enum mismatches.
  */
-
 async function ValidateUpdateTest(id, input) {
   if (typeof input !== "object" || input === null) {
     throw CreateAppError("Invalid input format", "BAD_REQUEST");
@@ -249,14 +274,27 @@ async function ValidateUpdateTest(id, input) {
   const {
     name,
     subject_id,
+    description,
     weight,
     notations,
     grading_method,
+    criteria,
     test_status,
     attachments,
-    passing_score,
     published_date,
   } = input;
+
+  const existTest = await Test.exists({
+    _id: id,
+    test_status: { $ne: "DELETED" },
+  });
+
+  if (!existTest) {
+    throw CreateAppError(
+      `Test with ID '${id}' not found or has been deleted.`,
+      "VALIDATION_ERROR"
+    );
+  }
 
   // *************** Validate: name
   if (!name || typeof name !== "string" || name.trim() === "") {
@@ -269,13 +307,25 @@ async function ValidateUpdateTest(id, input) {
       subject_id,
     });
   }
+  const subject = await Subject.findOne({
+    _id: subject_id,
+    subject_status: { $ne: "DELETED" },
+  });
+
+  if (!subject) {
+    throw CreateAppError("Subject not found", "NOT_FOUND", {
+      subject_id,
+    });
+  }
 
   // *************** Validate: weight
   if (typeof weight !== "number" || weight < 0) {
     throw CreateAppError(
       "Weight must be a non-negative number",
       "BAD_REQUEST",
-      { weight }
+      {
+        weight,
+      }
     );
   }
 
@@ -287,6 +337,8 @@ async function ValidateUpdateTest(id, input) {
   }
 
   let total_score = 0;
+  const notationTextSet = new Set();
+
   const sanitizedNotations = notations.map((notation, index) => {
     const { notation_text, max_points } = notation;
 
@@ -298,7 +350,14 @@ async function ValidateUpdateTest(id, input) {
       );
     }
 
-    if (typeof max_points !== "number" || max_points < 0) {
+    if (notationTextSet.has(notation_text)) {
+      throw CreateAppError(
+        "Duplicate notation_text not allowed",
+        "BAD_REQUEST"
+      );
+    }
+
+    if (typeof max_points !== "number" || max_points < 0 || max_points > 100) {
       throw CreateAppError(
         `max_points must be a non-negative number at index ${index}`,
         "BAD_REQUEST",
@@ -307,57 +366,104 @@ async function ValidateUpdateTest(id, input) {
     }
 
     total_score += max_points;
-    const notationPayload = {
-      notation_text: notation_text.trim(),
+    return {
+      notation_text: notation_text,
       max_points,
     };
-    return notationPayload;
   });
 
-  if (passing_score !== undefined) {
-    if (
-      typeof passing_score !== "number" ||
-      passing_score < 0 ||
-      passing_score > total_score
-    ) {
+  // *************** Validate: criteria
+  let validatedCriteria = null;
+  if (criteria) {
+    if (!Array.isArray(criteria) || criteria.length === 0) {
       throw CreateAppError(
-        "Passing score must be between 0 and total_score.",
-        "VALIDATION_ERROR",
-        { field: "passing_score" }
+        "Field 'criteria' must be a non-empty array.",
+        "VALIDATION_ERROR"
       );
     }
+    validatedCriteria = criteria.map((rule, index) => {
+      const { logical_operator, type, operator, value, expected_outcome } =
+        rule;
+
+      if (
+        index === 0 &&
+        logical_operator !== null &&
+        logical_operator !== undefined
+      ) {
+        throw CreateAppError(
+          `Rule[${index}] should not have 'logical_operator'. It must be null or omitted.`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (index > 0 && !LOGIC_ENUM.includes(logical_operator)) {
+        throw CreateAppError(
+          `Rule[${index}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!OPERATOR_ENUM.includes(operator)) {
+        throw CreateAppError(
+          `Rule[${index}] has invalid operator '${operator}'`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (typeof value !== "number" || value < 0) {
+        throw CreateAppError(
+          `Rule[${index}] 'value' must be a positive number`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
+        throw CreateAppError(
+          `Rule[${index}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
+            ", "
+          )}`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      return {
+        logical_operator: index === 0 ? null : logical_operator,
+        type,
+        operator,
+        value,
+        expected_outcome,
+      };
+    });
   }
 
   // *************** Validate: grading_method (optional)
-  if (grading_method && !VALID_GRADING_METHOD.includes(grading_method)) {
+  if (grading_method && !TEST.VALID_GRADING_METHOD.includes(grading_method)) {
     throw CreateAppError("Invalid grading method", "BAD_REQUEST", {
       grading_method,
     });
   }
 
   // *************** Validate: test_status
-  if (!test_status || !VALID_STATUS.includes(test_status)) {
+  if (!test_status || !TEST.VALID_STATUS.includes(test_status)) {
     throw CreateAppError("Invalid or missing test_status", "BAD_REQUEST", {
       test_status,
     });
   }
 
   // *************** Validate: attachments (optional)
-  if (attachments) {
-    if (!Array.isArray(attachments)) {
-      throw CreateAppError(
-        "Attachments must be an array of URLs",
-        "BAD_REQUEST",
-        { attachments }
-      );
-    }
+  if (attachments && !Array.isArray(attachments)) {
+    throw CreateAppError("Attachments must be an array", "BAD_REQUEST", {
+      attachments,
+    });
   }
 
-  // *************** Validate: published_date (optional, only for PUBLISHED status)
+  // *************** Validate: published_date
   if (published_date !== undefined) {
     if (isNaN(Date.parse(published_date))) {
       throw CreateAppError("Invalid published_date format", "BAD_REQUEST", {
-        published_date: published_date,
+        published_date,
       });
     }
 
@@ -365,57 +471,46 @@ async function ValidateUpdateTest(id, input) {
       throw CreateAppError(
         "published_date is only allowed when test_status is PUBLISHED",
         "BAD_REQUEST",
-        {
-          published_date: published_date,
-          test_status,
-        }
+        { published_date, test_status }
       );
     }
   }
 
-  // *************** Load previous weight
+  // *************** Validate: weight quota
   const currentTest = await Test.findById(id).select("weight");
   if (!currentTest) {
-    throw CreateAppError("Test not found for update", "NOT_FOUND", {
-      test_id: id,
-    });
+    throw CreateAppError("Test not found", "NOT_FOUND", { id });
   }
-  // *************** Validate total weight excluding current test
-  const existingTests = await Test.find({
+
+  const otherTests = await Test.find({
     subject_id,
     test_status: { $ne: "DELETED" },
-    _id: { $ne: id }, // exclude the current test
+    _id: { $ne: id },
   }).select("weight");
 
-  const otherWeights = existingTests.reduce(
-    (sum, test) => sum + (test.weight || 0),
-    0
-  );
+  const combinedWeight =
+    otherTests.reduce((sum, test) => sum + (test.weight || 0), 0) + weight;
 
-  const totalWeight = otherWeights + weight;
-
-  if (totalWeight > 1) {
+  if (combinedWeight > 1) {
     throw CreateAppError(
-      `Combined test weight for subject exceeds 1. Current total would be ${totalWeight}`,
+      `Combined test weight exceeds 1. Current total: ${combinedWeight}`,
       "BAD_REQUEST",
-      {
-        subject_id,
-        new_weight: weight,
-        current_total: totalWeight,
-      }
+      { subject_id, combinedWeight }
     );
   }
 
   const callbackTestPayload = {
+    _id: id,
     name: name.trim(),
     subject_id,
+    description: description ? description.trim() : null,
     weight,
     notations: sanitizedNotations,
     total_score,
-    grading_method: grading_method || DEFAULT_GRADING_METHOD,
+    grading_method: grading_method || TEST.DEFAULT_GRADING_METHOD,
+    criteria: validatedCriteria,
     test_status,
     attachments: attachments || [],
-    passing_score,
     published_date,
   };
   return callbackTestPayload;

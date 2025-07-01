@@ -5,7 +5,7 @@ const StudentTestResult = require("../studentTestResult/student_test_result.mode
 const Student = require("../student/student.model.js");
 const User = require("../user/user.model.js");
 
-// *************** IMPORT HELPER ***************
+// *************** IMPORT HELPER FUNCTION ***************
 const { SendEmailViaSendGrid } = require("./task.helper.js");
 // *************** IMPORT VALIDATOR ***************
 const {
@@ -15,7 +15,7 @@ const {
   ValidateEnterMarks,
 } = require("./task.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 
 // *************** IMPORT CORE ***************
@@ -62,8 +62,6 @@ async function GetAllTasks(_, { filter }) {
         );
       }
       query.task_status = filter.task_status;
-    } else {
-      query.task_status = DEFAULT_TASK_STATUS;
     }
 
     // *************** Filter: task_type
@@ -138,8 +136,6 @@ async function GetOneTask(_, { id, filter }) {
         );
       }
       query.task_status = filter.task_status;
-    } else {
-      query.task_status = DEFAULT_TASK_STATUS;
     }
 
     // *************** Filter: task_type
@@ -363,7 +359,6 @@ async function AssignCorrector(_, { id, input }, context) {
 
     // *************** Step 4: Send Email Notification
     const test = await Test.findById(assignTask.test_id).lean();
-    // const corrector = await User.findById(user_id).lean();
 
     // *************** For testing purposes
     const corrector = {
@@ -379,7 +374,7 @@ async function AssignCorrector(_, { id, input }, context) {
       .lean();
 
     const studentNames = students
-      .map((s) => `${s.first_name} ${s.last_name}`)
+      .map((student) => `${student.first_name} ${student.last_name}`)
       .join(", ");
     const emailPayload = {
       to: corrector.email,

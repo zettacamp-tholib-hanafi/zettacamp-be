@@ -1,8 +1,13 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-const VALID_BLOCK_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
-const VALID_BLOCK_PASSING_CRITERIA = ["AND", "OR"];
+// ************** IMPORT UTILITIES *************
+const {
+  BLOCK,
+  LOGIC_ENUM,
+  OPERATOR_ENUM,
+  VALID_EXPECTED_OUTCOME,
+} = require("../../shared/utils/enum");
 
 const blockSchema = new Schema(
   {
@@ -24,16 +29,49 @@ const blockSchema = new Schema(
     block_status: {
       type: String,
       required: true,
-      enum: VALID_BLOCK_STATUS,
+      enum: BLOCK.VALID_STATUS,
       trim: true,
     },
 
-    // Passing criteria Operator of the block
-    passing_criteria_operator: {
-      type: String,
-      enum: VALID_BLOCK_PASSING_CRITERIA,
-      trim: true,
-    },
+    // Criteria Operator of the block
+
+    criteria: [
+      {
+        logical_operator: {
+          type: String,
+          enum: LOGIC_ENUM,
+        },
+        type: {
+          type: String,
+          enum: BLOCK.RULE_TYPE,
+          required: true,
+        },
+        subject_id: {
+          type: Schema.Types.ObjectId,
+          ref: "Subject",
+        },
+        test_id: {
+          type: Schema.Types.ObjectId,
+          ref: "Test",
+        },
+        operator: {
+          type: String,
+          enum: OPERATOR_ENUM,
+          required: true,
+        },
+        value: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+        expected_outcome: {
+          type: String,
+          required: true,
+          enum: VALID_EXPECTED_OUTCOME,
+          trim: true,
+        },
+      },
+    ],
 
     // Start date of the block
     start_date: {

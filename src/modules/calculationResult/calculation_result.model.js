@@ -2,15 +2,11 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const LOGIC_ENUM = ["AND", "OR"];
-const BLOCK_RULE_TYPE_ENUM = [
-  "SUBJECT_PASS_STATUS",
-  "TEST_PASS_STATUS",
-  "BLOCK_AVERAGE",
-];
-const SUBJECT_RULE_TYPE_ENUM = ["TEST_SCORE", "AVERAGE"];
-const OPERATOR_ENUM = ["==", ">=", ">", "<=", "<"];
-const RESULT_ENUM = ["PASS", "FAIL"];
+// *************** IMPORT UTILITIES ***************
+const {
+  EXPECTED_OUTCOME_ENUM,
+  CALCULATION_RESULT,
+} = require("../../shared/utils/enum");
 
 const CalculationResultSchema = new Schema(
   {
@@ -19,6 +15,13 @@ const CalculationResultSchema = new Schema(
       ref: "Student",
       required: true,
     },
+
+    overall_result: {
+      type: String,
+      enum: EXPECTED_OUTCOME_ENUM,
+      required: true,
+    },
+
     results: [
       {
         block_id: {
@@ -26,31 +29,18 @@ const CalculationResultSchema = new Schema(
           ref: "Block",
           required: true,
         },
-        criteria: {
-          logic: { type: String, enum: LOGIC_ENUM, required: true },
-          rules: [
-            {
-              type: {
-                type: String,
-                enum: BLOCK_RULE_TYPE_ENUM,
-                required: true,
-              },
-              subject_id: { type: Schema.Types.ObjectId, ref: "Subject" },
-              test_id: { type: Schema.Types.ObjectId, ref: "Test" },
-              operator: { type: String, enum: OPERATOR_ENUM, required: true },
-              value: { type: Number, required: true },
-            },
-          ],
-        },
+
         block_result: {
           type: String,
-          enum: RESULT_ENUM,
+          enum: EXPECTED_OUTCOME_ENUM,
           required: true,
         },
+
         total_mark: {
           type: Number,
           required: true,
         },
+
         subject_results: [
           {
             subject_id: {
@@ -58,34 +48,18 @@ const CalculationResultSchema = new Schema(
               ref: "Subject",
               required: true,
             },
-            criteria: {
-              logic: { type: String, enum: LOGIC_ENUM, required: true },
-              rules: [
-                {
-                  type: {
-                    type: String,
-                    enum: SUBJECT_RULE_TYPE_ENUM,
-                    required: true,
-                  },
-                  test_id: { type: Schema.Types.ObjectId, ref: "Test" },
-                  operator: {
-                    type: String,
-                    enum: OPERATOR_ENUM,
-                    required: true,
-                  },
-                  value: { type: Number, required: true },
-                },
-              ],
-            },
+
             subject_result: {
               type: String,
-              enum: RESULT_ENUM,
+              enum: EXPECTED_OUTCOME_ENUM,
               required: true,
             },
+
             total_mark: {
               type: Number,
               required: true,
             },
+
             test_results: [
               {
                 test_id: {
@@ -93,23 +67,18 @@ const CalculationResultSchema = new Schema(
                   ref: "Test",
                   required: true,
                 },
-                criteria: {
-                  operator: {
-                    type: String,
-                    enum: OPERATOR_ENUM,
-                    required: true,
-                  },
-                  value: { type: Number, required: true },
-                },
+
                 test_result: {
                   type: String,
-                  enum: RESULT_ENUM,
+                  enum: EXPECTED_OUTCOME_ENUM,
                   required: true,
                 },
+
                 average_mark: {
                   type: Number,
                   required: true,
                 },
+
                 weighted_mark: {
                   type: Number,
                   required: true,
@@ -120,6 +89,14 @@ const CalculationResultSchema = new Schema(
         ],
       },
     ],
+
+    calculation_result_status: {
+      type: String,
+      enum: CALCULATION_RESULT.VALID_STATUS,
+      required: true,
+      default: CALCULATION_RESULT.DEFAULT_STATUS,
+    },
+
     created_by: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -140,9 +117,12 @@ const CalculationResultSchema = new Schema(
     },
   },
   {
-    timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
+    timestamps: {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    },
   }
 );
 
-// *************** EXPORT MODEL ***************
+// *************** EXPORT MODULE ***************
 module.exports = mongoose.model("CalculationResult", CalculationResultSchema);

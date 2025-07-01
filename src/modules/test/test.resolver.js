@@ -10,15 +10,12 @@ const {
   ValidateAssignCorrector,
 } = require("./test.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { TEST } = require("../../shared/utils/enum.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-
-// *************** Constant Enum
-const VALID_TEST_STATUS = ["DRAFT", "PUBLISHED", "ARCHIVED", "DELETED"];
-const VALID_GRADING_METHOD = ["MANUAL", "AUTO_GRADED"];
 
 // *************** QUERY ***************
 
@@ -41,7 +38,7 @@ async function GetAllTests(_, { filter }) {
     const query = {};
 
     if (filter && filter.test_status) {
-      if (!VALID_TEST_STATUS.includes(filter.test_status)) {
+      if (!TEST.VALID_STATUS.includes(filter.test_status)) {
         throw CreateAppError(
           "Invalid test_status filter value",
           "BAD_REQUEST",
@@ -49,11 +46,9 @@ async function GetAllTests(_, { filter }) {
         );
       }
       query.test_status = filter.test_status;
-    } else {
-      query.test_status = "ACTIVE";
     }
     if (filter && filter.grading_method) {
-      if (!VALID_GRADING_METHOD.includes(filter.grading_method)) {
+      if (!TEST.VALID_GRADING_METHOD.includes(filter.grading_method)) {
         throw CreateAppError(
           "Invalid grading_method filter value",
           "BAD_REQUEST",
@@ -92,7 +87,7 @@ async function GetOneTest(_, { id, filter }) {
     const query = { _id: testId };
 
     if (filter && filter.test_status) {
-      if (!VALID_TEST_STATUS.includes(filter.test_status)) {
+      if (!TEST.VALID_STATUS.includes(filter.test_status)) {
         throw CreateAppError(
           "Invalid test_status filter value",
           "BAD_REQUEST",
@@ -100,11 +95,9 @@ async function GetOneTest(_, { id, filter }) {
         );
       }
       query.test_status = filter.test_status;
-    } else {
-      query.test_status = "ACTIVE";
-    }
+    } 
     if (filter && filter.grading_method) {
-      if (!VALID_GRADING_METHOD.includes(filter.grading_method)) {
+      if (!TEST.VALID_GRADING_METHOD.includes(filter.grading_method)) {
         throw CreateAppError(
           "Invalid grading_method filter value",
           "BAD_REQUEST",
@@ -128,37 +121,13 @@ async function GetOneTest(_, { id, filter }) {
 // *************** MUTATION ***************
 
 /**
- * Creates a new Test entity in the database.
+ * Create a new test based on validated input.
  *
- * This mutation validates the input payload using `ValidateCreateTest` and constructs
- * a properly structured test document for insertion into the database.
- * It handles optional fields like `description`, `passing_score`, `attachments`, and `published_date`
- * gracefully by defaulting to `null` or empty array as appropriate.
- *
- * On validation failure or DB errors, it throws a meaningful error via `HandleCaughtError`.
- *
- * @async
- * @function CreateTest
- * @param {Object} _ - Unused parent resolver argument.
- * @param {Object} args - GraphQL resolver arguments.
- * @param {Object} args.input - The input payload for creating a test.
- * @param {string} args.input.name - Name of the test (required).
- * @param {string} args.input.subject_id - MongoDB ObjectId string of the related subject (required).
- * @param {string} [args.input.description] - Optional description of the test.
- * @param {number} args.input.weight - Weight of the test (required, ≥ 0).
- * @param {Array<Object>} args.input.notations - Array of notation objects (required).
- * @param {number} args.input.total_score - Calculated total score from notations (required).
- * @param {string} [args.input.grading_method] - Optional grading method, must be 'MANUAL' or 'AUTO_GRADED'.
- * @param {number} [args.input.passing_score] - Optional minimum passing score.
- * @param {string} args.input.test_status - Status of the test, must be one of: DRAFT, PUBLISHED, ARCHIVED, DELETED.
- * @param {string[]} [args.input.attachments] - Optional array of valid URL strings.
- * @param {string} [args.input.published_date] - Optional ISO date string; only allowed if status is PUBLISHED.
- *
- * @returns {Promise<Object>} The created Test document.
- *
- * @throws {AppError} Throws if validation fails or database error occurs.
+ * @param {Object} _ - Unused GraphQL parent resolver argument.
+ * @param {Object} args - The GraphQL arguments object.
+ * @param {Object} args.input - The validated test creation input.
+ * @returns {Promise<Object>} The created test document.
  */
-
 async function CreateTest(_, { input }) {
   try {
     const {
@@ -169,7 +138,7 @@ async function CreateTest(_, { input }) {
       notations,
       total_score,
       grading_method,
-      passing_score,
+      criteria,
       test_status,
       attachments,
       published_date,
@@ -178,15 +147,15 @@ async function CreateTest(_, { input }) {
     const testPayload = {
       name,
       subject_id,
-      description: description ? description : null,
+      description: description || null,
       weight,
       notations: Array.isArray(notations) ? notations : [],
       total_score,
-      grading_method: grading_method ? grading_method : null,
-      passing_score: passing_score !== undefined ? passing_score : null,
+      grading_method: grading_method || null,
+      criteria,
       test_status,
       attachments: Array.isArray(attachments) ? attachments : [],
-      published_date: published_date ? published_date : null,
+      published_date: published_date || null,
     };
 
     const createTestResponse = await Test.create(testPayload);
@@ -197,40 +166,18 @@ async function CreateTest(_, { input }) {
 }
 
 /**
- * Updates an existing Test entity in the database.
+ * Update an existing test document.
  *
- * This mutation validates the input payload using `ValidateUpdateTest` and constructs
- * a test update payload. Optional fields like `description`, `passing_score`,
- * `attachments`, and `published_date` are handled gracefully with fallback values.
- *
- * On validation or database failure, the error is caught and rethrown using `HandleCaughtError`.
- *
- * @async
- * @function UpdateTest
  * @param {Object} _ - Unused parent resolver argument.
- * @param {Object} args - GraphQL resolver arguments.
- * @param {Object} args.input - The input payload for updating a test.
- * @param {string} args.input.id - The ID of the test to update.
- * @param {string} [args.input.name] - Updated name of the test.
- * @param {string} [args.input.subject_id] - Updated subject ID reference.
- * @param {string} [args.input.description] - Updated description.
- * @param {number} [args.input.weight] - Updated test weight (≥ 0).
- * @param {Array<Object>} [args.input.notations] - Updated notations.
- * @param {number} [args.input.total_score] - Updated total score.
- * @param {string} [args.input.grading_method] - Grading method (MANUAL or AUTO_GRADED).
- * @param {number} [args.input.passing_score] - Updated passing score.
- * @param {string} [args.input.test_status] - Updated test status (DRAFT, PUBLISHED, ARCHIVED, DELETED).
- * @param {string[]} [args.input.attachments] - Updated list of URL attachments.
- * @param {string} [args.input.published_date] - Updated published date if status is PUBLISHED.
- *
- * @returns {Promise<Object>} The updated Test document.
- *
- * @throws {AppError} Throws when validation fails or the update operation encounters an error.
+ * @param {Object} args - GraphQL arguments.
+ * @param {String} args.id - The ID of the test to update.
+ * @param {Object} args.input - The validated update input.
+ * @returns {Promise<Object>} The response containing updated test ID.
  */
-
 async function UpdateTest(_, { id, input }) {
   try {
     const testId = await ValidateMongoId(id);
+
     const {
       name,
       subject_id,
@@ -239,7 +186,7 @@ async function UpdateTest(_, { id, input }) {
       notations,
       total_score,
       grading_method,
-      passing_score,
+      criteria,
       test_status,
       attachments,
       published_date,
@@ -248,15 +195,15 @@ async function UpdateTest(_, { id, input }) {
     const testPayload = {
       name,
       subject_id,
-      description: description ? description : null,
+      description: description || null,
       weight,
       notations: Array.isArray(notations) ? notations : [],
       total_score,
-      grading_method: grading_method ? grading_method : null,
-      passing_score: passing_score !== undefined ? passing_score : null,
+      grading_method: grading_method || null,
+      criteria,
       test_status,
       attachments: Array.isArray(attachments) ? attachments : [],
-      published_date: published_date ? published_date : null,
+      published_date: published_date || null,
     };
 
     const updated = await Test.updateOne(
@@ -267,8 +214,9 @@ async function UpdateTest(_, { id, input }) {
     if (!updated || updated.matchedCount === 0) {
       throw CreateAppError("Test not found", "NOT_FOUND", { testId });
     }
-    const updateTestResponse = { id: testId };
-    return updateTestResponse;
+
+    const result = { id: testId };
+    return result;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to update test", "VALIDATION_ERROR");
   }
