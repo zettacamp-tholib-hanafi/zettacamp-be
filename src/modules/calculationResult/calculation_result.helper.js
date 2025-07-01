@@ -140,15 +140,8 @@ async function CalculateTestResults(tests, studentTestResults) {
       );
     }
 
-    const marks = resultEntry.marks || [];
-    const totalMarks = marks.reduce(
-      (accumulator, mark) => accumulator + (mark.mark || 0),
-      0
-    );
-    const averageMark = Number(
-      (marks.length ? totalMarks / marks.length : 0).toFixed(2)
-    );
-    const weight = Number((test.weight || 0).toFixed(2));
+    const averageMark = resultEntry.average_mark;
+    const weight = Number(test.weight || 0);
     const weightedMark = Number((averageMark * weight).toFixed(2));
 
     const criteria = test.criteria;
