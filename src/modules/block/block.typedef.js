@@ -12,48 +12,38 @@ module.exports = gql`
     DELETED
   }
 
-  enum BlockLogicalOperator {
-    AND
-    OR
-  }
-
   enum BlockRuleType {
     SUBJECT_PASS_STATUS
     TEST_PASS_STATUS
     BLOCK_AVERAGE
   }
 
-  enum Operator {
-    EQ
-    GTE
-    GT
-    LTE
-    LT
-  }
-
-  enum BlockExpectedOutcome {
-    PASS
-    FAIL
-  }
-
-  input BlockPassingCriteriaInput {
-    logical_operator: BlockLogicalOperator
+  input BlockRuleInput {
+    logical_operator: LogicalOperator
     type: BlockRuleType!
     subject_id: ID
     test_id: ID
-    operator: Operator!
+    operator: RuleOperator!
     value: Float!
-    expected_outcome: BlockExpectedOutcome!
   }
 
-  type BlockPassingCriteria {
-    logical_operator: BlockLogicalOperator
+  input BlockCriteriaGroupInput {
+    expected_outcome: ExpectedOutcome!
+    rules: [BlockRuleInput!]!
+  }
+
+  type BlockRule {
+    logical_operator: LogicalOperator
     type: BlockRuleType!
     subject_id: ID
     test_id: ID
-    operator: Operator!
+    operator: RuleOperator!
     value: Float!
-    expected_outcome: BlockExpectedOutcome!
+  }
+
+  type BlockCriteriaGroup {
+    expected_outcome: ExpectedOutcome!
+    rules: [BlockRule!]!
   }
 
   type Block {
@@ -61,7 +51,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: [BlockPassingCriteria!]
+    criteria: [BlockCriteriaGroup!]
     start_date: Date!
     end_date: Date
     subjects: [Subject!]
@@ -77,7 +67,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: [BlockPassingCriteriaInput!]
+    criteria: [BlockCriteriaGroupInput!]
     start_date: Date!
     end_date: Date
     subjects: [ID!]
@@ -87,7 +77,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: [BlockPassingCriteriaInput!]
+    criteria: [BlockCriteriaGroupInput!]
     start_date: Date!
     end_date: Date
     subjects: [ID!]

@@ -13,74 +13,31 @@ module.exports = gql`
     ARCHIVED
     DELETED
   }
-  enum EvaluationResult {
-    PASS
-    FAIL
-  }
-
-  enum BlockRuleType {
-    SUBJECT_PASS_STATUS
-    TEST_PASS_STATUS
-    BLOCK_AVERAGE
-  }
-
-  enum SubjectRuleType {
-    TEST_SCORE
-    AVERAGE
-  }
-
-  enum Operator {
-    EQ
-    GTE
-    GT
-    LTE
-    LT
-  }
-
-  enum Logic {
-    AND
-    OR
-  }
-
-  type BlockRule {
-    type: BlockRuleType!
-    subject_id: ObjectId
-    test_id: ObjectId
-    operator: Operator!
-    value: Float!
-  }
-
-  type SubjectRule {
-    type: SubjectRuleType!
-    test_id: ObjectId
-    operator: Operator!
-    value: Float!
-  }
 
   type TestResult {
     test_id: ObjectId!
-    test_result: EvaluationResult!
+    test_result: ExpectedOutcome!
     average_mark: Float!
     weighted_mark: Float!
   }
 
   type SubjectResult {
     subject_id: ObjectId!
-    subject_result: EvaluationResult!
+    subject_result: ExpectedOutcome!
     total_mark: Float!
     test_results: [TestResult!]!
   }
 
   type BlockResult {
     block_id: ObjectId!
-    block_result: EvaluationResult!
+    block_result: ExpectedOutcome!
     total_mark: Float!
     subject_results: [SubjectResult!]!
   }
 
   type CalculationResult {
     student_id: ObjectId!
-    overall_result: EvaluationResult!
+    overall_result: ExpectedOutcome!
     results: [BlockResult!]!
     calculation_result_status: CalculationResultStatus!
     created_at: Date

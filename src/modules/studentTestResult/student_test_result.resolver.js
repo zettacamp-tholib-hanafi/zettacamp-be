@@ -137,7 +137,7 @@ async function GetOneStudentTestResult(_, { id, filter }) {
         );
       }
       query.student_test_result_status = filter.student_test_result_status;
-    } 
+    }
 
     // *************** Filter: student_id
     if (filter && filter.student_id) {
@@ -203,10 +203,8 @@ async function CreateStudentTestResult(_, { input }) {
     // *************** Calculate Average Mark
     let average_mark = 0;
     if (Array.isArray(marks) && marks.length > 0) {
-      let total = 0;
-      for (let i = 0; i < marks.length; i++) {
-        total += marks[i].mark;
-      }
+      const total = marks.reduce((sum, item) => sum + item.mark, 0);
+
       average_mark = total / marks.length;
     }
 
@@ -273,10 +271,7 @@ async function UpdateStudentTestResult(_, { id, input }) {
     // *************** Calculate Average Mark
     let average_mark = 0;
     if (Array.isArray(marks) && marks.length > 0) {
-      let total = 0;
-      for (let i = 0; i < marks.length; i++) {
-        total += marks[i].mark;
-      }
+      const total = marks.reduce((sum, item) => sum + item.mark, 0);
       average_mark = total / marks.length;
     }
 
@@ -500,7 +495,9 @@ async function ValidateMarks(_, { id }) {
       });
     }
 
-    const student_id = await ValidateMongoId(String(studentTestResult.student_id));
+    const student_id = await ValidateMongoId(
+      String(studentTestResult.student_id)
+    );
     if (student_id) {
       try {
         await RunTranscriptWorker(student_id);

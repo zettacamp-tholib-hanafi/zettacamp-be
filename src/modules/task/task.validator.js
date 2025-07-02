@@ -245,7 +245,7 @@ async function ValidateEnterMarks(test_id, input) {
     );
   }
 
-  for (const [i, mark] of marks.entries()) {
+  marks.forEach((mark, index) => {
     if (
       !mark ||
       !mongoose.Types.ObjectId.isValid(mark.notation_id) ||
@@ -254,12 +254,12 @@ async function ValidateEnterMarks(test_id, input) {
       mark.mark > 100
     ) {
       throw CreateAppError(
-        `Invalid mark at index ${i}: notation_id and mark required (0-100)`,
+        `Invalid mark at index ${index}: notation_id and mark required (0-100)`,
         400,
         "VALIDATION_ERROR"
       );
     }
-  }
+  });
 
   // *************** Fetch ENTER_MARKS Task
   const task = await Task.findOne({

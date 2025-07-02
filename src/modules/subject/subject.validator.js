@@ -100,90 +100,134 @@ async function ValidateCreateSubject(input) {
   if (criteria) {
     if (!Array.isArray(criteria) || criteria.length === 0) {
       throw CreateAppError(
-        "Field 'criteria' must be a non-empty array.",
+        "Field 'criteria' must be a non-empty array of groups.",
         "VALIDATION_ERROR"
       );
     }
-    validatedCriteria = criteria.map((rule, index) => {
-      const {
-        logical_operator,
-        type,
-        test_id,
-        operator,
-        value,
-        expected_outcome,
-      } = rule;
+    const passCount = criteria.filter(
+      (criteria) => criteria.expected_outcome === "PASS"
+    ).length;
+    const failCount = criteria.filter(
+      (criteria) => criteria.expected_outcome === "FAIL"
+    ).length;
+    console.log("passCount:", passCount);
+    console.log("failCount:", failCount);
 
-      if (
-        index === 0 &&
-        logical_operator !== null &&
-        logical_operator !== undefined
-      ) {
-        throw CreateAppError(
-          `Rule[${index}] should not have 'logical_operator'. It must be null or omitted.`,
-          "VALIDATION_ERROR"
-        );
-      }
+    if (passCount !== 1 || failCount !== 1) {
+      throw CreateAppError(
+        `Criteria group[${groupIndex}] must contain 1 PASS and 1 FAIL rule.`,
+        "INVALID_EXPECTED_OUTCOME_COMPOSITION"
+      );
+    }
+    validatedCriteria = criteria.map((group, groupIndex) => {
+      const { expected_outcome, rules } = group;
 
-      if (index > 0 && !LOGIC_ENUM.includes(logical_operator)) {
-        throw CreateAppError(
-          `Rule[${index}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
-            ", "
-          )}`,
-          "VALIDATION_ERROR"
-        );
-      }
+      const ruleSignature = new Set();
 
-      if (!SUBJECT.VALID_CONDITION_TYPE.includes(type)) {
-        throw CreateAppError(
-          `Rule[${index}] has invalid type '${type}'`,
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (!OPERATOR_ENUM.includes(operator)) {
-        throw CreateAppError(
-          `Rule[${index}] has invalid operator '${operator}'`,
-          "VALIDATION_ERROR"
-        );
-      }
-
-      if (typeof value !== "number" || value < 0) {
-        throw CreateAppError(
-          `Rule[${index}] 'value' must be a positive number`,
-          "VALIDATION_ERROR"
-        );
-      }
+      rules.forEach((rule, ruleIndex) => {
+        const signature = `${rule.type}_${rule.operator}_${rule.value}`;
+        if (ruleSignature.has(signature)) {
+          throw CreateAppError(
+            `Group[${groupIndex}].rules[${ruleIndex}] has duplicate or conflicting rule: '${rule.operator} ${rule.value}'`,
+            "REDUNDANT_RULE_DETECTED"
+          );
+        }
+        ruleSignature.add(signature);
+      });
 
       if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
         throw CreateAppError(
-          `Rule[${index}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
+          `Group[${groupIndex}] has invalid expected_outcome. Must be one of: ${EXPECTED_OUTCOME_ENUM.join(
             ", "
           )}`,
           "VALIDATION_ERROR"
         );
       }
 
-      if (type === "TEST_SCORE" && (!test_id || !isValidObjectId(test_id))) {
+      if (!Array.isArray(rules) || rules.length === 0) {
         throw CreateAppError(
-          `Rule[${index}] requires a valid 'test_id'`,
-          "VALIDATION_ERROR"
-        );
-      }
-      if (type === "AVERAGE" && test_id) {
-        throw CreateAppError(
-          `Rule[${index}] of type 'AVERAGE' must not include 'test_id'`,
+          `Group[${groupIndex}] must contain non-empty 'rules' array.`,
           "VALIDATION_ERROR"
         );
       }
 
+      if (rules.length !== 2) {
+        throw CreateAppError(
+          `Criteria group[${groupIndex}] must contain exactly 2 rules: one PASS and one FAIL.`,
+          "INVALID_CRITERIA_STRUCTURE"
+        );
+      }
+
+      const validatedRules = rules.map((rule, ruleIndex) => {
+        const { logical_operator, type, test_id, operator, value } = rule;
+
+        if (
+          ruleIndex === 0 &&
+          logical_operator !== null &&
+          logical_operator !== undefined
+        ) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] should not have 'logical_operator'. It must be null or omitted.`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (ruleIndex > 0 && !LOGIC_ENUM.includes(logical_operator)) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] 'logical_operator' must be one of: ${LOGIC_ENUM.join(
+              ", "
+            )}`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (!SUBJECT.VALID_CONDITION_TYPE.includes(type)) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] has invalid type '${type}'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (!OPERATOR_ENUM.includes(operator)) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] has invalid operator '${operator}'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (typeof value !== "number" || value < 0) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] 'value' must be a non-negative number`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (type === "TEST_SCORE" && (!test_id || !isValidObjectId(test_id))) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] of type TEST_SCORE requires valid 'test_id'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (type === "AVERAGE" && test_id) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] of type AVERAGE must not have 'test_id'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        return {
+          logical_operator: ruleIndex === 0 ? null : logical_operator,
+          type,
+          test_id: test_id || null,
+          operator,
+          value,
+        };
+      });
+
       return {
-        logical_operator: index === 0 ? null : logical_operator,
-        type,
-        test_id: test_id || null,
-        operator,
-        value,
         expected_outcome,
+        rules: validatedRules,
       };
     });
   }
@@ -325,90 +369,127 @@ async function ValidateUpdateSubject(id, input) {
   if (criteria) {
     if (!Array.isArray(criteria) || criteria.length === 0) {
       throw CreateAppError(
-        "Field 'criteria' must be a non-empty array.",
+        "Field 'criteria' must be a non-empty array of groups.",
         "VALIDATION_ERROR"
       );
     }
-    validatedCriteria = criteria.map((rule, index) => {
-      const {
-        logical_operator,
-        type,
-        test_id,
-        operator,
-        value,
-        expected_outcome,
-      } = rule;
 
-      if (
-        index === 0 &&
-        logical_operator !== null &&
-        logical_operator !== undefined
-      ) {
-        throw CreateAppError(
-          `Rule[${index}] should not have 'logical_operator'. It must be null or omitted.`,
-          "VALIDATION_ERROR"
-        );
-      }
+    const passCount = criteria.filter(
+      (criteria) => criteria.expected_outcome === "PASS"
+    ).length;
+    const failCount = criteria.filter(
+      (criteria) => criteria.expected_outcome === "FAIL"
+    ).length;
 
-      if (index > 0 && !LOGIC_ENUM.includes(logical_operator)) {
-        throw CreateAppError(
-          `Rule[${index}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
-            ", "
-          )}`,
-          "VALIDATION_ERROR"
-        );
-      }
+    if (passCount !== 1 || failCount !== 1) {
+      throw CreateAppError(
+        `Criteria group[${groupIndex}] must contain 1 PASS and 1 FAIL rule.`,
+        "INVALID_EXPECTED_OUTCOME_COMPOSITION"
+      );
+    }
 
-      if (!SUBJECT.VALID_CONDITION_TYPE.includes(type)) {
-        throw CreateAppError(
-          `Rule[${index}] has invalid type '${type}'`,
-          "VALIDATION_ERROR"
-        );
-      }
+    validatedCriteria = criteria.map((group, groupIndex) => {
+      const { expected_outcome, rules } = group;
 
-      if (!OPERATOR_ENUM.includes(operator)) {
-        throw CreateAppError(
-          `Rule[${index}] has invalid operator '${operator}'`,
-          "VALIDATION_ERROR"
-        );
-      }
+      const ruleSignature = new Set();
 
-      if (typeof value !== "number" || value < 0) {
-        throw CreateAppError(
-          `Rule[${index}] 'value' must be a positive number`,
-          "VALIDATION_ERROR"
-        );
-      }
+      rules.forEach((rule, ruleIndex) => {
+        const signature = `${rule.type}_${rule.operator}_${rule.value}`;
+        if (ruleSignature.has(signature)) {
+          throw CreateAppError(
+            `Group[${groupIndex}].rules[${ruleIndex}] has duplicate or conflicting rule: '${rule.operator} ${rule.value}'`,
+            "REDUNDANT_RULE_DETECTED"
+          );
+        }
+        ruleSignature.add(signature);
+      });
 
       if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
         throw CreateAppError(
-          `Rule[${index}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
+          `Group[${groupIndex}] has invalid expected_outcome. Must be one of: ${EXPECTED_OUTCOME_ENUM.join(
             ", "
           )}`,
           "VALIDATION_ERROR"
         );
       }
 
-      if (type === "TEST_SCORE" && (!test_id || !isValidObjectId(test_id))) {
+      if (!Array.isArray(rules) || rules.length === 0) {
         throw CreateAppError(
-          `Rule[${index}] requires a valid 'test_id'`,
-          "VALIDATION_ERROR"
-        );
-      }
-      if (type === "AVERAGE" && test_id) {
-        throw CreateAppError(
-          `Rule[${index}] of type 'AVERAGE' must not include 'test_id'`,
+          `Group[${groupIndex}] must contain non-empty 'rules' array.`,
           "VALIDATION_ERROR"
         );
       }
 
+      const validatedRules = rules.map((rule, ruleIndex) => {
+        const { logical_operator, type, test_id, operator, value } = rule;
+
+        if (
+          ruleIndex === 0 &&
+          logical_operator !== null &&
+          logical_operator !== undefined
+        ) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] should not have 'logical_operator'. It must be null or omitted.`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (ruleIndex > 0 && !LOGIC_ENUM.includes(logical_operator)) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] 'logical_operator' must be one of: ${LOGIC_ENUM.join(
+              ", "
+            )}`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (!SUBJECT.VALID_CONDITION_TYPE.includes(type)) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] has invalid type '${type}'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (!OPERATOR_ENUM.includes(operator)) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] has invalid operator '${operator}'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (typeof value !== "number" || value < 0) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] 'value' must be a non-negative number`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (type === "TEST_SCORE" && (!test_id || !isValidObjectId(test_id))) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] of type TEST_SCORE requires valid 'test_id'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (type === "AVERAGE" && test_id) {
+          throw CreateAppError(
+            `Rule[${groupIndex}][${ruleIndex}] of type AVERAGE must not have 'test_id'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        return {
+          logical_operator: ruleIndex === 0 ? null : logical_operator,
+          type,
+          test_id: test_id || null,
+          operator,
+          value,
+        };
+      });
+
       return {
-        logical_operator: index === 0 ? null : logical_operator,
-        type,
-        test_id: test_id || null,
-        operator,
-        value,
         expected_outcome,
+        rules: validatedRules,
       };
     });
   }

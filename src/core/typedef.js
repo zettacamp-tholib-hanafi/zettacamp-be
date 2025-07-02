@@ -1,5 +1,6 @@
 // *************** IMPORT MODUL ***************
 
+const globalTypeDefs = require("../shared/utils/typedef");
 const userTypeDefs = require("../modules/user/user.typedef");
 const studentTypeDefs = require("../modules/student/student.typedef");
 const schoolTypeDefs = require("../modules/school/school.typedef");
@@ -11,6 +12,7 @@ const taskTypedef = require("../modules/task/task.typedef");
 const calculationResultTypedef = require("../modules/calculationResult/calculation_result.typedef");
 
 const typeDefs = [
+  globalTypeDefs,
   userTypeDefs,
   studentTypeDefs,
   schoolTypeDefs,

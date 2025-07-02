@@ -21,27 +21,9 @@ module.exports = gql`
     DELETED
   }
 
-  enum SubjectLogicalOperator {
-    AND
-    OR
-  }
-
   enum PassingRuleType {
     TEST_SCORE
     AVERAGE
-  }
-
-  enum PassingRuleOperator {
-    EQ
-    GTE
-    GT
-    LTE
-    LT
-  }
-
-  enum SubjectExpectedOutcome {
-    PASS
-    FAIL
   }
 
   type Subject {
@@ -54,7 +36,7 @@ module.exports = gql`
     block_id: ID!
     coefficient: Float!
     tests: [Test]
-    criteria: [SubjectPassingCriteria!]
+    criteria: [SubjectPassingCriteriaGroup!]
     subject_status: SubjectStatus!
     created_at: Date!
     created_by: String
@@ -64,13 +46,17 @@ module.exports = gql`
     deleted_by: String
   }
 
-  type SubjectPassingCriteria {
-    logical_operator: SubjectLogicalOperator
+  type SubjectPassingCriteriaGroup {
+    expected_outcome: ExpectedOutcome!
+    rules: [SubjectPassingRule!]!
+  }
+
+  type SubjectPassingRule {
+    logical_operator: LogicalOperator
     type: PassingRuleType!
-    operator: PassingRuleOperator!
+    operator: RuleOperator!
     value: Float!
     test_id: ID
-    expected_outcome: SubjectExpectedOutcome!
   }
 
   input CreateSubjectInput {
@@ -82,7 +68,7 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: [SubjectPassingCriteriaInput!]
+    criteria: [SubjectPassingCriteriaGroupInput!]
     subject_status: SubjectStatus!
     created_by: String
   }
@@ -96,18 +82,22 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: [SubjectPassingCriteriaInput!]
+    criteria: [SubjectPassingCriteriaGroupInput!]
     subject_status: SubjectStatus!
     updated_by: String
   }
 
-  input SubjectPassingCriteriaInput {
-    logical_operator: SubjectLogicalOperator
+  input SubjectPassingCriteriaGroupInput {
+    expected_outcome: ExpectedOutcome!
+    rules: [SubjectPassingRuleInput!]!
+  }
+
+  input SubjectPassingRuleInput {
+    logical_operator: LogicalOperator
     type: PassingRuleType!
-    operator: PassingRuleOperator!
+    operator: RuleOperator!
     value: Float!
     test_id: ID
-    expected_outcome: SubjectExpectedOutcome!
   }
 
   input SubjectFilter {

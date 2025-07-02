@@ -6,7 +6,7 @@ const {
   SUBJECT,
   LOGIC_ENUM,
   OPERATOR_ENUM,
-  VALID_EXPECTED_OUTCOME,
+  EXPECTED_OUTCOME_ENUM,
 } = require("../../shared/utils/enum");
 
 const subjectSchema = new Schema(
@@ -60,35 +60,39 @@ const subjectSchema = new Schema(
 
     criteria: [
       {
-        logical_operator: {
-          type: String,
-          enum: LOGIC_ENUM,
-        },
-        type: {
-          type: String,
-          enum: SUBJECT.VALID_CONDITION_TYPE,
-          required: true,
-        },
-        test_id: {
-          type: Schema.Types.ObjectId,
-          ref: "Test",
-        },
-        operator: {
-          type: String,
-          enum: OPERATOR_ENUM,
-          required: true,
-        },
-        value: {
-          type: Number,
-          required: true,
-          min: 0,
-        },
         expected_outcome: {
           type: String,
           required: true,
-          enum: VALID_EXPECTED_OUTCOME,
+          enum: EXPECTED_OUTCOME_ENUM,
           trim: true,
         },
+        rules: [
+          {
+            logical_operator: {
+              type: String,
+              enum: LOGIC_ENUM,
+            },
+            type: {
+              type: String,
+              enum: SUBJECT.VALID_CONDITION_TYPE,
+              required: true,
+            },
+            test_id: {
+              type: Schema.Types.ObjectId,
+              ref: "Test",
+            },
+            operator: {
+              type: String,
+              enum: OPERATOR_ENUM,
+              required: true,
+            },
+            value: {
+              type: Number,
+              required: true,
+              min: 0,
+            },
+          },
+        ],
       },
     ],
 

@@ -1,9 +1,7 @@
 // *************** IMPORT LIBRARY ***************
-
 const gql = require("graphql-tag");
 
 // *************** EXPORT MODULE ***************
-
 module.exports = gql`
   scalar Date
 
@@ -19,34 +17,20 @@ module.exports = gql`
     DELETED
   }
 
-  enum TestOperator {
-    EQ
-    GTE
-    GT
-    LTE
-    LT
-  }
-
-  enum TestLogicalOperator {
-    AND
-    OR
-  }
-
-  enum TestExpectedOutcome {
-    PASS
-    FAIL
-  }
-
   type Notation {
     notation_text: String!
     max_points: Float!
   }
 
-  type TestCriteria {
-    logical_operator: TestLogicalOperator
-    operator: TestOperator!
+  type TestCriteriaRule {
+    logical_operator: LogicalOperator
+    operator: RuleOperator!
     value: Float!
-    expected_outcome: TestExpectedOutcome!
+  }
+
+  type TestCriteria {
+    expected_outcome: ExpectedOutcome!
+    rules: [TestCriteriaRule!]!
   }
 
   type Test {
@@ -76,11 +60,15 @@ module.exports = gql`
     max_points: Float!
   }
 
-  input TestCriteriaInput {
-    logical_operator: TestLogicalOperator
-    operator: TestOperator!
+  input TestCriteriaRuleInput {
+    logical_operator: LogicalOperator
+    operator: RuleOperator!
     value: Float!
-    expected_outcome: TestExpectedOutcome!
+  }
+
+  input TestCriteriaInput {
+    expected_outcome: ExpectedOutcome!
+    rules: [TestCriteriaRuleInput!]!
   }
 
   input CreateTestInput {
