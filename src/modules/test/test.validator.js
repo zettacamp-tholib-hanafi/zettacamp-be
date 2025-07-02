@@ -428,8 +428,6 @@ async function ValidateUpdateTest(id, input) {
     const failCount = criteria.filter(
       (criteria) => criteria.expected_outcome === "FAIL"
     ).length;
-    console.log("passCount:", passCount);
-    console.log("failCount:", failCount);
 
     if (passCount !== 1 || failCount !== 1) {
       throw CreateAppError(
