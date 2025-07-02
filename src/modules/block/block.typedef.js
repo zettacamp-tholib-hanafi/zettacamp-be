@@ -18,24 +18,32 @@ module.exports = gql`
     BLOCK_AVERAGE
   }
 
-  input BlockPassingCriteriaInput {
+  input BlockRuleInput {
     logical_operator: LogicalOperator
     type: BlockRuleType!
     subject_id: ID
     test_id: ID
     operator: RuleOperator!
     value: Float!
-    expected_outcome: ExpectedOutcome!
   }
 
-  type BlockPassingCriteria {
+  input BlockCriteriaGroupInput {
+    expected_outcome: ExpectedOutcome!
+    rules: [BlockRuleInput!]!
+  }
+
+  type BlockRule {
     logical_operator: LogicalOperator
     type: BlockRuleType!
     subject_id: ID
     test_id: ID
     operator: RuleOperator!
     value: Float!
+  }
+
+  type BlockCriteriaGroup {
     expected_outcome: ExpectedOutcome!
+    rules: [BlockRule!]!
   }
 
   type Block {
@@ -43,7 +51,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: [BlockPassingCriteria!]
+    criteria: [BlockCriteriaGroup!]
     start_date: Date!
     end_date: Date
     subjects: [Subject!]
@@ -59,7 +67,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: [BlockPassingCriteriaInput!]
+    criteria: [BlockCriteriaGroupInput!]
     start_date: Date!
     end_date: Date
     subjects: [ID!]
@@ -69,7 +77,7 @@ module.exports = gql`
     name: String!
     description: String
     block_status: BlockStatus!
-    criteria: [BlockPassingCriteriaInput!]
+    criteria: [BlockCriteriaGroupInput!]
     start_date: Date!
     end_date: Date
     subjects: [ID!]
