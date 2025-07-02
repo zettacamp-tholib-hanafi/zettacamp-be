@@ -1,9 +1,7 @@
 // *************** IMPORT LIBRARY ***************
-
 const gql = require("graphql-tag");
 
 // *************** EXPORT MODULE ***************
-
 module.exports = gql`
   scalar Date
 
@@ -24,11 +22,15 @@ module.exports = gql`
     max_points: Float!
   }
 
-  type TestCriteria {
+  type TestCriteriaRule {
     logical_operator: LogicalOperator
     operator: RuleOperator!
     value: Float!
+  }
+
+  type TestCriteria {
     expected_outcome: ExpectedOutcome!
+    rules: [TestCriteriaRule!]!
   }
 
   type Test {
@@ -58,11 +60,15 @@ module.exports = gql`
     max_points: Float!
   }
 
-  input TestCriteriaInput {
+  input TestCriteriaRuleInput {
     logical_operator: LogicalOperator
     operator: RuleOperator!
     value: Float!
+  }
+
+  input TestCriteriaInput {
     expected_outcome: ExpectedOutcome!
+    rules: [TestCriteriaRuleInput!]!
   }
 
   input CreateTestInput {
