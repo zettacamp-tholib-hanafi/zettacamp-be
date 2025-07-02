@@ -36,7 +36,7 @@ module.exports = gql`
     block_id: ID!
     coefficient: Float!
     tests: [Test]
-    criteria: [SubjectPassingCriteria!]
+    criteria: [SubjectPassingCriteriaGroup!]
     subject_status: SubjectStatus!
     created_at: Date!
     created_by: String
@@ -46,13 +46,17 @@ module.exports = gql`
     deleted_by: String
   }
 
-  type SubjectPassingCriteria {
+  type SubjectPassingCriteriaGroup {
+    expected_outcome: ExpectedOutcome!
+    rules: [SubjectPassingRule!]!
+  }
+
+  type SubjectPassingRule {
     logical_operator: LogicalOperator
     type: PassingRuleType!
     operator: RuleOperator!
     value: Float!
     test_id: ID
-    expected_outcome: ExpectedOutcome!
   }
 
   input CreateSubjectInput {
@@ -64,7 +68,7 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: [SubjectPassingCriteriaInput!]
+    criteria: [SubjectPassingCriteriaGroupInput!]
     subject_status: SubjectStatus!
     created_by: String
   }
@@ -78,18 +82,22 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    criteria: [SubjectPassingCriteriaInput!]
+    criteria: [SubjectPassingCriteriaGroupInput!]
     subject_status: SubjectStatus!
     updated_by: String
   }
 
-  input SubjectPassingCriteriaInput {
+  input SubjectPassingCriteriaGroupInput {
+    expected_outcome: ExpectedOutcome!
+    rules: [SubjectPassingRuleInput!]!
+  }
+
+  input SubjectPassingRuleInput {
     logical_operator: LogicalOperator
     type: PassingRuleType!
     operator: RuleOperator!
     value: Float!
     test_id: ID
-    expected_outcome: ExpectedOutcome!
   }
 
   input SubjectFilter {
