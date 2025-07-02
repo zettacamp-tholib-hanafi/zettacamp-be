@@ -105,8 +105,8 @@ async function ValidateCreateTest(input) {
     return notation_response;
   });
 
-  let validatedCriteria = null;
   // *************** Validate: criteria
+  let validatedCriteria = null;
   if (criteria) {
     if (!Array.isArray(criteria) || criteria.length === 0) {
       throw CreateAppError(
@@ -114,59 +114,99 @@ async function ValidateCreateTest(input) {
         "VALIDATION_ERROR"
       );
     }
-    validatedCriteria = criteria.map((rule, index) => {
-      const { logical_operator, type, operator, value, expected_outcome } =
-        rule;
 
-      if (
-        index === 0 &&
-        logical_operator !== null &&
-        logical_operator !== undefined
-      ) {
-        throw CreateAppError(
-          `Rule[${index}] should not have 'logical_operator'. It must be null or omitted.`,
-          "VALIDATION_ERROR"
-        );
-      }
+    const passCount = criteria.filter(
+      (criteria) => criteria.expected_outcome === "PASS"
+    ).length;
+    const failCount = criteria.filter(
+      (criteria) => criteria.expected_outcome === "FAIL"
+    ).length;
 
-      if (index > 0 && !LOGIC_ENUM.includes(logical_operator)) {
-        throw CreateAppError(
-          `Rule[${index}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
-            ", "
-          )}`,
-          "VALIDATION_ERROR"
-        );
-      }
+    if (passCount !== 1 || failCount !== 1) {
+      throw CreateAppError(
+        `Criteria group[${groupIndex}] must contain 1 PASS and 1 FAIL rule.`,
+        "INVALID_EXPECTED_OUTCOME_COMPOSITION"
+      );
+    }
 
-      if (!OPERATOR_ENUM.includes(operator)) {
-        throw CreateAppError(
-          `Rule[${index}] has invalid operator '${operator}'`,
-          "VALIDATION_ERROR"
-        );
-      }
+    validatedCriteria = criteria.map((group, groupIndex) => {
+      const { expected_outcome, rules } = group;
+      const ruleSignature = new Set();
 
-      if (typeof value !== "number" || value < 0) {
-        throw CreateAppError(
-          `Rule[${index}] 'value' must be a positive number`,
-          "VALIDATION_ERROR"
-        );
-      }
+      rules.forEach((rule, ruleIndex) => {
+        const signature = `${rule.operator}_${rule.value}`;
+        if (ruleSignature.has(signature)) {
+          throw CreateAppError(
+            `Group[${groupIndex}].rules[${ruleIndex}] has duplicate or conflicting rule: '${rule.operator} ${rule.value}'`,
+            "REDUNDANT_RULE_DETECTED"
+          );
+        }
+        ruleSignature.add(signature);
+      });
 
       if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
         throw CreateAppError(
-          `Rule[${index}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
+          `Criteria[${groupIndex}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
             ", "
           )}`,
           "VALIDATION_ERROR"
         );
       }
 
+      if (!Array.isArray(rules) || rules.length === 0) {
+        throw CreateAppError(
+          `Criteria[${groupIndex}] must contain a non-empty array of rules`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      const validatedRules = rules.map((rule, ruleIndex) => {
+        const { logical_operator, operator, value } = rule;
+
+        if (
+          ruleIndex === 0 &&
+          logical_operator !== null &&
+          logical_operator !== undefined
+        ) {
+          throw CreateAppError(
+            `Criteria[${groupIndex}].rules[${ruleIndex}] should not have 'logical_operator'.`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (ruleIndex > 0 && !LOGIC_ENUM.includes(logical_operator)) {
+          throw CreateAppError(
+            `Criteria[${groupIndex}].rules[${ruleIndex}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
+              ", "
+            )}`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (!OPERATOR_ENUM.includes(operator)) {
+          throw CreateAppError(
+            `Criteria[${groupIndex}].rules[${ruleIndex}] has invalid operator '${operator}'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (typeof value !== "number" || value < 0 || value > 100) {
+          throw CreateAppError(
+            `Criteria[${groupIndex}].rules[${ruleIndex}] 'value' must be a number between 0-100`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        return {
+          logical_operator: ruleIndex === 0 ? null : logical_operator,
+          operator,
+          value,
+        };
+      });
+
       return {
-        logical_operator: index === 0 ? null : logical_operator,
-        type,
-        operator,
-        value,
         expected_outcome,
+        rules: validatedRules,
       };
     });
   }
@@ -381,59 +421,102 @@ async function ValidateUpdateTest(id, input) {
         "VALIDATION_ERROR"
       );
     }
-    validatedCriteria = criteria.map((rule, index) => {
-      const { logical_operator, type, operator, value, expected_outcome } =
-        rule;
 
-      if (
-        index === 0 &&
-        logical_operator !== null &&
-        logical_operator !== undefined
-      ) {
-        throw CreateAppError(
-          `Rule[${index}] should not have 'logical_operator'. It must be null or omitted.`,
-          "VALIDATION_ERROR"
-        );
-      }
+    const passCount = criteria.filter(
+      (criteria) => criteria.expected_outcome === "PASS"
+    ).length;
+    const failCount = criteria.filter(
+      (criteria) => criteria.expected_outcome === "FAIL"
+    ).length;
+    console.log("passCount:", passCount);
+    console.log("failCount:", failCount);
 
-      if (index > 0 && !LOGIC_ENUM.includes(logical_operator)) {
-        throw CreateAppError(
-          `Rule[${index}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
-            ", "
-          )}`,
-          "VALIDATION_ERROR"
-        );
-      }
+    if (passCount !== 1 || failCount !== 1) {
+      throw CreateAppError(
+        `Criteria group[${groupIndex}] must contain 1 PASS and 1 FAIL rule.`,
+        "INVALID_EXPECTED_OUTCOME_COMPOSITION"
+      );
+    }
 
-      if (!OPERATOR_ENUM.includes(operator)) {
-        throw CreateAppError(
-          `Rule[${index}] has invalid operator '${operator}'`,
-          "VALIDATION_ERROR"
-        );
-      }
+    validatedCriteria = criteria.map((group, groupIndex) => {
+      const { expected_outcome, rules } = group;
 
-      if (typeof value !== "number" || value < 0) {
-        throw CreateAppError(
-          `Rule[${index}] 'value' must be a positive number`,
-          "VALIDATION_ERROR"
-        );
-      }
+      const ruleSignature = new Set();
+
+      rules.forEach((rule, ruleIndex) => {
+        const signature = `${rule.operator}_${rule.value}`;
+        if (ruleSignature.has(signature)) {
+          throw CreateAppError(
+            `Group[${groupIndex}].rules[${ruleIndex}] has duplicate or conflicting rule: '${rule.operator} ${rule.value}'`,
+            "REDUNDANT_RULE_DETECTED"
+          );
+        }
+        ruleSignature.add(signature);
+      });
 
       if (!EXPECTED_OUTCOME_ENUM.includes(expected_outcome)) {
         throw CreateAppError(
-          `Rule[${index}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
+          `Criteria[${groupIndex}] 'expected_outcome' must be one of: ${EXPECTED_OUTCOME_ENUM.join(
             ", "
           )}`,
           "VALIDATION_ERROR"
         );
       }
 
+      if (!Array.isArray(rules) || rules.length === 0) {
+        throw CreateAppError(
+          `Criteria[${groupIndex}] must contain a non-empty array of rules`,
+          "VALIDATION_ERROR"
+        );
+      }
+
+      const validatedRules = rules.map((rule, ruleIndex) => {
+        const { logical_operator, operator, value } = rule;
+
+        if (
+          ruleIndex === 0 &&
+          logical_operator !== null &&
+          logical_operator !== undefined
+        ) {
+          throw CreateAppError(
+            `Criteria[${groupIndex}].rules[${ruleIndex}] should not have 'logical_operator'.`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (ruleIndex > 0 && !LOGIC_ENUM.includes(logical_operator)) {
+          throw CreateAppError(
+            `Criteria[${groupIndex}].rules[${ruleIndex}] 'logical_operator' must be one of ${LOGIC_ENUM.join(
+              ", "
+            )}`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (!OPERATOR_ENUM.includes(operator)) {
+          throw CreateAppError(
+            `Criteria[${groupIndex}].rules[${ruleIndex}] has invalid operator '${operator}'`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        if (typeof value !== "number" || value < 0 || value > 100) {
+          throw CreateAppError(
+            `Criteria[${groupIndex}].rules[${ruleIndex}] 'value' must be a number between 0-100`,
+            "VALIDATION_ERROR"
+          );
+        }
+
+        return {
+          logical_operator: ruleIndex === 0 ? null : logical_operator,
+          operator,
+          value,
+        };
+      });
+
       return {
-        logical_operator: index === 0 ? null : logical_operator,
-        type,
-        operator,
-        value,
         expected_outcome,
+        rules: validatedRules,
       };
     });
   }
