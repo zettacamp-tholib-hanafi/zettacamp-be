@@ -7,13 +7,14 @@ const {
   ValidateUpdateBlock,
 } = require("./block.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const {
+  BLOCK,
+} = require("../../shared/utils/enum");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-
-const VALID_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
 
 // *************** QUERY ***************
 
@@ -39,7 +40,7 @@ async function GetAllBlocks(_, { filter }) {
     const query = {};
 
     if (filter && filter.block_status) {
-      if (!VALID_STATUS.includes(filter.block_status)) {
+      if (!BLOCK.VALID_STATUS.includes(filter.block_status)) {
         const handlingError = CreateAppError(
           "Invalid block_status filter value",
           "BAD_REQUEST",
@@ -48,8 +49,6 @@ async function GetAllBlocks(_, { filter }) {
         throw handlingError;
       }
       query.block_status = filter.block_status;
-    } else {
-      query.block_status = "ACTIVE";
     }
     const findBlocks = await Block.find(query);
     return findBlocks;
@@ -83,7 +82,7 @@ async function GetOneBlock(_, { id, filter }) {
     const query = { _id: blockId };
 
     if (filter && filter.block_status) {
-      if (!VALID_STATUS.includes(filter.block_status)) {
+      if (!BLOCK.VALID_STATUS.includes(filter.block_status)) {
         const handlingError = CreateAppError(
           "Invalid block_status filter value",
           "BAD_REQUEST",
@@ -92,8 +91,6 @@ async function GetOneBlock(_, { id, filter }) {
         throw handlingError;
       }
       query.block_status = filter.block_status;
-    } else {
-      query.block_status = "ACTIVE";
     }
 
     const block = await Block.findOne(query);
@@ -146,7 +143,7 @@ async function CreateBlock(_, { input }) {
       name,
       description,
       block_status,
-      passing_criteria_operator,
+      criteria,
       start_date,
       end_date,
       subjects,
@@ -156,7 +153,7 @@ async function CreateBlock(_, { input }) {
       name,
       description: description ? description : null,
       block_status,
-      passing_criteria_operator,
+      criteria,
       start_date,
       end_date: end_date ? end_date : null,
       subjects: Array.isArray(subjects) ? subjects : [],
@@ -199,18 +196,19 @@ async function UpdateBlock(_, { id, input }) {
       name,
       description,
       block_status,
-      passing_criteria_operator,
+      criteria,
       start_date,
       end_date,
       subjects,
-    } = await ValidateUpdateBlock(input);
-    const blockId = await ValidateMongoId(id);
+      _id,
+    } = await ValidateUpdateBlock(id, input);
+    const blockId = await ValidateMongoId(_id);
 
     const blockUpdatePayload = {
       name,
       description: description ? description : null,
       block_status,
-      passing_criteria_operator,
+      criteria,
       start_date,
       end_date: end_date ? end_date : null,
       subjects: Array.isArray(subjects) ? subjects : [],

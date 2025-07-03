@@ -9,13 +9,17 @@ const {
 } = require("./student_test_result.validator.js");
 const { ValidateCreateTask } = require("../task/task.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 
-// *************** IMPORT CORE ***************
+// *************** IMPORT CORE ****************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
-// *************** Constant Enum
+// *************** IMPORT HELPER **************
+const {
+  RunTranscriptWorker,
+} = require("../calculationResult/calculation_result.worker.js");
+
 const VALID_STUDENT_TEST_RESULT_STATUS = [
   "GRADED",
   "PENDING_REVIEW",
@@ -62,8 +66,6 @@ async function GetAllStudentTestResults(_, { filter }) {
         );
       }
       query.student_test_result_status = filter.student_test_result_status;
-    } else {
-      query.student_test_result_status = DEFAULT_STUDENT_TEST_RESULT_STATUS;
     }
 
     // *************** Filter: student_id
@@ -135,8 +137,6 @@ async function GetOneStudentTestResult(_, { id, filter }) {
         );
       }
       query.student_test_result_status = filter.student_test_result_status;
-    } else {
-      query.student_test_result_status = DEFAULT_STUDENT_TEST_RESULT_STATUS;
     }
 
     // *************** Filter: student_id
@@ -203,10 +203,8 @@ async function CreateStudentTestResult(_, { input }) {
     // *************** Calculate Average Mark
     let average_mark = 0;
     if (Array.isArray(marks) && marks.length > 0) {
-      let total = 0;
-      for (let i = 0; i < marks.length; i++) {
-        total += marks[i].mark;
-      }
+      const total = marks.reduce((sum, mark) => sum + mark.mark, 0);
+
       average_mark = total / marks.length;
     }
 
@@ -273,10 +271,7 @@ async function UpdateStudentTestResult(_, { id, input }) {
     // *************** Calculate Average Mark
     let average_mark = 0;
     if (Array.isArray(marks) && marks.length > 0) {
-      let total = 0;
-      for (let i = 0; i < marks.length; i++) {
-        total += marks[i].mark;
-      }
+      const total = marks.reduce((sum, mark) => sum + mark.mark, 0);
       average_mark = total / marks.length;
     }
 
@@ -461,22 +456,29 @@ async function EnterMarks(_, { input }) {
  *
  * @throws {AppError} If validation or update processes fail, returns an error wrapped by `HandleCaughtError`.
  */
-
 async function ValidateMarks(_, { id }) {
   try {
     const taskId = await ValidateMongoId(id);
     const { task, studentTestResult } = await ValidateValidateMarks(taskId);
 
-    await StudentTestResult.updateOne(
-      { _id: studentTestResult._id },
+    const updateStudent = await StudentTestResult.updateOne(
+      {
+        _id: studentTestResult._id,
+        student_test_result_status: { $ne: "DELETED" },
+      },
       {
         $set: {
           mark_validated_date: new Date(),
         },
       }
     );
+    if (updateStudent.modifiedCount === 0) {
+      throw CreateAppError("Student Test Result not updated", "NOT_FOUND", {
+        id: studentTestResult._id,
+      });
+    }
 
-    await Task.updateOne(
+    const updateTask = await Task.updateOne(
       {
         _id: task._id,
         task_type: "VALIDATE_MARKS",
@@ -486,6 +488,28 @@ async function ValidateMarks(_, { id }) {
         $set: { task_status: "COMPLETED" },
       }
     );
+
+    if (updateTask.modifiedCount === 0) {
+      throw CreateAppError("Task not updated", "NOT_FOUND", {
+        id: task._id,
+      });
+    }
+
+    const student_id = await ValidateMongoId(
+      String(studentTestResult.student_id)
+    );
+    if (student_id) {
+      try {
+        await RunTranscriptWorker(student_id);
+      } catch (err) {
+        throw CreateAppError("Transcript worker not started", "NOT_FOUND");
+      }
+    } else {
+      throw CreateAppError(
+        "[Transcript Worker] student_id is missing — worker not triggered",
+        "NOT_FOUND"
+      );
+    }
 
     const validateMarksResponse = { id: studentTestResult._id };
     return validateMarksResponse;

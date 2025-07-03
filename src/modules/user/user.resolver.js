@@ -7,7 +7,7 @@ const {
   ValidateUpdateUserInput,
 } = require("./user.validator.js");
 
-// *************** IMPORT UTILS ***************
+// *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 
 // *************** IMPORT CORE ***************
@@ -41,8 +41,6 @@ async function GetAllUsers(_, { filter }) {
         );
       }
       query.user_status = filter.user_status;
-    } else {
-      query.user_status = "ACTIVE";
     }
 
     const userResponse = await User.find(query);
@@ -78,8 +76,6 @@ async function GetOneUser(_, { id, filter }) {
         );
       }
       query.user_status = filter.user_status;
-    } else {
-      query.user_status = "ACTIVE";
     }
 
     const user = await User.findOne(query);

@@ -1,13 +1,13 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-// *************** Enum Constants
-const VALID_LEVEL = ["ELEMENTARY", "MIDDLE", "HIGH"];
-const VALID_CATEGORY = ["CORE", "ELECTIVE", "SUPPORT"];
-const VALID_SUBJECT_STATUS = ["ACTIVE", "ARCHIVED", "DELETED"];
-const DEFAULT_SUBJECT_STATUS = "ACTIVE";
-const VALID_PASSING_CRITERIA_OPERATOR = ["AND", "OR"];
-const VALID_CONDITION_TYPE = ["SINGLE_TEST", "AVERAGE"];
+// ************** IMPORT UTILITIES *************
+const {
+  SUBJECT,
+  LOGIC_ENUM,
+  OPERATOR_ENUM,
+  EXPECTED_OUTCOME_ENUM,
+} = require("../../shared/utils/enum");
 
 const subjectSchema = new Schema(
   {
@@ -37,14 +37,14 @@ const subjectSchema = new Schema(
     level: {
       type: String,
       required: true,
-      enum: VALID_LEVEL,
+      enum: SUBJECT.VALID_LEVEL,
       trim: true,
     },
 
     // Subject category (optional enum)
     category: {
       type: String,
-      enum: VALID_CATEGORY,
+      enum: SUBJECT.VALID_CATEGORY,
       default: null,
       trim: true,
     },
@@ -56,35 +56,45 @@ const subjectSchema = new Schema(
       ref: "Block",
     },
 
-    // Passing Criteria of Subject
-    passing_criteria: {
-      // Passing Criteria Operator of Subject
-      operator: {
-        type: String,
-        enum: VALID_PASSING_CRITERIA_OPERATOR,
-        required: true,
-      },
-      // Passing Criteria Condition of Subject (Array)
-      conditions: [
-        {
-          condition_type: {
-            type: String,
-            required: true,
-            enum: VALID_CONDITION_TYPE,
-          },
-          min_score: {
-            type: Number,
-            required: true,
-            min: 0,
-            max: 100,
-          },
-          test_id: {
-            type: Types.ObjectId,
-            ref: "Test",
-          },
+    // Criteria of Subject
+
+    criteria: [
+      {
+        expected_outcome: {
+          type: String,
+          required: true,
+          enum: EXPECTED_OUTCOME_ENUM,
+          trim: true,
         },
-      ],
-    },
+        rules: [
+          {
+            logical_operator: {
+              type: String,
+              enum: LOGIC_ENUM,
+            },
+            type: {
+              type: String,
+              enum: SUBJECT.VALID_CONDITION_TYPE,
+              required: true,
+            },
+            test_id: {
+              type: Schema.Types.ObjectId,
+              ref: "Test",
+            },
+            operator: {
+              type: String,
+              enum: OPERATOR_ENUM,
+              required: true,
+            },
+            value: {
+              type: Number,
+              required: true,
+              min: 0,
+            },
+          },
+        ],
+      },
+    ],
 
     // Subject coefficient
     coefficient: {
@@ -104,8 +114,7 @@ const subjectSchema = new Schema(
     // Subject status
     subject_status: {
       type: String,
-      enum: VALID_SUBJECT_STATUS,
-      default: DEFAULT_SUBJECT_STATUS,
+      enum: SUBJECT.VALID_STATUS,
       required: true,
       trim: true,
     },

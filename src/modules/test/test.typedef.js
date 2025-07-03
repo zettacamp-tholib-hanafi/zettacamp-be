@@ -1,9 +1,7 @@
 // *************** IMPORT LIBRARY ***************
-
 const gql = require("graphql-tag");
 
 // *************** EXPORT MODULE ***************
-
 module.exports = gql`
   scalar Date
 
@@ -24,6 +22,17 @@ module.exports = gql`
     max_points: Float!
   }
 
+  type TestCriteriaRule {
+    logical_operator: LogicalOperator
+    operator: RuleOperator!
+    value: Float!
+  }
+
+  type TestCriteria {
+    expected_outcome: ExpectedOutcome!
+    rules: [TestCriteriaRule!]!
+  }
+
   type Test {
     id: ID!
     name: String!
@@ -34,7 +43,7 @@ module.exports = gql`
     notations: [Notation!]!
     total_score: Float
     grading_method: GradingMethod
-    passing_score: Float
+    criteria: [TestCriteria!]
     test_status: TestStatus!
     attachments: [String]
     published_date: Date
@@ -51,6 +60,17 @@ module.exports = gql`
     max_points: Float!
   }
 
+  input TestCriteriaRuleInput {
+    logical_operator: LogicalOperator
+    operator: RuleOperator!
+    value: Float!
+  }
+
+  input TestCriteriaInput {
+    expected_outcome: ExpectedOutcome!
+    rules: [TestCriteriaRuleInput!]!
+  }
+
   input CreateTestInput {
     name: String!
     subject_id: ID!
@@ -58,7 +78,7 @@ module.exports = gql`
     weight: Float!
     notations: [NotationInput!]!
     grading_method: GradingMethod
-    passing_score: Float
+    criteria: [TestCriteriaInput!]
     test_status: TestStatus!
     attachments: [String]
     published_date: Date
@@ -71,7 +91,7 @@ module.exports = gql`
     weight: Float!
     notations: [NotationInput!]!
     grading_method: GradingMethod
-    passing_score: Float
+    criteria: [TestCriteriaInput!]
     test_status: TestStatus!
     attachments: [String]
     published_date: Date

@@ -185,7 +185,7 @@ function ValidateUpdateUserInput(input) {
       );
     }
 
-    const invalidRoles = role.filter((r) => !VALID_ROLES.includes(r));
+    const invalidRoles = role.filter((role) => !VALID_ROLES.includes(role));
     if (invalidRoles.length > 0) {
       throw CreateAppError("Invalid role value.", "VALIDATION_ERROR", {
         field: "role",

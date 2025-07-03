@@ -1,5 +1,5 @@
 // *************** IMPORT CORE ***************
-const ConnectDB = require("./src/core/db");
+const { ConnectDB } = require("./src/core/db");
 
 // *************** IMPORT MODULE ***************
 const { apollo } = require("./src/core/apollo");

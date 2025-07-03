@@ -21,13 +21,8 @@ module.exports = gql`
     DELETED
   }
 
-  enum PassingCriteriaOperator {
-    AND
-    OR
-  }
-
-  enum ConditionType {
-    SINGLE_TEST
+  enum PassingRuleType {
+    TEST_SCORE
     AVERAGE
   }
 
@@ -41,7 +36,7 @@ module.exports = gql`
     block_id: ID!
     coefficient: Float!
     tests: [Test]
-    passing_criteria: SubjectPassingCriteria!
+    criteria: [SubjectPassingCriteriaGroup!]
     subject_status: SubjectStatus!
     created_at: Date!
     created_by: String
@@ -51,14 +46,16 @@ module.exports = gql`
     deleted_by: String
   }
 
-  type SubjectPassingCriteria {
-    operator: PassingCriteriaOperator
-    conditions: [SubjectPassingCondition!]!
+  type SubjectPassingCriteriaGroup {
+    expected_outcome: ExpectedOutcome!
+    rules: [SubjectPassingRule!]!
   }
 
-  type SubjectPassingCondition {
-    condition_type: ConditionType!
-    min_score: Float!
+  type SubjectPassingRule {
+    logical_operator: LogicalOperator
+    type: PassingRuleType!
+    operator: RuleOperator!
+    value: Float!
     test_id: ID
   }
 
@@ -71,7 +68,7 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    passing_criteria: SubjectPassingCriteriaInput!
+    criteria: [SubjectPassingCriteriaGroupInput!]
     subject_status: SubjectStatus!
     created_by: String
   }
@@ -85,19 +82,21 @@ module.exports = gql`
     block_id: ID!
     tests: [ID]
     coefficient: Float!
-    passing_criteria: SubjectPassingCriteriaInput!
+    criteria: [SubjectPassingCriteriaGroupInput!]
     subject_status: SubjectStatus!
     updated_by: String
   }
 
-  input SubjectPassingCriteriaInput {
-    operator: PassingCriteriaOperator!
-    conditions: [SubjectPassingConditionInput!]!
+  input SubjectPassingCriteriaGroupInput {
+    expected_outcome: ExpectedOutcome!
+    rules: [SubjectPassingRuleInput!]!
   }
 
-  input SubjectPassingConditionInput {
-    condition_type: ConditionType!
-    min_score: Float!
+  input SubjectPassingRuleInput {
+    logical_operator: LogicalOperator
+    type: PassingRuleType!
+    operator: RuleOperator!
+    value: Float!
     test_id: ID
   }
 
