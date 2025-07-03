@@ -107,7 +107,7 @@ function ValidateContact(contact) {
 }
 
 /**
- * Validates the verified array to ensure each item has a boolean `status_verified`
+ * Validates the verified array to ensure each verified has a boolean `status_verified`
  * and an optional string `verified_by` field.
  *
  * @param {Array<object>} verified - The array of verification objects to validate.
@@ -123,8 +123,8 @@ function ValidateVerified(verified) {
     );
   }
 
-  verified.forEach((item, index) => {
-    if (typeof item.status_verified !== "boolean") {
+  verified.forEach((verified, index) => {
+    if (typeof verified.status_verified !== "boolean") {
       throw CreateAppError(
         "Each verified.status_verified must be a boolean.",
         "VALIDATION_ERROR",
@@ -132,7 +132,7 @@ function ValidateVerified(verified) {
       );
     }
 
-    if (item.verified_by && typeof item.verified_by !== "string") {
+    if (verified.verified_by && typeof verified.verified_by !== "string") {
       throw CreateAppError(
         "Each verified.verified_by must be a string.",
         "VALIDATION_ERROR",
