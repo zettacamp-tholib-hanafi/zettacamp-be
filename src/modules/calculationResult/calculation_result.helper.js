@@ -818,12 +818,5 @@ function WriteWorkerLog(logMessage) {
 // *************** EXPORT MODULE **************
 module.exports = {
   RunTranscriptCore,
-  FetchStudentTestResult,
-  CalculateTestResults,
-  CalculateSubjectResults,
-  CalculateBlockResults,
-  EvaluateRule,
-  CreateCalculationResult,
-  TranscriptLogFile,
   WriteWorkerLog,
 };
