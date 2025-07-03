@@ -24,5 +24,23 @@ async function ConnectDB() {
   }
 }
 
+/**
+ * Gracefully disconnects from the MongoDB database.
+ * Logs a success message upon successful disconnection.
+ * If disconnection fails, logs the error message.
+ *
+ * @async
+ * @function DisconnectDB
+ * @returns {Promise<void>} Resolves when the disconnection is successful.
+ */
+async function DisconnectDB() {
+  try {
+    await mongoose.disconnect();
+    console.log("MongoDB disconnected");
+  } catch (err) {
+    console.error("MongoDB disconnection error:", err.message);
+  }
+}
+
 // *************** EXPORT MODULE ***************
-module.exports = ConnectDB;
+module.exports = { ConnectDB, DisconnectDB };

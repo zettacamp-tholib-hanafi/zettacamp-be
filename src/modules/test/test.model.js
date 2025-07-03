@@ -1,11 +1,15 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-const VALID_TEST_STATUS = ["DRAFT", "PUBLISHED", "ARCHIVED", "DELETED"];
-const DEFAULT_TEST_STATUS = "DRAFT";
-const VALID_GRADING_METHOD = ["MANUAL", "AUTO_GRADED"];
-const DEFAULT_GRADING_METHOD = "MANUAL";
+// ************** IMPORT UTILITIES ***************
+const {
+  TEST,
+  LOGIC_ENUM,
+  OPERATOR_ENUM,
+  EXPECTED_OUTCOME_ENUM,
+} = require("../../shared/utils/enum");
 
+// *************** DEFINE SCHEMA ***************
 const testSchema = new Schema(
   {
     // Name of the test
@@ -39,18 +43,16 @@ const testSchema = new Schema(
     // List of evaluation components directly nested
     notations: [
       {
-        // Description of what is being evaluated
         notation_text: {
           type: String,
           required: true,
           trim: true,
         },
-
-        // Maximum possible points for this component
         max_points: {
           type: Number,
           required: true,
           min: 0,
+          max: 100,
         },
       },
     ],
@@ -64,24 +66,48 @@ const testSchema = new Schema(
     // Grading mechanism
     grading_method: {
       type: String,
-      enum: VALID_GRADING_METHOD,
-      default: DEFAULT_GRADING_METHOD,
+      enum: TEST.VALID_GRADING_METHOD,
+      default: TEST.DEFAULT_GRADING_METHOD,
       trim: true,
     },
 
-    // Minimum required score to pass the test
-    passing_score: {
-      type: Number,
-      default: null,
-      min: 0,
-    },
+    // Test criteria
+    criteria: [
+      {
+        expected_outcome: {
+          type: String,
+          enum: EXPECTED_OUTCOME_ENUM,
+          required: true,
+        },
+        rules: [
+          {
+            logical_operator: {
+              type: String,
+              enum: LOGIC_ENUM,
+              required: false,
+            },
+            operator: {
+              type: String,
+              enum: OPERATOR_ENUM,
+              required: true,
+            },
+            value: {
+              type: Number,
+              required: true,
+              min: 0,
+              max: 100,
+            },
+          },
+        ],
+      },
+    ],
 
     // Status of the test
     test_status: {
       type: String,
+      enum: TEST.VALID_STATUS,
+      default: TEST.DEFAULT_STATUS,
       required: true,
-      enum: VALID_TEST_STATUS,
-      default: DEFAULT_TEST_STATUS,
       trim: true,
     },
 

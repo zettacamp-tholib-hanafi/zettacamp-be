@@ -8,6 +8,7 @@ const subjectResolver = require("../modules/subject/subject.resolver");
 const testResolver = require("../modules/test/test.resolver");
 const studentTestResultResolver = require("../modules/studentTestResult/student_test_result.resolver");
 const taskResolver = require("../modules/task/task.resolver");
+const calculationResultResolver = require("../modules/calculationResult/calculation_result.resolver");
 
 const resolvers = [
   userResolvers,
@@ -17,7 +18,8 @@ const resolvers = [
   subjectResolver,
   testResolver,
   studentTestResultResolver,
-  taskResolver
+  taskResolver,
+  calculationResultResolver,
 ];
 
 // *************** EXPORT MODUL ***************
