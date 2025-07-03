@@ -39,10 +39,16 @@ async function RunTranscriptCore(student_id) {
     throw CreateAppError("Error calculate test result", "DATA_MISSING");
   }
 
-  const subjectIds = testResults.map((testResult) =>
-    String(testResult.subject_id)
-  );
-  const subjects = await LoadSubjectsByIds(subjectIds);
+  const subjectMap = new Map();
+
+  studentTestResults.forEach((studenTestResult) => {
+    const subject = studenTestResult.test_id?.subject_id;
+    if (subject && subject._id) {
+      subjectMap.set(String(subject._id), subject);
+    }
+  });
+  const subjects = [...subjectMap.values()];
+
   if (!subjects) {
     throw CreateAppError("Missing subject", "DATA_MISSING");
   }
@@ -52,8 +58,16 @@ async function RunTranscriptCore(student_id) {
     throw CreateAppError("Error calculate subject result", "DATA_MISSING");
   }
 
-  const blockIds = subjects.map((subject) => String(subject.block_id));
-  const blocks = await LoadBlocksByIds(blockIds);
+  const blockMap = new Map();
+
+  subjects.forEach((subject) => {
+    const block = subject.block_id;
+    if (block && block._id) {
+      blockMap.set(String(block._id), block);
+    }
+  });
+  const blocks = [...blockMap.values()];
+
   if (!blocks) {
     throw CreateAppError("Missing block", "DATA_MISSING");
   }
@@ -88,8 +102,17 @@ async function FetchStudentTestResult(student_id) {
     student_id,
     student_test_result_status: { $ne: STATUS_DELETED },
     mark_validated_date: { $ne: null },
-  }).populate("test_id");
-
+  })
+    .populate({
+      path: "test_id",
+      populate: {
+        path: "subject_id",
+        populate: {
+          path: "block_id",
+        },
+      },
+    })
+    .lean();
   if (!result || result.length === 0) {
     throw CreateAppError("Student Test Result not found", "NOT_FOUND", {
       student_id,
@@ -230,7 +253,7 @@ function CalculateSubjectResults(testResults, subjects) {
     const subjectId = String(subject._id);
 
     const relatedTestResults = testResults.filter(
-      (testResult) => String(testResult.subject_id) === subjectId
+      (testResult) => String(testResult.subject_id._id) === subjectId
     );
 
     const totalWeightedMark = relatedTestResults
@@ -357,7 +380,7 @@ async function CalculateBlockResults(subjectResults, blocks) {
     const blockId = String(block._id);
 
     const subjectResultsForBlock = subjectResults.filter(
-      (subjectResult) => String(subjectResult.block_id) === blockId
+      (subjectResult) => String(subjectResult.block_id._id) === blockId
     );
 
     const { totalMarkSum, coefficientSum } = subjectResultsForBlock.reduce(
@@ -392,7 +415,7 @@ async function CalculateBlockResults(subjectResults, blocks) {
       if (type == "SUBJECT_PASS_STATUS" && subject_id) {
         const subject = subjectResultsForBlock.find(
           (subjectResult) =>
-            String(subjectResult.subject_id) === String(subject_id)
+            String(subjectResult.subject_id._id) === String(subject_id)
         );
         if (!subject) {
           if (!subject.average_mark) {
@@ -702,63 +725,6 @@ async function CreateCalculationResult(student_id, blockResults) {
 
   TranscriptLogFile(student_id, createCalculationResultPayload);
   return createCalculationResultPayload;
-}
-
-/**
- * Return unique list of ObjectId strings
- *
- * @param {Array<any>} ids - List of ObjectId or strings
- * @returns {Array<string>} - Deduplicated string ids
- */
-const UniqueIds = (ids) => [...new Set(ids.map(String))];
-
-/**
- * Load subject documents from DB by a list of subject IDs
- *
- * @param {Array<string>} subjectIds - Array of subject ObjectId strings
- * @returns {Promise<Array<Object>>} - Array of subject documents
- * @throws {AppError} - If input is invalid or query fails
- */
-async function LoadSubjectsByIds(subjectIds) {
-  if (!Array.isArray(subjectIds) || subjectIds.length === 0) {
-    throw CreateAppError(
-      "subjectIds must be a non-empty array",
-      "BAD_REQUEST",
-      {
-        subject_id: subjectIds,
-      }
-    );
-  }
-  const rawSubjectIds = UniqueIds(subjectIds);
-
-  const subjects = await Subject.find({
-    _id: { $in: rawSubjectIds },
-    subject_status: { $ne: STATUS_DELETED },
-  }).lean();
-
-  return subjects;
-}
-/**
- * Load block documents from DB by a list of block IDs
- *
- * @param {Array<string>} blockIds - Array of block ObjectId strings
- * @returns {Promise<Array<Object>>} - Array of block documents
- * @throws {AppError} - If input is invalid or query fails
- */
-async function LoadBlocksByIds(blockIds) {
-  if (!Array.isArray(blockIds) || blockIds.length === 0) {
-    throw CreateAppError("blockIds must be a non-empty array", "BAD_REQUEST", {
-      block_id: blockIds,
-    });
-  }
-  const rawBlockIds = UniqueIds(blockIds);
-
-  const blocks = await Block.find({
-    _id: { $in: rawBlockIds },
-    block_status: { $ne: STATUS_DELETED },
-  }).lean();
-
-  return blocks;
 }
 
 /**
