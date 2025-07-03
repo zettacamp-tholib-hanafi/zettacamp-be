@@ -577,7 +577,7 @@ function EvaluateCriteriaGroups(criteriaGroups, actualValue, meta) {
     });
 
     if (evaluatedRules.length > 1) {
-      AssertMixedOutcome(evaluatedRules, {
+      CheckForMixedResultsOrTypes(evaluatedRules, {
         index: groupIndex,
       });
     }
@@ -632,7 +632,7 @@ function EvaluateCriteriaGroups(criteriaGroups, actualValue, meta) {
  * that produce only PASS or only FAIL outcomes, which would make the
  * grouping unnecessary or misleading.
  *
- * @function AssertMixedOutcome
+ * @function CheckForMixedResultsOrTypes
  * @param {Array<Object>} results - Array of evaluated rule results.
  * @param {boolean} results[].result - The evaluation outcome (true for PASS, false for FAIL).
  * @param {string} results[].type - The rule type used for evaluation (used for semantic diversity check).
@@ -642,7 +642,7 @@ function EvaluateCriteriaGroups(criteriaGroups, actualValue, meta) {
  *                    the group lacks rule type diversity.
  *
  */
-function AssertMixedOutcome(results, context) {
+function CheckForMixedResultsOrTypes(results, context) {
   const resultList = results.map((result) => result.result);
   const hasPass = resultList.includes(true);
   const hasFail = resultList.includes(false);
