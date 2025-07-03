@@ -39,11 +39,17 @@ async function RunTranscriptCore(student_id) {
     throw CreateAppError("Error calculate test result", "DATA_MISSING");
   }
 
-  const subjectIds = testResults.map((testResult) =>
-    String(testResult.subject_id)
-  );
-  const subjects = await LoadSubjectsByIds(subjectIds);
-  if (!subjects) {
+  const subjectMap = new Map();
+
+  studentTestResults.forEach((studenTestResult) => {
+    const subject = studenTestResult.test_id?.subject_id;
+    if (subject && subject._id) {
+      subjectMap.set(String(subject._id), subject);
+    }
+  });
+  const subjects = [...subjectMap.values()];
+
+  if (!subjects.length) {
     throw CreateAppError("Missing subject", "DATA_MISSING");
   }
 
@@ -52,8 +58,16 @@ async function RunTranscriptCore(student_id) {
     throw CreateAppError("Error calculate subject result", "DATA_MISSING");
   }
 
-  const blockIds = subjects.map((subject) => String(subject.block_id));
-  const blocks = await LoadBlocksByIds(blockIds);
+  const blockMap = new Map();
+
+  subjects.forEach((subject) => {
+    const block = subject.block_id;
+    if (block && block._id) {
+      blockMap.set(String(block._id), block);
+    }
+  });
+  const blocks = [...blockMap.values()];
+
   if (!blocks) {
     throw CreateAppError("Missing block", "DATA_MISSING");
   }
@@ -88,8 +102,17 @@ async function FetchStudentTestResult(student_id) {
     student_id,
     student_test_result_status: { $ne: STATUS_DELETED },
     mark_validated_date: { $ne: null },
-  }).populate("test_id");
-
+  })
+    .populate({
+      path: "test_id",
+      populate: {
+        path: "subject_id",
+        populate: {
+          path: "block_id",
+        },
+      },
+    })
+    .lean();
   if (!result || result.length === 0) {
     throw CreateAppError("Student Test Result not found", "NOT_FOUND", {
       student_id,
@@ -230,7 +253,7 @@ function CalculateSubjectResults(testResults, subjects) {
     const subjectId = String(subject._id);
 
     const relatedTestResults = testResults.filter(
-      (testResult) => String(testResult.subject_id) === subjectId
+      (testResult) => String(testResult.subject_id._id) === subjectId
     );
 
     const totalWeightedMark = relatedTestResults
@@ -257,50 +280,11 @@ function CalculateSubjectResults(testResults, subjects) {
       );
     }
 
-    const resolveActualValue = (rule) => {
-      const ruleType = rule.type || "AVERAGE";
-      if (ruleType === "AVERAGE") return averageMark;
-
-      if (ruleType === "TEST_SCORE" && rule.test_id) {
-        if (
-          relatedTestResults.length === 0 &&
-          criteria.some((criteria) =>
-            criteria.rules.some((rule) => rule.type === "TEST_SCORE")
-          )
-        ) {
-          throw CreateAppError(
-            "No test results found for subject with TEST_SCORE rules",
-            "MISSING_TEST_DATA",
-            { subject_id: subject._id }
-          );
-        }
-
-        const test = relatedTestResults.find(
-          (testResult) => String(testResult.test_id) === String(rule.test_id)
-        );
-
-        if (!test) {
-          throw CreateAppError(
-            "Test not found in subject result",
-            "MISSING_TEST_DATA",
-            {
-              test_id: rule.test_id,
-              subject_id: subject._id,
-            }
-          );
-        }
-        return Number(test.average_mark || 0);
-      }
-
-      throw CreateAppError("Invalid rule structure", "INVALID_RULE", {
-        rule,
-        subject_id: subject._id,
-      });
-    };
-
     const subject_result = EvaluateCriteriaGroups(criteria, null, {
       subject_id: subject._id,
-      resolveActualValue,
+      subject,
+      averageMark,
+      relatedTestResults,
     });
 
     return {
@@ -357,7 +341,7 @@ async function CalculateBlockResults(subjectResults, blocks) {
     const blockId = String(block._id);
 
     const subjectResultsForBlock = subjectResults.filter(
-      (subjectResult) => String(subjectResult.block_id) === blockId
+      (subjectResult) => String(subjectResult.block_id._id) === blockId
     );
 
     const { totalMarkSum, coefficientSum } = subjectResultsForBlock.reduce(
@@ -383,59 +367,10 @@ async function CalculateBlockResults(subjectResults, blocks) {
       });
     }
 
-    const resolveActualValue = (rule) => {
-      const { subject_id, test_id, type } = rule;
-
-      if (type == "BLOCK_AVERAGE" && !subject_id && !test_id)
-        return totalBlockMark;
-
-      if (type == "SUBJECT_PASS_STATUS" && subject_id) {
-        const subject = subjectResultsForBlock.find(
-          (subjectResult) =>
-            String(subjectResult.subject_id) === String(subject_id)
-        );
-        if (!subject) {
-          if (!subject.average_mark) {
-            throw CreateAppError("Subject Average Not Found", "NOT_FOUND", {
-              subject_id,
-            });
-          }
-          throw CreateAppError("Subject Not Found", "NOT_FOUND", {
-            subject_id,
-          });
-        }
-
-        return subject.average_mark;
-      }
-
-      if (type == "TEST_PASS_STATUS" && test_id) {
-        const subject = subjectResultsForBlock.find((subjectResult) =>
-          subjectResult.test_results.some(
-            (testResult) => String(testResult.test_id) === String(test_id)
-          )
-        );
-        const test = subject?.test_results.find(
-          (testResult) => String(testResult.test_id) === String(test_id)
-        );
-        if (!test) {
-          if (!test.average_mark) {
-            throw CreateAppError("Test Average Not Found", "NOT_FOUND", {
-              test_id,
-            });
-          }
-          throw CreateAppError("Test Not Found", "NOT_FOUND", {
-            test_id,
-          });
-        }
-        return test.average_mark;
-      }
-
-      return 0;
-    };
-
     const block_result = EvaluateCriteriaGroups(criteria, null, {
       block_id: block._id,
-      resolveActualValue,
+      totalBlockMark,
+      subjectResultsForBlock,
     });
 
     return {
@@ -448,6 +383,115 @@ async function CalculateBlockResults(subjectResults, blocks) {
 
   return blockResults;
 }
+
+/**
+ * Gets the actual value from a rule, depending on its type.
+ * This is used in transcript calculation to check if a student passes.
+ *
+ * @param {Object} rule - The rule to check.
+ * @param {string} rule.type - Rule type: AVERAGE, TEST_SCORE, BLOCK_AVERAGE, SUBJECT_PASS_STATUS, or TEST_PASS_STATUS.
+ * @param {string} [rule.subject_id] - Subject ID (used in subject-related rules).
+ * @param {string} [rule.test_id] - Test ID (used in test-related rules).
+ *
+ * @param {Object} meta - Extra data needed to calculate the value.
+ * @param {Array<Object>} meta.relatedTestResults - All test results related to the subject.
+ * @param {number} meta.averageMark - Subject average mark.
+ * @param {Object} meta.subject - Subject object.
+ * @param {number} meta.totalBlockMark - Block average mark.
+ * @param {Array<Object>} meta.subjectResultsForBlock - Subject results in the block (with nested test results).
+ *
+ * @returns {number} - The numeric value from the rule (e.g., average mark or test mark).
+ *
+ * @throws {CreateAppError} - If the required test or subject data is missing.
+ */
+const ResolveActualValue = (criteria, rule, meta) => {
+  const { subject_id, test_id, type } = rule;
+  const {
+    relatedTestResults,
+    averageMark,
+    subject,
+    totalBlockMark,
+    subjectResultsForBlock,
+  } = meta;
+  // *************** Subject
+  if (type === "AVERAGE") return averageMark;
+
+  if (type === "TEST_SCORE" && test_id) {
+    if (
+      !relatedTestResults.length &&
+      criteria.some((criteria) =>
+        criteria.rules.some((rule) => rule.type === "TEST_SCORE")
+      )
+    ) {
+      throw CreateAppError(
+        "No test results found for subject with TEST_SCORE rules",
+        "MISSING_TEST_DATA",
+        { subject_id: subject._id }
+      );
+    }
+
+    const test = relatedTestResults.find(
+      (testResult) => String(testResult.test_id) === String(test_id)
+    );
+
+    if (!test) {
+      throw CreateAppError(
+        "Test not found in subject result",
+        "MISSING_TEST_DATA",
+        {
+          test_id: test_id,
+          subject_id: subject._id,
+        }
+      );
+    }
+    return Number(test.average_mark || 0);
+  }
+
+  // *************** Block
+
+  if (type == "BLOCK_AVERAGE" && !subject_id && !test_id) return totalBlockMark;
+
+  if (type == "SUBJECT_PASS_STATUS" && subject_id) {
+    const subject = subjectResultsForBlock.find(
+      (subjectResult) =>
+        String(subjectResult.subject_id._id) === String(subject_id)
+    );
+    if (!subject) {
+      throw CreateAppError("Subject Not Found", "NOT_FOUND", { subject_id });
+    }
+    if (subject.average_mark == null) {
+      throw CreateAppError("Subject Average Not Found", "NOT_FOUND", {
+        subject_id,
+      });
+    }
+
+    return subject.average_mark;
+  }
+
+  if (type == "TEST_PASS_STATUS" && test_id) {
+    const subject = subjectResultsForBlock.find((subjectResult) =>
+      subjectResult.test_results.some(
+        (testResult) => String(testResult.test_id) === String(test_id)
+      )
+    );
+    const test = subject?.test_results.find(
+      (testResult) => String(testResult.test_id) === String(test_id)
+    );
+
+    if (!test) {
+      throw CreateAppError("Test Not Found", "NOT_FOUND", { test_id });
+    }
+    if (test.average_mark == null) {
+      throw CreateAppError("Test Average Not Found", "NOT_FOUND", {
+        test_id,
+      });
+    }
+
+    return test.average_mark;
+  }
+
+  return 0;
+};
 
 /**
  * Evaluates a single numeric comparison rule against a provided mark.
@@ -562,9 +606,10 @@ function EvaluateCriteriaGroups(criteriaGroups, actualValue, meta) {
         );
       }
 
-      const valueToCheck = meta.resolveActualValue
-        ? meta.resolveActualValue(rule)
-        : actualValue;
+      const valueToCheck =
+        actualValue !== null
+          ? actualValue
+          : ResolveActualValue(criteriaGroups, rule, meta);
 
       const result = EvaluateRule(
         valueToCheck,
@@ -577,7 +622,7 @@ function EvaluateCriteriaGroups(criteriaGroups, actualValue, meta) {
     });
 
     if (evaluatedRules.length > 1) {
-      AssertMixedOutcome(evaluatedRules, {
+      CheckForMixedResultsOrTypes(evaluatedRules, {
         index: groupIndex,
       });
     }
@@ -632,7 +677,7 @@ function EvaluateCriteriaGroups(criteriaGroups, actualValue, meta) {
  * that produce only PASS or only FAIL outcomes, which would make the
  * grouping unnecessary or misleading.
  *
- * @function AssertMixedOutcome
+ * @function CheckForMixedResultsOrTypes
  * @param {Array<Object>} results - Array of evaluated rule results.
  * @param {boolean} results[].result - The evaluation outcome (true for PASS, false for FAIL).
  * @param {string} results[].type - The rule type used for evaluation (used for semantic diversity check).
@@ -642,7 +687,7 @@ function EvaluateCriteriaGroups(criteriaGroups, actualValue, meta) {
  *                    the group lacks rule type diversity.
  *
  */
-function AssertMixedOutcome(results, context) {
+function CheckForMixedResultsOrTypes(results, context) {
   const resultList = results.map((result) => result.result);
   const hasPass = resultList.includes(true);
   const hasFail = resultList.includes(false);
@@ -705,63 +750,6 @@ async function CreateCalculationResult(student_id, blockResults) {
 }
 
 /**
- * Return unique list of ObjectId strings
- *
- * @param {Array<any>} ids - List of ObjectId or strings
- * @returns {Array<string>} - Deduplicated string ids
- */
-const UniqueIds = (ids) => [...new Set(ids.map(String))];
-
-/**
- * Load subject documents from DB by a list of subject IDs
- *
- * @param {Array<string>} subjectIds - Array of subject ObjectId strings
- * @returns {Promise<Array<Object>>} - Array of subject documents
- * @throws {AppError} - If input is invalid or query fails
- */
-async function LoadSubjectsByIds(subjectIds) {
-  if (!Array.isArray(subjectIds) || subjectIds.length === 0) {
-    throw CreateAppError(
-      "subjectIds must be a non-empty array",
-      "BAD_REQUEST",
-      {
-        subject_id: subjectIds,
-      }
-    );
-  }
-  const rawSubjectIds = UniqueIds(subjectIds);
-
-  const subjects = await Subject.find({
-    _id: { $in: rawSubjectIds },
-    subject_status: { $ne: STATUS_DELETED },
-  }).lean();
-
-  return subjects;
-}
-/**
- * Load block documents from DB by a list of block IDs
- *
- * @param {Array<string>} blockIds - Array of block ObjectId strings
- * @returns {Promise<Array<Object>>} - Array of block documents
- * @throws {AppError} - If input is invalid or query fails
- */
-async function LoadBlocksByIds(blockIds) {
-  if (!Array.isArray(blockIds) || blockIds.length === 0) {
-    throw CreateAppError("blockIds must be a non-empty array", "BAD_REQUEST", {
-      block_id: blockIds,
-    });
-  }
-  const rawBlockIds = UniqueIds(blockIds);
-
-  const blocks = await Block.find({
-    _id: { $in: rawBlockIds },
-    block_status: { $ne: STATUS_DELETED },
-  }).lean();
-
-  return blocks;
-}
-
-/**
  * Writes the transcript result to a JSON log file for debugging or auditing purposes.
  *
  * The file will be stored at: `logs/transcript_result/transcript_<studentId>.json`
@@ -818,12 +806,5 @@ function WriteWorkerLog(logMessage) {
 // *************** EXPORT MODULE **************
 module.exports = {
   RunTranscriptCore,
-  FetchStudentTestResult,
-  CalculateTestResults,
-  CalculateSubjectResults,
-  CalculateBlockResults,
-  EvaluateRule,
-  CreateCalculationResult,
-  TranscriptLogFile,
   WriteWorkerLog,
 };

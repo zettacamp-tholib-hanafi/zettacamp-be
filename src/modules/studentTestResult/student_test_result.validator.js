@@ -85,50 +85,50 @@ async function ValidateCreateStudentTestResult(input) {
   const maxTotalScore =
     typeof test.total_score === "number" ? test.total_score : 100;
 
-  marks.forEach((item, index) => {
+  marks.forEach((mark, index) => {
     if (
-      !item.notation_text ||
-      typeof item.notation_text !== "string" ||
-      item.notation_text.trim() === ""
+      !mark.notation_text ||
+      typeof mark.notation_text !== "string" ||
+      mark.notation_text.trim() === ""
     ) {
       throw CreateAppError(
         `notation_text in marks[${index}] is required and must be a non-empty string`,
         "BAD_REQUEST",
-        { notation: item }
+        { notation: mark }
       );
     }
 
     if (
-      typeof item.mark !== "number" ||
-      item.mark < 0 ||
-      item.mark > maxTotalScore
+      typeof mark.mark !== "number" ||
+      mark.mark < 0 ||
+      mark.mark > maxTotalScore
     ) {
       throw CreateAppError(
         `mark in marks[${index}] must be a number between 0 and total_score (${maxTotalScore})`,
         "BAD_REQUEST",
-        { notation: item }
+        { notation: mark }
       );
     }
 
     const matchedNotation = Array.isArray(test.notations)
       ? test.notations.find(
-          (notation) => notation.notation_text === item.notation_text
+          (notation) => notation.notation_text === mark.notation_text
         )
       : null;
 
     if (!matchedNotation) {
       throw CreateAppError(
-        `Notation "${item.notation_text}" does not exist in the test definition`,
+        `Notation "${mark.notation_text}" does not exist in the test definition`,
         "BAD_REQUEST",
-        { notation: item }
+        { notation: mark }
       );
     }
 
-    if (item.mark > matchedNotation.max_points) {
+    if (mark.mark > matchedNotation.max_points) {
       throw CreateAppError(
-        `mark in marks[${index}] exceeds max_points (${matchedNotation.max_points}) for notation "${item.notation_text}"`,
+        `mark in marks[${index}] exceeds max_points (${matchedNotation.max_points}) for notation "${mark.notation_text}"`,
         "BAD_REQUEST",
-        { notation: item }
+        { notation: mark }
       );
     }
   });
@@ -248,50 +248,50 @@ async function ValidateUpdateStudentTestResult(input) {
   const maxTotalScore =
     typeof test.total_score === "number" ? test.total_score : 100;
 
-  marks.forEach((item, index) => {
+  marks.forEach((mark, index) => {
     if (
-      !item.notation_text ||
-      typeof item.notation_text !== "string" ||
-      item.notation_text.trim() === ""
+      !mark.notation_text ||
+      typeof mark.notation_text !== "string" ||
+      mark.notation_text.trim() === ""
     ) {
       throw CreateAppError(
         `notation_text in marks[${index}] is required and must be a non-empty string`,
         "BAD_REQUEST",
-        { notation: item }
+        { notation: mark }
       );
     }
 
     if (
-      typeof item.mark !== "number" ||
-      item.mark < 0 ||
-      item.mark > maxTotalScore
+      typeof mark.mark !== "number" ||
+      mark.mark < 0 ||
+      mark.mark > maxTotalScore
     ) {
       throw CreateAppError(
         `mark in marks[${index}] must be a number between 0 and total_score (${maxTotalScore})`,
         "BAD_REQUEST",
-        { notation: item }
+        { notation: mark }
       );
     }
 
     const matchedNotation = Array.isArray(test.notations)
       ? test.notations.find(
-          (notation) => notation.notation_text === item.notation_text
+          (notation) => notation.notation_text === mark.notation_text
         )
       : null;
 
     if (!matchedNotation) {
       throw CreateAppError(
-        `Notation "${item.notation_text}" does not exist in the test definition`,
+        `Notation "${mark.notation_text}" does not exist in the test definition`,
         "BAD_REQUEST",
-        { notation: item }
+        { notation: mark }
       );
     }
 
-    if (item.mark > matchedNotation.max_points) {
+    if (mark.mark > matchedNotation.max_points) {
       throw CreateAppError(
-        `mark in marks[${index}] exceeds max_points (${matchedNotation.max_points}) for notation "${item.notation_text}"`,
+        `mark in marks[${index}] exceeds max_points (${matchedNotation.max_points}) for notation "${mark.notation_text}"`,
         "BAD_REQUEST",
-        { notation: item }
+        { notation: mark }
       );
     }
   });

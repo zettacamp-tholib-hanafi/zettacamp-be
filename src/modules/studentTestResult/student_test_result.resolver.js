@@ -203,7 +203,7 @@ async function CreateStudentTestResult(_, { input }) {
     // *************** Calculate Average Mark
     let average_mark = 0;
     if (Array.isArray(marks) && marks.length > 0) {
-      const total = marks.reduce((sum, item) => sum + item.mark, 0);
+      const total = marks.reduce((sum, mark) => sum + mark.mark, 0);
 
       average_mark = total / marks.length;
     }
@@ -271,7 +271,7 @@ async function UpdateStudentTestResult(_, { id, input }) {
     // *************** Calculate Average Mark
     let average_mark = 0;
     if (Array.isArray(marks) && marks.length > 0) {
-      const total = marks.reduce((sum, item) => sum + item.mark, 0);
+      const total = marks.reduce((sum, mark) => sum + mark.mark, 0);
       average_mark = total / marks.length;
     }
 
