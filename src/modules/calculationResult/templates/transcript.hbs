@@ -59,17 +59,6 @@
       color: #555;
     }
 
-    .status-pass {
-      color: green;
-      font-weight: bold;
-    }
-
-    .status-fail {
-      color:
-        red;
-      font-weight: bold;
-    }
-
     .final-decision {
       background-color: thistle;
       color: black;
@@ -97,7 +86,7 @@
         <td colspan="3">Block</td>
         <td>{{block_id.name}}</td>
         <td>{{total_mark}}</td>
-        <td class="status-pass">{{block_result}}</td>
+        <td>{{block_result}}</td>
       </tr>
       {{#each subject_results}}
       <tr>
@@ -106,7 +95,7 @@
         <td></td>
         <td>{{subject_id.name}} - {{subject_id.subject_code}}</td>
         <td>{{total_mark}}</td>
-        <td class="status-fail">{{subject_result}}</td>
+        <td>{{subject_result}}</td>
       </tr>
       {{#each test_results}}
       <tr>
@@ -114,7 +103,7 @@
         <td>Test</td>
         <td>{{test_id.name}}</td>
         <td>{{average_mark}}</td>
-        <td class="status-pass">{{test_result}}</td>
+        <td>{{test_result}}</td>
       </tr>
 
       {{/each}}
@@ -123,7 +112,7 @@
       {{/each}}
       <tr class="final-decision">
         <td colspan="5">Final Transcript Decision</td>
-        <td class="status-pass">{{overall_result}}</td>
+        <td>{{overall_result}}</td>
       </tr>
     </tbody>
   </table>

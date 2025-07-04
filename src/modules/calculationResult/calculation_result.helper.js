@@ -806,38 +806,50 @@ function WriteWorkerLog(logMessage) {
 }
 
 /**
- * Generate a PDF from an HTML string using Puppeteer.
+ * Generate a PDF from an HTML string using Puppeteer
  *
- * @param {string} html - The HTML content to convert into PDF.
- * @returns {Promise<Buffer>} - The generated PDF as a buffer.
+ * Compiles Handlebars template and renders it as PDF using Puppeteer
+ *
+ * @param {Object} calculationResultData - The data to render inside the transcript
+ * @returns {Promise<Buffer>} - The generated PDF as a buffer
+ * @throws {Error} If any step in the generation process fails
  */
 
 async function GeneratePDF(calculationResultData) {
   const templatePath = path.join(__dirname, "templates", "transcript.hbs");
-  if (!fs.existsSync(templatePath)) {
-    throw new Error("Template file not found");
+  let browser;
+
+  try {
+    if (!fs.existsSync(templatePath)) {
+      throw new Error("Transcript template file not found");
+    }
+
+    const templateSource = fs.readFileSync(templatePath, "utf8");
+    const template = handlebars.compile(templateSource);
+    const html = template(calculationResultData);
+
+    if (!html || typeof html !== "string") {
+      throw new Error("Failed to generate transcript HTML");
+    }
+
+    browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(html, { timeout: 5000 });
+
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "15mm", right: "5mm", bottom: "15mm", left: "5mm" },
+    });
+
+    return pdf;
+  } catch (err) {
+    throw new Error(`GeneratePDF failed: ${err.message}`);
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
-
-  const templateSource = fs.readFileSync(templatePath, "utf8");
-  const template = handlebars.compile(templateSource);
-  const html = template(calculationResultData);
-  if (!html) {
-    throw new Error("Failed to generate transcript HTML");
-  }
-
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-
-  await page.setContent(html);
-
-  const pdf = await page.pdf({
-    format: "A4",
-    printBackground: true,
-    margin: { top: "15mm", right: "5mm", bottom: "15mm", left: "5mm" },
-  });
-
-  await browser.close();
-  return pdf;
 }
 
 // *************** EXPORT MODULE **************

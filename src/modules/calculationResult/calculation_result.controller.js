@@ -27,7 +27,10 @@ async function HandleTranscriptRequest(request, response) {
       calculation_result_status: "PUBLISHED",
     };
 
-    const calculationResultData = await CalculationResults.findOne(query)
+    const calculationResultData = await CalculationResults.findOne(
+      query,
+      "student_id results overall_result updated_at"
+    )
       .populate({
         path: "results.block_id",
         select: "name",
@@ -42,10 +45,15 @@ async function HandleTranscriptRequest(request, response) {
       })
       .lean();
 
-    if (!calculationResultData) {
+    if (
+      !calculationResultData ||
+      !calculationResultData.results ||
+      !Array.isArray(calculationResultData.results) ||
+      calculationResultData.results.length === 0
+    ) {
       return response.status(404).json({
         success: false,
-        message: `CalculationResult not found or already deleted`,
+        message: "CalculationResult not found or already deleted",
       });
     }
 
