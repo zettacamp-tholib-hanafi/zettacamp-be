@@ -8,6 +8,9 @@ const { PORT } = require("./config");
 
 // *************** IMPORT MODULE ***************
 const { apollo, contextApollo } = require("./apollo");
+const {
+  HandleTranscriptRequest,
+} = require("../modules/calculationResult/calculation_result.controller");
 
 async function ExpressRun() {
   const app = express();
@@ -18,6 +21,8 @@ async function ExpressRun() {
     express.json(),
     expressMiddleware(apollo, contextApollo)
   );
+
+  app.get("/transcript/:student_id", HandleTranscriptRequest);
 
   app.listen(PORT, () => {
     console.log(`GraphQL Playground ready at http://localhost:${PORT}/graphql`);
