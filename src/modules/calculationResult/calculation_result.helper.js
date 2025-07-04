@@ -2,6 +2,7 @@
 const { parentPort } = require("worker_threads");
 const fs = require("fs");
 const path = require("path");
+const puppeteer = require("puppeteer");
 
 // *************** IMPORT CORE ***************
 const { CreateAppError } = require("../../core/error");
@@ -803,8 +804,31 @@ function WriteWorkerLog(logMessage) {
   }
 }
 
+/**
+ * Generate a PDF from an HTML string using Puppeteer.
+ *
+ * @param {string} html - The HTML content to convert into PDF.
+ * @returns {Promise<Buffer>} - The generated PDF as a buffer.
+ */
+
+async function GeneratePDF(html) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  await page.setContent(html);
+
+  const pdfBuffer = await page.pdf({
+    format: "A4",
+    printBackground: true,
+  });
+
+  await browser.close();
+  return pdfBuffer;
+}
+
 // *************** EXPORT MODULE **************
 module.exports = {
   RunTranscriptCore,
   WriteWorkerLog,
+  GeneratePDF,
 };
