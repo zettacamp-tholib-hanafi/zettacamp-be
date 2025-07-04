@@ -1,26 +1,24 @@
 // *************** IMPORT MODULE **************
 const CalculationResult = require("./calculation_result.model");
 
+// *************** IMPORT LIBRARY **************
+const fs = require("fs");
+const path = require("path");
+const handlebars = require("handlebars");
+
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id");
 
 /**
- * Handle HTTP request to retrieve a student's published transcript calculation results.
+ * HandleTranscriptRequest
  *
- * ### Flow:
- * 1. Validates the `student_id` from the request URL using `ValidateMongoId`.
- * 2. Searches the `CalculationResult` collection for entries with:
- *    - Matching `student_id`
- *    - `calculation_result_status` equal to `"PUBLISHED"`
- * 3. If no results are found, responds with HTTP 404.
- * 4. If results exist, responds with HTTP 200 and the data.
- * 5. On error (validation or system), responds with HTTP 400 and structured error.
+ * Handles request to generate and return a student's transcript as rendered HTML.
  *
  * @async
- * @function HandleTranscriptRequest
- * @param {import("express").Request} req - Express request object containing `student_id` in params.
- * @param {import("express").Response} res - Express response object used to send JSON result.
- * @returns {Promise<void>} Returns nothing, but sends HTTP response.
+ * @function
+ * @param {import("express").Request} req - Express request object.
+ * @param {import("express").Response} res - Express response object.
+ * @returns {Promise<void>} Sends rendered HTML or JSON error response.
  */
 
 async function HandleTranscriptRequest(req, res) {
@@ -37,17 +35,37 @@ async function HandleTranscriptRequest(req, res) {
     const calculationResultData = await CalculationResult.find(query).lean();
 
     if (!calculationResultData.length) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: `CalculatioResult not found or already deleted`,
       });
     }
 
-    res.status(200).json({
-      success: true,
-      message: `Successfully get Calculation Result with student_id = ${studentId}`,
-      data: calculationResultData,
-    });
+    const templatePath = path.join(__dirname, "templates", "transcript.hbs");
+    const templateSource = fs.readFileSync(templatePath, "utf8");
+
+    const template = handlebars.compile(templateSource);
+
+    const data = {
+      name: "John Doe",
+      age: 25,
+      hobbies: ["Reading", "Gaming", "Hiking"],
+    };
+
+    if (!fs.existsSync(templatePath)) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Template file not found" });
+    }
+
+    const transcriptResult = template(data);
+    if (!transcriptResult) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to generate transcript" });
+    }
+
+    return res.status(200).send(transcriptResult);
   } catch (error) {
     return res.status(400).json({
       success: false,
