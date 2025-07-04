@@ -34,9 +34,8 @@
     th {
       background-color: rgb(167, 38, 179);
       text-align: center;
-      font-weight:
-        bold;
-        color: white;
+      font-weight: bold;
+      color: white;
     }
 
     .row-alt {
@@ -61,21 +60,20 @@
     }
 
     .status-pass {
-      color:
-        green;
+      color: green;
       font-weight: bold;
     }
 
     .status-fail {
-      color: red;
+      color:
+        red;
       font-weight: bold;
     }
 
     .final-decision {
       background-color: thistle;
       color: black;
-      font-weight:
-        600;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -93,69 +91,46 @@
         <th>Status</th>
       </tr>
     </thead>
+    {{#each results}}
     <tbody>
       <tr>
         <td colspan="3">Block</td>
-        <td>Fundamentals of CS</td>
-        <td>85</td>
-        <td class="status-pass">PASS</td>
+        <td>{{block_id.name}}</td>
+        <td>{{total_mark}}</td>
+        <td class="status-pass">{{block_result}}</td>
       </tr>
-
+      {{#each subject_results}}
       <tr>
         <td></td>
         <td>Subject</td>
         <td></td>
-        <td>Data Structures</td>
-        <td>55</td>
-        <td class="status-fail">FAIL</td>
+        <td>{{subject_id.name}} - {{subject_id.subject_code}}</td>
+        <td>{{total_mark}}</td>
+        <td class="status-fail">{{subject_result}}</td>
       </tr>
+      {{#each test_results}}
       <tr>
         <td colspan="2"></td>
         <td>Test</td>
-        <td>Midterm Exam</td>
-        <td>60</td>
-        <td class="status-pass">PASS</td>
-      </tr>
-      <tr>
-        <td colspan="2"></td>
-        <td>Test</td>
-        <td>Final Exam</td>
-        <td>50</td>
-        <td class="status-fail">FAIL</td>
+        <td>{{test_id.name}}</td>
+        <td>{{average_mark}}</td>
+        <td class="status-pass">{{test_result}}</td>
       </tr>
 
-      <tr>
-        <td></td>
-        <td>Subject</td>
-        <td></td>
-        <td>Algorithms</td>
-        <td>75</td>
-        <td class="status-pass">PASS</td>
-      </tr>
-      <tr>
-        <td colspan="2"></td>
-        <td>Test</td>
-        <td>Assignment</td>
-        <td>70</td>
-        <td class="status-pass">PASS</td>
-      </tr>
-      <tr>
-        <td colspan="2"></td>
-        <td>Test</td>
-        <td>Final Exam</td>
-        <td>80</td>
-        <td class="status-pass">PASS</td>
-      </tr>
+      {{/each}}
+      {{/each}}
 
+      {{/each}}
       <tr class="final-decision">
         <td colspan="5">Final Decision</td>
-        <td class="status-pass">PASS</td>
+        <td class="status-pass">{{overall_result}}</td>
       </tr>
     </tbody>
   </table>
 
   <div class="generated">
-    Generated at: July 4, 2025 10:30 AM
+    Generated at:
+    {{updated_at}}
   </div>
 
   <div class="footer">

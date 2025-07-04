@@ -1,5 +1,5 @@
 // *************** IMPORT MODULE **************
-const CalculationResult = require("./calculation_result.model");
+const CalculationResults = require("./calculation_result.model");
 
 // *************** IMPORT LIBRARY **************
 const fs = require("fs");
@@ -12,14 +12,17 @@ const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id");
 /**
  * HandleTranscriptRequest
  *
- * Handles request to generate and return a student's transcript as rendered HTML.
+ * Handles an HTTP request to generate and return a student's final transcript as HTML.
+ * Fetches published calculation results, populates related fields, compiles a Handlebars template,
+ * and returns the rendered output.
  *
  * @async
  * @function
- * @param {import("express").Request} req - Express request object.
- * @param {import("express").Response} res - Express response object.
- * @returns {Promise<void>} Sends rendered HTML or JSON error response.
+ * @param {import("express").Request} req - Express request object containing the student ID.
+ * @param {import("express").Response} res - Express response object used to send the HTML or error response.
+ * @returns {Promise<void>} Resolves with no return value; response is sent directly.
  */
+
 
 async function HandleTranscriptRequest(req, res) {
   try {
@@ -32,9 +35,22 @@ async function HandleTranscriptRequest(req, res) {
       calculation_result_status: "PUBLISHED",
     };
 
-    const calculationResultData = await CalculationResult.find(query).lean();
+    const calculationResultData = await CalculationResults.findOne(query)
+      .populate({
+        path: "results.block_id",
+        select: "name",
+      })
+      .populate({
+        path: "results.subject_results.subject_id",
+        select: "name subject_code",
+      })
+      .populate({
+        path: "results.subject_results.test_results.test_id",
+        select: "name weight",
+      })
+      .lean();
 
-    if (!calculationResultData.length) {
+    if (!calculationResultData) {
       return res.status(404).json({
         success: false,
         message: `CalculatioResult not found or already deleted`,
@@ -42,23 +58,17 @@ async function HandleTranscriptRequest(req, res) {
     }
 
     const templatePath = path.join(__dirname, "templates", "transcript.hbs");
-    const templateSource = fs.readFileSync(templatePath, "utf8");
-
-    const template = handlebars.compile(templateSource);
-
-    const data = {
-      name: "John Doe",
-      age: 25,
-      hobbies: ["Reading", "Gaming", "Hiking"],
-    };
-
     if (!fs.existsSync(templatePath)) {
       return res
         .status(500)
         .json({ success: false, message: "Template file not found" });
     }
+    const templateSource = fs.readFileSync(templatePath, "utf8");
+    const template = handlebars.compile(templateSource);
 
-    const transcriptResult = template(data);
+    console.log(calculationResultData);
+
+    const transcriptResult = template(calculationResultData);
     if (!transcriptResult) {
       return res
         .status(500)
