@@ -2,6 +2,7 @@
 const { parentPort } = require("worker_threads");
 const fs = require("fs");
 const path = require("path");
+const handlebars = require("handlebars");
 const puppeteer = require("puppeteer");
 
 // *************** IMPORT CORE ***************
@@ -811,19 +812,32 @@ function WriteWorkerLog(logMessage) {
  * @returns {Promise<Buffer>} - The generated PDF as a buffer.
  */
 
-async function GeneratePDF(html) {
+async function GeneratePDF(calculationResultData) {
+  const templatePath = path.join(__dirname, "templates", "transcript.hbs");
+  if (!fs.existsSync(templatePath)) {
+    throw new Error("Template file not found");
+  }
+
+  const templateSource = fs.readFileSync(templatePath, "utf8");
+  const template = handlebars.compile(templateSource);
+  const html = template(calculationResultData);
+  if (!html) {
+    throw new Error("Failed to generate transcript HTML");
+  }
+
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
   await page.setContent(html);
 
-  const pdfBuffer = await page.pdf({
+  const pdf = await page.pdf({
     format: "A4",
     printBackground: true,
+    margin: { top: "15mm", right: "5mm", bottom: "15mm", left: "5mm" },
   });
 
   await browser.close();
-  return pdfBuffer;
+  return pdf;
 }
 
 // *************** EXPORT MODULE **************
