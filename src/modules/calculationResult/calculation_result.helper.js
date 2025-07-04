@@ -2,6 +2,8 @@
 const { parentPort } = require("worker_threads");
 const fs = require("fs");
 const path = require("path");
+const handlebars = require("handlebars");
+const puppeteer = require("puppeteer");
 
 // *************** IMPORT CORE ***************
 const { CreateAppError } = require("../../core/error");
@@ -803,8 +805,56 @@ function WriteWorkerLog(logMessage) {
   }
 }
 
+/**
+ * Generate a PDF from an HTML string using Puppeteer
+ *
+ * Compiles Handlebars template and renders it as PDF using Puppeteer
+ *
+ * @param {Object} calculationResultData - The data to render inside the transcript
+ * @returns {Promise<Buffer>} - The generated PDF as a buffer
+ * @throws {Error} If any step in the generation process fails
+ */
+
+async function GeneratePDF(calculationResultData) {
+  const templatePath = path.join(__dirname, "templates", "transcript.hbs");
+  let browser;
+
+  try {
+    if (!fs.existsSync(templatePath)) {
+      throw new Error("Transcript template file not found");
+    }
+
+    const templateSource = fs.readFileSync(templatePath, "utf8");
+    const template = handlebars.compile(templateSource);
+    const html = template(calculationResultData);
+
+    if (!html || typeof html !== "string") {
+      throw new Error("Failed to generate transcript HTML");
+    }
+
+    browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(html, { timeout: 5000 });
+
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "15mm", right: "5mm", bottom: "15mm", left: "5mm" },
+    });
+
+    return pdf;
+  } catch (err) {
+    throw new Error(`GeneratePDF failed: ${err.message}`);
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
+}
+
 // *************** EXPORT MODULE **************
 module.exports = {
   RunTranscriptCore,
   WriteWorkerLog,
+  GeneratePDF,
 };
