@@ -1,15 +1,93 @@
-<html>
+<html lang="en">
   <head>
-    <title>Hello Handlebars</title>
+    <meta charset="UTF-8" />
+    <title>Final Transcript Student</title>
   </head>
   <body>
-    <h1>Hello, {{name}}!</h1>
-    <p>Your age is {{age}}.</p>
 
-    <ul>
-      {{#each hobbies}}
-        <li>{{this}}</li>
-      {{/each}}
-    </ul>
+    <div>
+      <h2>FINAL TRANSCRIPT<br />STUDENT</h2>
+    </div>
+
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Column</th>
+          <th></th>
+          <th></th>
+          <th>Title</th>
+          <th>Score</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="3">Block</td>
+          <td>Fundamentals of CS</td>
+          <td>85</td>
+          <td>PASS</td>
+        </tr>
+
+        <tr>
+          <td></td>
+          <td colspan="1">Subject</td>
+          <td></td>
+          <td>Data Structures</td>
+          <td>55</td>
+          <td>FAIL</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td>Test</td>
+          <td>Midterm Exam</td>
+          <td>60</td>
+          <td>PASS</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td>Test</td>
+          <td>Final Exam</td>
+          <td>50</td>
+          <td>FAIL</td>
+        </tr>
+
+        <tr>
+          <td></td>
+          <td colspan="1">Subject</td>
+          <td></td>
+          <td>Algorithms</td>
+          <td>75</td>
+          <td>PASS</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td>Test</td>
+          <td>Assignment</td>
+          <td>70</td>
+          <td>PASS</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td>Test</td>
+          <td>Final Exam</td>
+          <td>80</td>
+          <td>PASS</td>
+        </tr>
+
+        <tr>
+          <td colspan="5">Final Decision</td>
+          <td>PASS</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div>
+      Generated at: July 4, 2025 10:30 AM
+    </div>
+
+    <div>
+      Footer
+    </div>
+
   </body>
 </html>
