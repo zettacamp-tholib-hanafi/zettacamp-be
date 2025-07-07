@@ -13,11 +13,10 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { SCHOOL } = require("../../shared/utils/enum.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-
-const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
 /**
@@ -40,7 +39,7 @@ async function GetAllSchools(_, { filter }) {
     const query = {};
 
     if (filter && filter.school_status) {
-      if (!VALID_STATUS.includes(filter.school_status)) {
+      if (!SCHOOL.VALID_STATUS.includes(filter.school_status)) {
         throw CreateAppError(
           "Invalid school_status filter value",
           "BAD_REQUEST",
@@ -82,7 +81,7 @@ async function GetOneSchool(_, { id, filter }) {
     const query = { _id: schoolId };
 
     if (filter && filter.school_status) {
-      if (!VALID_STATUS.includes(filter.school_status)) {
+      if (!SCHOOL.VALID_STATUS.includes(filter.school_status)) {
         throw CreateAppError(
           "Invalid school_status filter value",
           "BAD_REQUEST",

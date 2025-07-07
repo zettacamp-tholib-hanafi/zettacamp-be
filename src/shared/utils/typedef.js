@@ -4,6 +4,8 @@ const gql = require("graphql-tag");
 // *************** EXPORT MODULE ***************
 
 module.exports = gql`
+  scalar Date
+
   enum LogicalOperator {
     AND
     OR

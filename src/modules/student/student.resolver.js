@@ -10,19 +10,10 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { STUDENT } = require("../../shared/utils/enum.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-
-// *************** Constant Enum
-const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
-const VALID_GENDERS = ["MALE", "FEMALE"];
-const VALID_ACADEMIC_STATUS = [
-  "ENROLLED",
-  "GRADUATED",
-  "DROPPED_OUT",
-  "TRANSFERRED",
-];
 
 // *************** QUERY ***************
 /**
@@ -43,7 +34,7 @@ async function GetAllStudents(_, { filter }) {
 
     if (filter) {
       if (filter.student_status) {
-        if (!VALID_STATUS.includes(filter.student_status)) {
+        if (!STUDENT.VALID_STATUS.includes(filter.student_status)) {
           throw CreateAppError(
             "Invalid student_status filter value",
             "BAD_REQUEST",
@@ -51,9 +42,9 @@ async function GetAllStudents(_, { filter }) {
           );
         }
         query.student_status = filter.student_status;
-      } 
+      }
       if (filter.academic_status) {
-        if (!VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
+        if (!STUDENT.VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
           throw CreateAppError(
             "Invalid academic_status filter value",
             "BAD_REQUEST",
@@ -63,7 +54,7 @@ async function GetAllStudents(_, { filter }) {
         query.academic_status = filter.academic_status;
       }
       if (filter.gender) {
-        if (!VALID_GENDERS.includes(filter.gender)) {
+        if (!STUDENT.VALID_GENDER.includes(filter.gender)) {
           throw CreateAppError("Invalid gender filter value", "BAD_REQUEST", {
             gender: filter.gender,
           });
@@ -100,7 +91,7 @@ async function GetOneStudent(_, { id, filter }) {
 
     if (filter) {
       if (filter.student_status) {
-        if (!VALID_STATUS.includes(filter.student_status)) {
+        if (!STUDENT.VALID_STATUS.includes(filter.student_status)) {
           throw CreateAppError(
             "Invalid student_status filter value",
             "BAD_REQUEST",
@@ -108,9 +99,9 @@ async function GetOneStudent(_, { id, filter }) {
           );
         }
         query.student_status = filter.student_status;
-      } 
+      }
       if (filter.academic_status) {
-        if (!VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
+        if (!STUDENT.VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
           throw CreateAppError(
             "Invalid academic_status filter value",
             "BAD_REQUEST",
@@ -120,7 +111,7 @@ async function GetOneStudent(_, { id, filter }) {
         query.academic_status = filter.academic_status;
       }
       if (filter.gender) {
-        if (!VALID_GENDERS.includes(filter.gender)) {
+        if (!STUDENT.VALID_GENDER.includes(filter.gender)) {
           throw CreateAppError("Invalid gender filter value", "BAD_REQUEST", {
             gender: filter.gender,
           });

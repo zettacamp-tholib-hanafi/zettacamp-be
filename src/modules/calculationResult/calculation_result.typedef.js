@@ -6,7 +6,6 @@ const gql = require("graphql-tag");
 
 module.exports = gql`
   scalar ObjectId
-  scalar Date
 
   enum CalculationResultStatus {
     PUBLISHED

@@ -1,12 +1,9 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model, Types } = require("mongoose");
 
-// *************** Constant Enum
-const ACADEMIC_STATUS = ["ENROLLED", "GRADUATED", "DROPPED_OUT", "TRANSFERRED"];
-const STATUS_ENUM = ["ACTIVE", "PENDING", "DELETED"];
-const GENDER = ["MALE", "FEMALE"];
+// ************** IMPORT UTILITIES *************
+const { STUDENT } = require("../../shared/utils/enum");
 
-// *************** Defines the Student schema representing student data in the system
 const studentSchema = new Schema(
   {
     // First name of the student
@@ -62,7 +59,7 @@ const studentSchema = new Schema(
     // Gender of the student (required enum: MALE, FEMALE)
     gender: {
       type: String,
-      enum: GENDER,
+      enum: STUDENT.VALID_GENDER,
       required: true,
     },
 
@@ -82,7 +79,7 @@ const studentSchema = new Schema(
     // Current status of the student (required enum: PENDING, ACTIVE, DELETED)
     student_status: {
       type: String,
-      enum: STATUS_ENUM,
+      enum: STUDENT.VALID_STATUS,
       required: true,
     },
 
@@ -95,7 +92,7 @@ const studentSchema = new Schema(
     // Academic status of the student (optional enum: ENROLLED, GRADUATED, DROPPED_OUT, TRANSFERRED)
     academic_status: {
       type: String,
-      enum: ACADEMIC_STATUS,
+      enum: STUDENT.ACADEMIC_STATUS,
       default: null,
     },
 

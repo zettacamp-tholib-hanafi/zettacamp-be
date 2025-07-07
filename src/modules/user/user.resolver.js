@@ -9,12 +9,10 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { USER } = require("../../shared/utils/enum.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-
-// *************** Constant Enum
-const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
 
 // *************** QUERY ***************
 
@@ -33,7 +31,7 @@ async function GetAllUsers(_, { filter }) {
     const query = {};
 
     if (filter && filter.user_status) {
-      if (!VALID_STATUS.includes(filter.user_status)) {
+      if (!USER.VALID_STATUS.includes(filter.user_status)) {
         throw CreateAppError(
           "Invalid user_status filter value",
           "BAD_REQUEST",
@@ -68,7 +66,7 @@ async function GetOneUser(_, { id, filter }) {
     const query = { _id: userId };
 
     if (filter && filter.user_status) {
-      if (!VALID_STATUS.includes(filter.user_status)) {
+      if (!USER.VALID_STATUS.includes(filter.user_status)) {
         throw CreateAppError(
           "Invalid user_status filter value",
           "BAD_REQUEST",

@@ -4,14 +4,8 @@ const { isValidObjectId } = require("mongoose");
 // *************** IMPORT CORE ***************
 const { CreateAppError } = require("../../core/error.js");
 
-const VALID_GENDERS = ["MALE", "FEMALE"];
-const VALID_STATUSES = ["ACTIVE", "PENDING"];
-const VALID_ACADEMIC_STATUS = [
-  "ENROLLED",
-  "GRADUATED",
-  "DROPPED_OUT",
-  "TRANSFERRED",
-];
+// *************** IMPORT UTILITIES ***************
+const { STUDENT } = require("../../shared/utils/enum.js");
 
 // *************** Constant Regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -96,9 +90,9 @@ function ValidateCreateStudentInput(input) {
     );
   }
 
-  if (!gender || !VALID_GENDERS.includes(gender)) {
+  if (!gender || !STUDENT.VALID_GENDER.includes(gender)) {
     throw CreateAppError(
-      `Gender must be one of: ${VALID_GENDERS.join(", ")}`,
+      `Gender must be one of: ${STUDENT.VALID_GENDER.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "gender" }
     );
@@ -128,9 +122,9 @@ function ValidateCreateStudentInput(input) {
     );
   }
 
-  if (!student_status || !VALID_STATUSES.includes(student_status)) {
+  if (!student_status || !STUDENT.VALID_STATUS.includes(student_status)) {
     throw CreateAppError(
-      `Student status must be one of: ${VALID_STATUSES.join(", ")}`,
+      `Student status must be one of: ${STUDENT.VALID_STATUS.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "student_status" }
     );
@@ -160,9 +154,14 @@ function ValidateCreateStudentInput(input) {
     );
   }
 
-  if (academic_status && !VALID_ACADEMIC_STATUS.includes(academic_status)) {
+  if (
+    academic_status &&
+    !STUDENT.VALID_ACADEMIC_STATUS.includes(academic_status)
+  ) {
     throw CreateAppError(
-      `Academic status must be one of: ${VALID_ACADEMIC_STATUS.join(", ")}`,
+      `Academic status must be one of: ${STUDENT.VALID_ACADEMIC_STATUS.join(
+        ", "
+      )}`,
       "VALIDATION_ERROR",
       { field: "academic_status" }
     );
@@ -272,9 +271,9 @@ function ValidateUpdateStudentInput(input) {
     );
   }
 
-  if (gender && !VALID_GENDERS.includes(gender)) {
+  if (gender && !STUDENT.VALID_GENDER.includes(gender)) {
     throw CreateAppError(
-      `Gender must be one of: ${VALID_GENDERS.join(", ")}`,
+      `Gender must be one of: ${STUDENT.VALID_GENDER.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "gender" }
     );
@@ -304,9 +303,9 @@ function ValidateUpdateStudentInput(input) {
     }
   }
 
-  if (student_status && !VALID_STATUSES.includes(student_status)) {
+  if (student_status && !STUDENT.VALID_STATUS.includes(student_status)) {
     throw CreateAppError(
-      `Student status must be one of: ${VALID_STATUSES.join(", ")}`,
+      `Student status must be one of: ${STUDENT.VALID_STATUS.join(", ")}`,
       "VALIDATION_ERROR",
       { field: "student_status" }
     );
@@ -334,9 +333,14 @@ function ValidateUpdateStudentInput(input) {
     );
   }
 
-  if (academic_status && !VALID_ACADEMIC_STATUS.includes(academic_status)) {
+  if (
+    academic_status &&
+    !STUDENT.VALID_ACADEMIC_STATUS.includes(academic_status)
+  ) {
     throw CreateAppError(
-      `Academic status must be one of: ${VALID_ACADEMIC_STATUS.join(", ")}`,
+      `Academic status must be one of: ${STUDENT.VALID_ACADEMIC_STATUS.join(
+        ", "
+      )}`,
       "VALIDATION_ERROR",
       { field: "academic_status" }
     );

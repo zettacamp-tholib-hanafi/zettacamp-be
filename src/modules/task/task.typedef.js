@@ -5,8 +5,6 @@ const gql = require("graphql-tag");
 // *************** EXPORT MODULE ***************
 
 module.exports = gql`
-  scalar Date
-
   enum TaskType {
     ASSIGN_CORRECTOR
     ENTER_MARKS
