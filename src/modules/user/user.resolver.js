@@ -8,6 +8,7 @@ const User = require("./user.model.js");
 const {
   ValidateCreateUserInput,
   ValidateUpdateUserInput,
+  ValidateLoginInput,
 } = require("./user.validator.js");
 
 // *************** IMPORT UTILITIES ***************
@@ -229,6 +230,24 @@ async function DeleteUser(_, { id }) {
   }
 }
 
+async function AuthLogin(_, { input }) {
+  try {
+    const { email, password } = input;
+
+    const user = ValidateLoginInput(email, password);
+
+    const token = "token";
+
+    const loginResult = {
+      token,
+      user: user,
+    };
+    return loginResult;
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to login user", "UNAUTHORIZED");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -239,5 +258,6 @@ module.exports = {
     CreateUser,
     UpdateUser,
     DeleteUser,
+    AuthLogin,
   },
 };

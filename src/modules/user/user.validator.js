@@ -1,5 +1,11 @@
+// *************** IMPORT LIBRARY ***************
+const bcrypt = require("bcrypt");
+
 // *************** IMPORT CORE ***************
 const { CreateAppError } = require("../../core/error.js");
+
+// *************** IMPORT MODULE ***************
+const User = require("./user.model.js");
 
 // *************** IMPORT UTILITIES ***************
 const { USER } = require("../../shared/utils/enum.js");
@@ -242,8 +248,64 @@ function ValidateUpdateUserInput(input) {
   }
 }
 
+/**
+ * Validate user login credentials (email and password).
+ *
+ * This function performs a full login validation flow:
+ * - Validates email format using regex.
+ * - Ensures password is not empty or blank.
+ * - Finds user by email (excluding those with status "DELETED").
+ * - Verifies the password using bcrypt.
+ *
+ * If validation succeeds, the user document is returned.
+ * Otherwise, appropriate application-level errors are thrown.
+ *
+ * @async
+ * @function ValidateLoginInput
+ * @param {string} email - The email address provided by the user.
+ * @param {string} password - The plain-text password provided by the user.
+ * @throws {AppError} If email format is invalid.
+ * @throws {AppError} If password is empty or blank.
+ * @throws {AppError} If user is not found or is marked as deleted.
+ * @throws {AppError} If the password does not match the stored hash.
+ * @returns {Promise<Object>} The authenticated user document from the database.
+ */
+
+async function ValidateLoginInput(email, password) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    throw CreateAppError("Invalid email format", "BAD_REQUEST", {
+      field: "email",
+    });
+  }
+
+  if (!password || password.trim() === "") {
+    throw CreateAppError("Invalid password format", "BAD_REQUEST", {
+      field: "password",
+    });
+  }
+
+  const user = await User.findOne({
+    email,
+    user_status: {
+      $ne: "DELETED",
+    },
+  });
+  if (!user) {
+    throw CreateAppError("Invalid credentials", "UNAUTHORIZED");
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    throw CreateAppError("Invalid credentials", "UNAUTHORIZED");
+  }
+
+  return user;
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   ValidateCreateUserInput,
   ValidateUpdateUserInput,
+  ValidateLoginInput,
 };
