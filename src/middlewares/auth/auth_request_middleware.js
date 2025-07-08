@@ -20,7 +20,6 @@ async function AuthRequestMiddleware({ request }) {
     const authHeader = request?.headers?.authorization || "";
     const token = authHeader.replace("Bearer ", "").trim();
 
-    console.info("AUTH_HEADER", authHeader);
     if (!token) return {};
 
     try {
