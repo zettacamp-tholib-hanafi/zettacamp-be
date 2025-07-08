@@ -1,3 +1,6 @@
+// *************** IMPORT LIBRARY ***************
+const bcrypt = require("bcrypt");
+
 // *************** IMPORT MODULE ***************
 const User = require("./user.model.js");
 
@@ -42,7 +45,7 @@ async function GetAllUsers(_, { filter }) {
     }
 
     const userResponse = await User.find(query);
-    return userResponse
+    return userResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch users");
   }
@@ -123,7 +126,7 @@ async function CreateUser(_, { input }) {
     };
 
     const createUserResponse = await User.create(userInputPayload);
-    return createUserResponse
+    return createUserResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
   }
@@ -155,6 +158,10 @@ async function UpdateUser(_, { id, input }) {
           field: "email",
         });
       }
+    }
+
+    if (input.password) {
+      input.password = await bcrypt.hash(input.password, 10);
     }
 
     const userUpdatePayload = {
