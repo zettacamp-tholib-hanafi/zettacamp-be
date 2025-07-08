@@ -48,4 +48,5 @@ async function AuthRequestMiddleware({ request }) {
   }
 }
 
+// *************** EXPORT MODULE ***************
 module.exports = AuthRequestMiddleware;
