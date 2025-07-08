@@ -1,5 +1,6 @@
 // *************** IMPORT CORE ***************
-const { CreateAppError } = require("../core/error");
+const { CreateAppError } = require("../../core/error");
+
 
 /**
  * Check if authenticated user has access based on role.
@@ -10,7 +11,7 @@ const { CreateAppError } = require("../core/error");
  *
  * @throws {AppError} If user not authenticated or role not allowed.
  */
-function checkRoleAccess(context, allowedRoles = []) {
+function CheckRoleAccess(context, allowedRoles = []) {
   const user = context?.user;
   if (!user) {
     throw CreateAppError("User not authenticated", "UNAUTHORIZED");
@@ -29,4 +30,4 @@ function checkRoleAccess(context, allowedRoles = []) {
   return true;
 }
 
-module.exports = checkRoleAccess;
+module.exports = { CheckRoleAccess };
