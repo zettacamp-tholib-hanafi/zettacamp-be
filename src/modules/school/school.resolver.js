@@ -14,10 +14,10 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { SCHOOL } = require("../../shared/utils/enum.js");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** QUERY ***************
 /**
@@ -37,7 +37,7 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 async function GetAllSchools(_, { filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const query = {};
 
     if (filter && filter.school_status) {
@@ -78,7 +78,7 @@ async function GetAllSchools(_, { filter }, context) {
 
 async function GetOneSchool(_, { id, filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const schoolId = await ValidateMongoId(id);
 
     const query = { _id: schoolId };
@@ -156,7 +156,7 @@ async function GetOneSchool(_, { id, filter }, context) {
 
 async function CreateSchool(_, { input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateCreateSchoolInput(input);
     ValidateVerified(input.verified);
     ValidateAddress(input.address);
@@ -270,7 +270,7 @@ async function CreateSchool(_, { input }, context) {
 
 async function UpdateSchool(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateUpdateSchoolInput(input);
     if (input.verified) ValidateVerified(input.verified);
     if (input.address) ValidateAddress(input.address);
@@ -372,7 +372,7 @@ async function UpdateSchool(_, { id, input }, context) {
 
 async function DeleteSchool(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const schoolId = await ValidateMongoId(id);
 
     const deleted = await School.updateOne(
