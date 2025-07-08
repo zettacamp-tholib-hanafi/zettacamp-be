@@ -290,7 +290,7 @@ async function ValidateLoginInput(email, password) {
     user_status: {
       $ne: "DELETED",
     },
-  });
+  }).lean();
   if (!user) {
     throw CreateAppError("Invalid credentials", "UNAUTHORIZED");
   }
@@ -299,6 +299,8 @@ async function ValidateLoginInput(email, password) {
   if (!isMatch) {
     throw CreateAppError("Invalid credentials", "UNAUTHORIZED");
   }
+
+  delete user.password;
 
   return user;
 }

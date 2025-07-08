@@ -1,5 +1,6 @@
 // *************** IMPORT LIBRARY ***************
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 // *************** IMPORT MODULE ***************
 const User = require("./user.model.js");
@@ -17,6 +18,7 @@ const { USER } = require("../../shared/utils/enum.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
+const { JWT_SECRET } = require("../../core/config.js");
 
 // *************** QUERY ***************
 
@@ -230,13 +232,43 @@ async function DeleteUser(_, { id }) {
   }
 }
 
+/**
+ * Authenticate a user and return a JWT token along with user data.
+ *
+ * This mutation performs the login process by:
+ * - Validating the input email and password via `ValidateLoginInput`.
+ * - Verifying credentials and rejecting unauthorized attempts.
+ * - Generating a JWT token with payload: `{ user_id, role }`.
+ * - Setting a token expiration of 7 days.
+ * - Returning the token and the user data (excluding the password).
+ *
+ * @async
+ * @function AuthLogin
+ * @param {Object} _ - Unused resolver parent argument.
+ * @param {Object} args - Resolver arguments.
+ * @param {Object} args.input - The login input containing email and password.
+ * @param {string} args.input.email - User email used for authentication.
+ * @param {string} args.input.password - User password to be verified.
+ * @returns {Promise<Object>} An object containing:
+ *   - {string} token: Signed JWT token for the authenticated user.
+ *   - {Object} user: The authenticated user's data (password already stripped).
+ * @throws {AppError} If validation fails or credentials are invalid.
+ */
+
 async function AuthLogin(_, { input }) {
   try {
     const { email, password } = input;
 
     const user = ValidateLoginInput(email, password);
 
-    const token = "token";
+    const payload = {
+      user_id: String(user._id),
+      role: user.role,
+    };
+
+    const token = jwt.sign(payload, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     const loginResult = {
       token,
