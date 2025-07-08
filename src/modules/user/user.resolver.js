@@ -15,7 +15,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { USER } = require("../../shared/utils/enum.js");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -35,7 +35,7 @@ const { JWT_SECRET } = require("../../core/config.js");
 
 async function GetAllUsers(_, { filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const query = {};
 
     if (filter && filter.user_status) {
@@ -69,7 +69,7 @@ async function GetAllUsers(_, { filter }, context) {
 
 async function GetOneUser(_, { id, filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const userId = await ValidateMongoId(id);
 
     const query = { _id: userId };
@@ -212,7 +212,7 @@ async function UpdateUser(_, { id, input }) {
 
 async function DeleteUser(_, { id }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const userId = await ValidateMongoId(id);
 
     const deleted = await User.updateOne(

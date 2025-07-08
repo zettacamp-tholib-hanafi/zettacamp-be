@@ -11,7 +11,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { STUDENT } = require("../../shared/utils/enum.js");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -31,7 +31,7 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 async function GetAllStudents(_, { filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const query = {};
 
     if (filter) {
@@ -87,7 +87,7 @@ async function GetAllStudents(_, { filter }, context) {
 
 async function GetOneStudent(_, { id, filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const studentId = await ValidateMongoId(id);
 
     const query = { _id: studentId };
@@ -148,7 +148,7 @@ async function GetOneStudent(_, { id, filter }, context) {
 
 async function CreateStudent(_, { input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateCreateStudentInput(input);
 
     const existing = await Student.findOne({ email: input.email });
@@ -216,7 +216,7 @@ async function CreateStudent(_, { input }, context) {
 
 async function UpdateStudent(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateUpdateStudentInput(input);
     const studentId = await ValidateMongoId(id);
 
@@ -317,7 +317,7 @@ async function UpdateStudent(_, { id, input }, context) {
 
 async function DeleteStudent(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const studentId = await ValidateMongoId(id);
     const deleted = await Student.updateOne(
       { _id: studentId, student_status: { $ne: "DELETED" } },
