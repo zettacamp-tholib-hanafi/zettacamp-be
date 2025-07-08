@@ -9,9 +9,7 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
-const {
-  BLOCK,
-} = require("../../shared/utils/enum");
+const { BLOCK } = require("../../shared/utils/enum");
 const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
@@ -38,7 +36,12 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 async function GetAllBlocks(_, { filter }, context) {
   try {
-    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
+    CheckRoleAccess(context, [
+      "ACADEMIC_ADMIN",
+      "ACADEMIC_DIRECTOR",
+      "CORRECTOR",
+      "STUDENT",
+    ]);
     const query = {};
 
     if (filter && filter.block_status) {
@@ -80,7 +83,12 @@ async function GetAllBlocks(_, { filter }, context) {
 
 async function GetOneBlock(_, { id, filter }, context) {
   try {
-    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
+    CheckRoleAccess(context, [
+      "ACADEMIC_ADMIN",
+      "ACADEMIC_DIRECTOR",
+      "CORRECTOR",
+      "STUDENT",
+    ]);
     const blockId = await ValidateMongoId(id);
     const query = { _id: blockId };
 
