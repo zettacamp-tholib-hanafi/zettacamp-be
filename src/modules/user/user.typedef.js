@@ -12,7 +12,9 @@ module.exports = gql`
   }
 
   enum UserRoles {
-    ADMIN
+    ACADEMIC_DIRECTOR
+    ACADEMIC_ADMIN
+    CORRECTOR
     STUDENT
   }
 

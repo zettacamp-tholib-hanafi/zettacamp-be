@@ -9,6 +9,7 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 // *************** IMPORT UTILITIES ***************
 const { CALCULATION_RESULT } = require("../../shared/utils/enum.js");
+const { RequireAuth } = require("../../shared/utils/require_auth.js");
 
 // *************** QUERY ***************
 
@@ -33,8 +34,9 @@ const { CALCULATION_RESULT } = require("../../shared/utils/enum.js");
  * @throws {AppError} Throws a generic error if fetching data from the database fails.
  */
 
-async function CalculationResults(_, { filter = {} }) {
+async function CalculationResults(_, { filter = {} }, context) {
   try {
+    RequireAuth(context);
     const query = {};
 
     if (filter.student_id) {

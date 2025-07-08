@@ -15,6 +15,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { USER } = require("../../shared/utils/enum.js");
+const { RequireAuth } = require("../../shared/utils/require_auth.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -32,8 +33,9 @@ const { JWT_SECRET } = require("../../core/config.js");
  * @returns {Promise<Array>} List of users matching the criteria.
  */
 
-async function GetAllUsers(_, { filter }) {
+async function GetAllUsers(_, { filter }, context) {
   try {
+    RequireAuth(context);
     const query = {};
 
     if (filter && filter.user_status) {
@@ -65,8 +67,9 @@ async function GetAllUsers(_, { filter }) {
  * @returns {Promise<Object>} The user document.
  */
 
-async function GetOneUser(_, { id, filter }) {
+async function GetOneUser(_, { id, filter }, context) {
   try {
+    RequireAuth(context);
     const userId = await ValidateMongoId(id);
 
     const query = { _id: userId };
@@ -207,8 +210,9 @@ async function UpdateUser(_, { id, input }) {
  * @returns {Promise<Object>} The deleted (soft) user document.
  */
 
-async function DeleteUser(_, { id }) {
+async function DeleteUser(_, { id }, context) {
   try {
+    RequireAuth(context);
     const userId = await ValidateMongoId(id);
 
     const deleted = await User.updateOne(
@@ -265,7 +269,6 @@ async function AuthLogin(_, { input }) {
       user_id: String(user._id),
       role: user.role,
     };
-
 
     const token = jwt.sign(payload, JWT_SECRET, {
       expiresIn: "7d",

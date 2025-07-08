@@ -14,6 +14,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { SCHOOL } = require("../../shared/utils/enum.js");
+const { RequireAuth } = require("../../shared/utils/require_auth.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -34,8 +35,9 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
  * @returns {Promise<Object[]>} A promise resolving to an array of School documents.
  */
 
-async function GetAllSchools(_, { filter }) {
+async function GetAllSchools(_, { filter }, context) {
   try {
+    RequireAuth(context);
     const query = {};
 
     if (filter && filter.school_status) {
@@ -74,8 +76,9 @@ async function GetAllSchools(_, { filter }) {
  * @returns {Promise<Object|null>} A promise resolving to the School document if found, or `null` if not found.
  */
 
-async function GetOneSchool(_, { id, filter }) {
+async function GetOneSchool(_, { id, filter }, context) {
   try {
+    RequireAuth(context);
     const schoolId = await ValidateMongoId(id);
 
     const query = { _id: schoolId };
@@ -151,8 +154,9 @@ async function GetOneSchool(_, { id, filter }) {
  * @returns {Promise<Object>} A promise resolving to the newly created School document.
  */
 
-async function CreateSchool(_, { input }) {
+async function CreateSchool(_, { input }, context) {
   try {
+    RequireAuth(context);
     ValidateCreateSchoolInput(input);
     ValidateVerified(input.verified);
     ValidateAddress(input.address);
@@ -264,8 +268,9 @@ async function CreateSchool(_, { input }) {
  * @returns {Promise<object>} The updated school document.
  */
 
-async function UpdateSchool(_, { id, input }) {
+async function UpdateSchool(_, { id, input }, context) {
   try {
+    RequireAuth(context);
     ValidateUpdateSchoolInput(input);
     if (input.verified) ValidateVerified(input.verified);
     if (input.address) ValidateAddress(input.address);
@@ -365,8 +370,9 @@ async function UpdateSchool(_, { id, input }) {
  * @throws {AppError} Throws a generic `AppError` if deletion fails due to a server or validation error.
  */
 
-async function DeleteSchool(_, { id, input }) {
+async function DeleteSchool(_, { id, input }, context) {
   try {
+    RequireAuth(context);
     const schoolId = await ValidateMongoId(id);
 
     const deleted = await School.updateOne(

@@ -11,6 +11,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { STUDENT } = require("../../shared/utils/enum.js");
+const { RequireAuth } = require("../../shared/utils/require_auth.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -28,8 +29,9 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
  * @returns {Promise<Array<object>>} List of students matching the filter.
  */
 
-async function GetAllStudents(_, { filter }) {
+async function GetAllStudents(_, { filter }, context) {
   try {
+    RequireAuth(context);
     const query = {};
 
     if (filter) {
@@ -83,8 +85,9 @@ async function GetAllStudents(_, { filter }) {
  * @returns {Promise<object>} The student object if found.
  */
 
-async function GetOneStudent(_, { id, filter }) {
+async function GetOneStudent(_, { id, filter }, context) {
   try {
+    RequireAuth(context);
     const studentId = await ValidateMongoId(id);
 
     const query = { _id: studentId };
@@ -143,8 +146,9 @@ async function GetOneStudent(_, { id, filter }) {
  * @returns {Promise<object>} The created student object.
  */
 
-async function CreateStudent(_, { input }) {
+async function CreateStudent(_, { input }, context) {
   try {
+    RequireAuth(context);
     ValidateCreateStudentInput(input);
 
     const existing = await Student.findOne({ email: input.email });
@@ -210,8 +214,9 @@ async function CreateStudent(_, { input }) {
  * @returns {Promise<object>} The updated student object.
  */
 
-async function UpdateStudent(_, { id, input }) {
+async function UpdateStudent(_, { id, input }, context) {
   try {
+    RequireAuth(context);
     ValidateUpdateStudentInput(input);
     const studentId = await ValidateMongoId(id);
 
@@ -310,8 +315,9 @@ async function UpdateStudent(_, { id, input }) {
  * @returns {Promise<object>} The soft-deleted student object.
  */
 
-async function DeleteStudent(_, { id, input }) {
+async function DeleteStudent(_, { id, input }, context) {
   try {
+    RequireAuth(context);
     const studentId = await ValidateMongoId(id);
     const deleted = await Student.updateOne(
       { _id: studentId, student_status: { $ne: "DELETED" } },
