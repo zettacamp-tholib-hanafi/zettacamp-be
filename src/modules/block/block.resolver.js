@@ -12,7 +12,7 @@ const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const {
   BLOCK,
 } = require("../../shared/utils/enum");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -38,7 +38,7 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 async function GetAllBlocks(_, { filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const query = {};
 
     if (filter && filter.block_status) {
@@ -80,7 +80,7 @@ async function GetAllBlocks(_, { filter }, context) {
 
 async function GetOneBlock(_, { id, filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const blockId = await ValidateMongoId(id);
     const query = { _id: blockId };
 
@@ -142,7 +142,7 @@ async function GetOneBlock(_, { id, filter }, context) {
 
 async function CreateBlock(_, { input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       description,
@@ -196,7 +196,7 @@ async function CreateBlock(_, { input }, context) {
 
 async function UpdateBlock(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       description,
@@ -258,7 +258,7 @@ async function UpdateBlock(_, { id, input }, context) {
 
 async function DeleteBlock(_, { id, deleted_by }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const blockId = await ValidateMongoId(id);
 
     const deleted = await Block.updateOne(
