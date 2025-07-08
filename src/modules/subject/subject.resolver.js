@@ -10,7 +10,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { SUBJECT } = require("../../shared/utils/enum.js");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -46,7 +46,12 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 async function GetAllSubjects(_, { filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, [
+      "ACADEMIC_ADMIN",
+      "ACADEMIC_DIRECTOR",
+      "CORRECTOR",
+      "STUDENT",
+    ]);
     const query = {};
 
     // *************** Filter: subject_status
@@ -59,7 +64,7 @@ async function GetAllSubjects(_, { filter }, context) {
         );
       }
       query.subject_status = filter.subject_status;
-    } 
+    }
 
     // *************** Filter: level
     if (filter && filter.level) {
@@ -132,7 +137,12 @@ async function GetAllSubjects(_, { filter }, context) {
 
 async function GetOneSubject(_, { id, filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, [
+      "ACADEMIC_ADMIN",
+      "ACADEMIC_DIRECTOR",
+      "CORRECTOR",
+      "STUDENT",
+    ]);
     const subjectId = await ValidateMongoId(id);
 
     const query = { _id: subjectId };
@@ -147,7 +157,7 @@ async function GetOneSubject(_, { id, filter }, context) {
         );
       }
       query.subject_status = filter.subject_status;
-    } 
+    }
 
     // *************** Filter: level
     if (filter && filter.level) {
@@ -219,7 +229,7 @@ async function GetOneSubject(_, { id, filter }, context) {
  */
 async function CreateSubject(_, { input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       subject_code,
@@ -291,7 +301,7 @@ async function CreateSubject(_, { input }, context) {
 
 async function UpdateSubject(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       subject_code,
@@ -366,7 +376,7 @@ async function UpdateSubject(_, { id, input }, context) {
 
 async function DeleteSubject(_, { id, deleted_by }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const subjectId = await ValidateMongoId(id);
 
     const deleted = await Subject.updateOne(
