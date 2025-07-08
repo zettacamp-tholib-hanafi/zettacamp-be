@@ -25,6 +25,7 @@
     "@graphql-tools/schema": "^10.0.23",
     "@sendgrid/mail": "^8.1.5",
     "apollo-server": "^3.13.0",
+    "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dataloader": "^2.2.3",
