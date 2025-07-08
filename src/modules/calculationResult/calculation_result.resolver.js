@@ -9,7 +9,7 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 // *************** IMPORT UTILITIES ***************
 const { CALCULATION_RESULT } = require("../../shared/utils/enum.js");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** QUERY ***************
 
@@ -36,7 +36,7 @@ const { RequireAuth } = require("../../shared/utils/require_auth.js");
 
 async function CalculationResults(_, { filter = {} }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR", "STUDENT"]);
     const query = {};
 
     if (filter.student_id) {
