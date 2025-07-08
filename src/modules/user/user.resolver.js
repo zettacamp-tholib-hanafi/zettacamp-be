@@ -259,12 +259,13 @@ async function AuthLogin(_, { input }) {
   try {
     const { email, password } = input;
 
-    const user = ValidateLoginInput(email, password);
+    const user = await ValidateLoginInput(email, password);
 
     const payload = {
       user_id: String(user._id),
       role: user.role,
     };
+
 
     const token = jwt.sign(payload, JWT_SECRET, {
       expiresIn: "7d",
