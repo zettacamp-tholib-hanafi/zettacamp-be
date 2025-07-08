@@ -12,7 +12,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { TEST } = require("../../shared/utils/enum.js");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -35,7 +35,7 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
  */
 async function GetAllTests(_, { filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const query = {};
 
     if (filter && filter.test_status) {
@@ -83,7 +83,7 @@ async function GetAllTests(_, { filter }, context) {
  */
 async function GetOneTest(_, { id, filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const testId = await ValidateMongoId(id);
 
     const query = { _id: testId };
@@ -132,7 +132,7 @@ async function GetOneTest(_, { id, filter }, context) {
  */
 async function CreateTest(_, { input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       subject_id,
@@ -179,7 +179,7 @@ async function CreateTest(_, { input }, context) {
  */
 async function UpdateTest(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const testId = await ValidateMongoId(id);
 
     const {
@@ -248,7 +248,7 @@ async function UpdateTest(_, { id, input }, context) {
 
 async function DeleteTest(_, { id, deleted_by }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const testId = await ValidateMongoId(id);
 
     const deleted = await Test.updateOne(
@@ -298,7 +298,7 @@ async function DeleteTest(_, { id, deleted_by }, context) {
 
 async function PublishTest(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const testId = await ValidateMongoId(id);
     const { corrector, due_date } = await ValidateAssignCorrector(
       testId,
