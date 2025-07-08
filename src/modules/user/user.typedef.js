@@ -48,6 +48,11 @@ module.exports = gql`
     user: User!
   }
 
+  type UserPaginationResult {
+    data: [User!]!
+    meta: PaginationResult!
+  }
+
   input UserPreferencesInput {
     language: String
     timezone: String
@@ -85,6 +90,8 @@ module.exports = gql`
 
   input UserFilterInput {
     user_status: UserStatus
+    role: [UserRoles!]
+    created_at: DateFilter
   }
 
   input LoginInput {
@@ -93,7 +100,11 @@ module.exports = gql`
   }
 
   type Query {
-    GetAllUsers(filter: UserFilterInput): [User!]!
+    GetAllUsers(
+      filter: UserFilterInput
+      sort: SortInput
+      pagination: PaginationInput
+    ): UserPaginationResult!
     GetOneUser(id: ID!, filter: UserFilterInput): User
   }
 
