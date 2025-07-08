@@ -12,9 +12,8 @@ module.exports = gql`
   }
 
   enum UserRoles {
-    ACADEMIC_DIRECTOR
-    ACADEMIC_ADMIN
-    CORRECTOR
+    ADMIN
+    STUDENT
   }
 
   type UserPreferences {
@@ -27,7 +26,6 @@ module.exports = gql`
     first_name: String!
     last_name: String!
     email: String!
-    password: String!
     role: [UserRoles!]!
     user_status: UserStatus!
     phone: String
@@ -43,6 +41,11 @@ module.exports = gql`
     deleted_by: String
   }
 
+  type AuthLogin {
+    token: String!
+    user: User!
+  }
+
   input UserPreferencesInput {
     language: String
     timezone: String
@@ -53,7 +56,7 @@ module.exports = gql`
     last_name: String!
     email: String!
     password: String!
-    role: [String!]!
+    role: [UserRoles!]!
     user_status: UserStatus!
     phone: String
     profile_picture_url: String
@@ -68,7 +71,7 @@ module.exports = gql`
     last_name: String
     email: String
     password: String
-    role: [String!]
+    role: [UserRoles!]
     user_status: UserStatus
     phone: String
     profile_picture_url: String
@@ -82,6 +85,11 @@ module.exports = gql`
     user_status: UserStatus
   }
 
+  input LoginInput {
+    email: String!
+    password: String!
+  }
+
   type Query {
     GetAllUsers(filter: UserFilterInput): [User!]!
     GetOneUser(id: ID!, filter: UserFilterInput): User
@@ -91,5 +99,6 @@ module.exports = gql`
     CreateUser(input: CreateUserInput!): User!
     UpdateUser(id: ID!, input: UpdateUserInput!): User!
     DeleteUser(id: ID!): User!
+    AuthLogin(input: LoginInput!): AuthLogin!
   }
 `;
