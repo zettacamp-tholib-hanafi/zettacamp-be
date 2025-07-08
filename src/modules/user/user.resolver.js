@@ -14,12 +14,14 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
-const { USER } = require("../../shared/utils/enum.js");
 const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 const { JWT_SECRET } = require("../../core/config.js");
+
+// *************** IMPORT HELPER FUNCTION ***************
+const { UserQueryPipeline, UserFilterStage } = require("./user.helper.js");
 
 // *************** QUERY ***************
 
@@ -33,23 +35,31 @@ const { JWT_SECRET } = require("../../core/config.js");
  * @returns {Promise<Array>} List of users matching the criteria.
  */
 
-async function GetAllUsers(_, { filter }, context) {
+async function GetAllUsers(_, { filter, sort, pagination }, context) {
   try {
     CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
-    const query = {};
 
-    if (filter && filter.user_status) {
-      if (!USER.VALID_STATUS.includes(filter.user_status)) {
-        throw CreateAppError(
-          "Invalid user_status filter value",
-          "BAD_REQUEST",
-          { user_status: filter.user_status }
-        );
-      }
-      query.user_status = filter.user_status;
-    }
+    const { pipeline, page, limit } = UserQueryPipeline(
+      filter,
+      sort,
+      pagination
+    );
+    const result = await User.aggregate(pipeline);
 
-    const userResponse = await User.find(query);
+    const data = result[0].data;
+    const total = result[0].metadata[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const userResponse = {
+      data,
+      meta: {
+        total,
+        total_pages: totalPages,
+        current_page: page,
+        per_page: limit,
+      },
+    };
+
     return userResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch users");
@@ -72,20 +82,10 @@ async function GetOneUser(_, { id, filter }, context) {
     CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const userId = await ValidateMongoId(id);
 
-    const query = { _id: userId };
+    const matchStage = UserFilterStage(filter, userId);
+    const pipeline = [{ $match: matchStage }];
+    const user = await User.aggregate(pipeline);
 
-    if (filter && filter.user_status) {
-      if (!USER.VALID_STATUS.includes(filter.user_status)) {
-        throw CreateAppError(
-          "Invalid user_status filter value",
-          "BAD_REQUEST",
-          { user_status: filter.user_status }
-        );
-      }
-      query.user_status = filter.user_status;
-    }
-
-    const user = await User.findOne(query);
     if (!user) {
       throw CreateAppError("User not found", "NOT_FOUND", { userId });
     }
