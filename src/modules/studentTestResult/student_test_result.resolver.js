@@ -11,7 +11,7 @@ const { ValidateCreateTask } = require("../task/task.validator.js");
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ****************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -50,7 +50,7 @@ const VALID_STUDENT_TEST_RESULT_STATUS = [
  */
 async function GetAllStudentTestResults(_, { filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR", "CORRECTOR", "STUDENT"]);
     const query = {};
 
     // *************** Filter: student_test_result_status
@@ -120,7 +120,7 @@ async function GetAllStudentTestResults(_, { filter }, context) {
 
 async function GetOneStudentTestResult(_, { id, filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR", "CORRECTOR", "STUDENT"]);
     const studentTestResultId = await ValidateMongoId(id);
 
     const query = { _id: studentTestResultId };
@@ -194,7 +194,7 @@ async function GetOneStudentTestResult(_, { id, filter }, context) {
 
 async function CreateStudentTestResult(_, { input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       student_id,
       test_id,
@@ -261,7 +261,7 @@ async function CreateStudentTestResult(_, { input }, context) {
 
 async function UpdateStudentTestResult(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       student_id,
       test_id,
@@ -332,7 +332,7 @@ async function UpdateStudentTestResult(_, { id, input }, context) {
  */
 async function DeleteStudentTestResult(_, { id, deleted_by }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const studentTestResultId = await ValidateMongoId(id);
     const deleted = await StudentTestResult.updateOne(
       {
@@ -374,7 +374,7 @@ async function DeleteStudentTestResult(_, { id, deleted_by }, context) {
 
 async function EnterMarks(_, { input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["CORRECTOR"]);
     const createStudentTestResultPayload = {
       student_id: input.student_id,
       test_id: input.test_id,
@@ -464,7 +464,7 @@ async function EnterMarks(_, { input }, context) {
  */
 async function ValidateMarks(_, { id }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const taskId = await ValidateMongoId(id);
     const { task, studentTestResult } = await ValidateValidateMarks(taskId);
 
