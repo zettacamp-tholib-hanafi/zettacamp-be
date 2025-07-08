@@ -17,7 +17,7 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
-const { RequireAuth } = require("../../shared/utils/require_auth.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -49,7 +49,7 @@ const VALID_TASK_STATUSES = ["PENDING", "PROGRESS", "COMPLETED", "DELETED"];
  */
 async function GetAllTasks(_, { filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const query = {};
 
     // *************** Filter: task_status
@@ -122,7 +122,7 @@ async function GetAllTasks(_, { filter }, context) {
 
 async function GetOneTask(_, { id, filter }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const taskId = await ValidateMongoId(id);
 
     const query = { _id: taskId };
@@ -204,7 +204,7 @@ async function GetOneTask(_, { id, filter }, context) {
  */
 async function CreateTask(_, { input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const { test_id, user_id, task_type, task_status, due_date } =
       await ValidateCreateTask(input);
 
@@ -246,7 +246,7 @@ async function CreateTask(_, { input }, context) {
  */
 async function UpdateTask(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const { test_id, user_id, task_type, task_status, due_date } =
       await ValidateUpdateTask(input);
     const taskId = await ValidateMongoId(id);
@@ -293,7 +293,7 @@ async function UpdateTask(_, { id, input }, context) {
 
 async function DeleteTask(_, { id, deleted_by }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const taskId = await ValidateMongoId(id);
 
     const deleted = await Task.updateOne(
@@ -331,7 +331,7 @@ async function DeleteTask(_, { id, deleted_by }, context) {
  */
 async function AssignCorrector(_, { id, input }, context) {
   try {
-    RequireAuth(context);
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     // *************** Step 1: Validate and fetch task
     const taskId = await ValidateMongoId(id);
     const { user_id, due_date, assignTask } = await ValidateAssignCorrector(
