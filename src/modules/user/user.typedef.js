@@ -105,7 +105,7 @@ module.exports = gql`
       sort: SortInput
       pagination: PaginationInput
     ): UserPaginationResult!
-    GetOneUser(id: ID!, filter: UserFilterInput): User
+    GetOneUser(id: ID!): User
   }
 
   type Mutation {

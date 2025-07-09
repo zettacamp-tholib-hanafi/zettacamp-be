@@ -55,6 +55,11 @@ module.exports = gql`
     deleted_by: String
   }
 
+  type StudentPaginationResult {
+    data: [Student!]
+    meta: PaginationResult!
+  }
+
   input StudentBirthInput {
     place: String!
     date: Date!
@@ -108,11 +113,18 @@ module.exports = gql`
     student_status: StudentStatus
     academic_status: AcademicStatus
     gender: StudentGender
+    date_of_birth: DateFilter
+    school_id: ID
+    school_name: String
   }
 
   extend type Query {
-    GetAllStudents(filter: StudentFilterInput): [Student!]!
-    GetOneStudent(id: ID!, filter: StudentFilterInput): Student
+    GetAllStudents(
+      filter: StudentFilterInput
+      sort: SortInput
+      pagination: PaginationInput
+    ): StudentPaginationResult!
+    GetOneStudent(id: ID!): Student
   }
 
   extend type Mutation {
