@@ -176,7 +176,6 @@ async function StudentQueryPipeline(filter = {}, sort = {}, pagination = {}) {
       metadata: [{ $count: "total" }],
     },
   });
-  console.log("PIPELINE", pipeline);
 
   return { pipeline, page, limit };
 }

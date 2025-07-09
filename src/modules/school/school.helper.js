@@ -34,7 +34,6 @@ async function SchoolFilterStage(filter = {}) {
 
     matchStage["verified.status_verified"] = filter.status_verified;
   }
-  console.log("status_verified filter?", filter.status_verified);
 
   if (filter.verified_at) {
     const verifiedAt = {};
@@ -108,7 +107,6 @@ async function SchoolQueryPipeline(filter = {}, sort = {}, pagination = {}) {
   });
 
   const matchStage = await SchoolFilterStage(filter);
-  console.log(matchStage);
 
   if (Object.keys(matchStage).length > 0) {
     pipeline.push({ $match: matchStage });
@@ -154,7 +152,6 @@ async function SchoolQueryPipeline(filter = {}, sort = {}, pagination = {}) {
       metadata: [{ $count: "total" }],
     },
   });
-  //   console.log("PIPELINE", pipeline);
 
   return { pipeline, page, limit };
 }
