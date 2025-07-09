@@ -68,7 +68,7 @@ const schoolSchema = new Schema(
     // Optional admin users
     admin_user: [
       {
-        id: { type: String, default: null, trim: true },
+        id: { type: String, default: null, ref: "User", trim: true },
         role: { type: String, default: null, trim: true },
         assigned_at: { type: String, default: null },
       },
