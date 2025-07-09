@@ -114,8 +114,14 @@ function UserQueryPipeline(filter = {}, sort = {}, pagination = {}) {
 
   pipeline.push({ $sort: { [sortField]: sortOrder } });
 
-  const page = pagination.page > 0 ? pagination.page : 1;
-  const limit = pagination.limit > 0 ? pagination.limit : MAX_LIMIT;
+  const page =
+    Number.isInteger(pagination.page) && pagination.page > 0
+      ? pagination.page
+      : 1;
+  const limit =
+    Number.isInteger(pagination.limit) && pagination.limit > 0
+      ? pagination.limit
+      : MAX_LIMIT;
   const skip = (page - 1) * limit;
 
   pipeline.push({
