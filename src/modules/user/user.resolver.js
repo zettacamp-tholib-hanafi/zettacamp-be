@@ -117,6 +117,10 @@ async function CreateUser(_, { input }) {
       });
     }
 
+    if (typeof input.password === "string" && input.password.trim()) {
+      input.password = await bcrypt.hash(input.password, 10);
+    }
+
     const userInputPayload = {
       first_name: input.first_name,
       last_name: input.last_name,
@@ -147,8 +151,9 @@ async function CreateUser(_, { input }) {
  * @param {Object} args.input - Updated user data.
  * @returns {Promise<Object>} The updated user document.
  */
-async function UpdateUser(_, { id, input }) {
+async function UpdateUser(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateUpdateUserInput(input);
     const userId = await ValidateMongoId(id);
 

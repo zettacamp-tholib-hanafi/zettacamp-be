@@ -1,6 +1,5 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model } = require("mongoose");
-const bcrypt = require("bcrypt");
 
 // ************** IMPORT UTILITIES *************
 const { USER } = require("../../shared/utils/enum");
@@ -107,20 +106,6 @@ const userSchema = new Schema(
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
   }
 );
-
-userSchema.pre("save", async function (next) {
-  try {
-    if (!this.isModified("password")) return next();
-
-    const saltRounds = 10;
-    const hashed = await bcrypt.hash(this.password, saltRounds);
-    this.password = hashed;
-
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
 
 // *************** EXPORT MODULE ***************
 module.exports = model("User", userSchema);
