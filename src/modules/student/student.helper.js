@@ -198,6 +198,5 @@ function parseDateField(dateStr, label) {
 
 // *************** EXPORT MODULE ***************
 module.exports = {
-  StudentFilterStage,
   StudentQueryPipeline,
 };

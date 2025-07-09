@@ -136,6 +136,5 @@ function UserQueryPipeline(filter = {}, sort = {}, pagination = {}) {
 
 // *************** EXPORT MODULE ***************
 module.exports = {
-  UserFilterStage,
   UserQueryPipeline,
 };
