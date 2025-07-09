@@ -5,8 +5,6 @@ const gql = require("graphql-tag");
 // *************** EXPORT MODULE ***************
 
 module.exports = gql`
-  scalar Date
-
   enum StudentTestResultStatus {
     GRADED
     PENDING_REVIEW

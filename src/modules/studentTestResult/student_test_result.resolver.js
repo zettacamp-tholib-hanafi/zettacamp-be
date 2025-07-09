@@ -11,6 +11,7 @@ const { ValidateCreateTask } = require("../task/task.validator.js");
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ****************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -26,7 +27,6 @@ const VALID_STUDENT_TEST_RESULT_STATUS = [
   "NEEDS_CORRECTION",
   "DELETED",
 ];
-const DEFAULT_STUDENT_TEST_RESULT_STATUS = "PENDING_REVIEW";
 
 // *************** QUERY ***************
 
@@ -48,8 +48,9 @@ const DEFAULT_STUDENT_TEST_RESULT_STATUS = "PENDING_REVIEW";
  * @returns {Promise<Array<Object>>} Resolves to an array of matched student test result documents.
  * @throws {AppError} If any filter is invalid or if the database query fails.
  */
-async function GetAllStudentTestResults(_, { filter }) {
+async function GetAllStudentTestResults(_, { filter }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR", "CORRECTOR", "STUDENT"]);
     const query = {};
 
     // *************** Filter: student_test_result_status
@@ -117,8 +118,9 @@ async function GetAllStudentTestResults(_, { filter }) {
  * @throws {AppError} If any filter is invalid, the result is not found, or if the query fails.
  */
 
-async function GetOneStudentTestResult(_, { id, filter }) {
+async function GetOneStudentTestResult(_, { id, filter }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR", "CORRECTOR", "STUDENT"]);
     const studentTestResultId = await ValidateMongoId(id);
 
     const query = { _id: studentTestResultId };
@@ -190,8 +192,9 @@ async function GetOneStudentTestResult(_, { id, filter }) {
  * @throws {AppError} If validation fails or creation encounters errors.
  */
 
-async function CreateStudentTestResult(_, { input }) {
+async function CreateStudentTestResult(_, { input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       student_id,
       test_id,
@@ -256,8 +259,9 @@ async function CreateStudentTestResult(_, { input }) {
  * @returns {Promise<Object>} Returns an object containing the updated ID.
  */
 
-async function UpdateStudentTestResult(_, { id, input }) {
+async function UpdateStudentTestResult(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       student_id,
       test_id,
@@ -326,8 +330,9 @@ async function UpdateStudentTestResult(_, { id, input }) {
  * @throws {AppError} Throws NOT_FOUND if the record does not exist or is already deleted.
  * @throws {AppError} Throws a general error with custom message if any other error occurs during deletion.
  */
-async function DeleteStudentTestResult(_, { id, deleted_by }) {
+async function DeleteStudentTestResult(_, { id, deleted_by }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const studentTestResultId = await ValidateMongoId(id);
     const deleted = await StudentTestResult.updateOne(
       {
@@ -367,8 +372,9 @@ async function DeleteStudentTestResult(_, { id, deleted_by }) {
  * @returns {Promise<Object>} - Object containing new StudentTestResult ID.
  */
 
-async function EnterMarks(_, { input }) {
+async function EnterMarks(_, { input }, context) {
   try {
+    CheckRoleAccess(context, ["CORRECTOR"]);
     const createStudentTestResultPayload = {
       student_id: input.student_id,
       test_id: input.test_id,
@@ -456,8 +462,9 @@ async function EnterMarks(_, { input }) {
  *
  * @throws {AppError} If validation or update processes fail, returns an error wrapped by `HandleCaughtError`.
  */
-async function ValidateMarks(_, { id }) {
+async function ValidateMarks(_, { id }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const taskId = await ValidateMongoId(id);
     const { task, studentTestResult } = await ValidateValidateMarks(taskId);
 
@@ -501,7 +508,7 @@ async function ValidateMarks(_, { id }) {
     if (student_id) {
       try {
         await RunTranscriptWorker(student_id);
-      } catch (err) {
+      } catch {
         throw CreateAppError("Transcript worker not started", "NOT_FOUND");
       }
     } else {

@@ -9,9 +9,8 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
-const {
-  BLOCK,
-} = require("../../shared/utils/enum");
+const { BLOCK } = require("../../shared/utils/enum");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -35,8 +34,14 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
  * @throws {AppError} If the provided block_status is invalid or any internal error occurs.
  */
 
-async function GetAllBlocks(_, { filter }) {
+async function GetAllBlocks(_, { filter }, context) {
   try {
+    CheckRoleAccess(context, [
+      "ACADEMIC_ADMIN",
+      "ACADEMIC_DIRECTOR",
+      "CORRECTOR",
+      "STUDENT",
+    ]);
     const query = {};
 
     if (filter && filter.block_status) {
@@ -76,8 +81,14 @@ async function GetAllBlocks(_, { filter }) {
  * @throws {AppError} If the provided block_status is invalid or the block is not found.
  */
 
-async function GetOneBlock(_, { id, filter }) {
+async function GetOneBlock(_, { id, filter }, context) {
   try {
+    CheckRoleAccess(context, [
+      "ACADEMIC_ADMIN",
+      "ACADEMIC_DIRECTOR",
+      "CORRECTOR",
+      "STUDENT",
+    ]);
     const blockId = await ValidateMongoId(id);
     const query = { _id: blockId };
 
@@ -137,8 +148,9 @@ async function GetOneBlock(_, { id, filter }) {
  * @throws {AppError} Throws `VALIDATION_ERROR` if input is invalid, or other error if creation fails.
  */
 
-async function CreateBlock(_, { input }) {
+async function CreateBlock(_, { input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       description,
@@ -190,8 +202,9 @@ async function CreateBlock(_, { input }) {
  * @throws {AppError} Throws `VALIDATION_ERROR` if input validation fails.
  */
 
-async function UpdateBlock(_, { id, input }) {
+async function UpdateBlock(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       description,
@@ -251,8 +264,9 @@ async function UpdateBlock(_, { id, input }) {
  * @throws {AppError} Throws `NOT_FOUND` if the block does not exist or is already deleted.
  */
 
-async function DeleteBlock(_, { id, deleted_by }) {
+async function DeleteBlock(_, { id, deleted_by }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const blockId = await ValidateMongoId(id);
 
     const deleted = await Block.updateOne(

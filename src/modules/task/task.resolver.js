@@ -17,6 +17,7 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -25,8 +26,6 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 const VALID_TASK_TYPES = ["ASSIGN_CORRECTOR", "ENTER_MARKS", "VALIDATE_MARKS"];
 
 const VALID_TASK_STATUSES = ["PENDING", "PROGRESS", "COMPLETED", "DELETED"];
-
-const DEFAULT_TASK_STATUS = "PENDING";
 
 // *************** QUERY ***************
 /**
@@ -48,8 +47,9 @@ const DEFAULT_TASK_STATUS = "PENDING";
  *
  * @throws {AppError} If any filter value is invalid or if the database query fails.
  */
-async function GetAllTasks(_, { filter }) {
+async function GetAllTasks(_, { filter }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const query = {};
 
     // *************** Filter: task_status
@@ -120,8 +120,9 @@ async function GetAllTasks(_, { filter }) {
  * @throws {AppError} If filter contains invalid values or task is not found.
  */
 
-async function GetOneTask(_, { id, filter }) {
+async function GetOneTask(_, { id, filter }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const taskId = await ValidateMongoId(id);
 
     const query = { _id: taskId };
@@ -201,8 +202,9 @@ async function GetOneTask(_, { id, filter }) {
  *
  * @throws {AppError} If validation fails or the database operation fails.
  */
-async function CreateTask(_, { input }) {
+async function CreateTask(_, { input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const { test_id, user_id, task_type, task_status, due_date } =
       await ValidateCreateTask(input);
 
@@ -242,8 +244,9 @@ async function CreateTask(_, { input }) {
  *
  * @throws {AppError} If validation fails or the task does not exist.
  */
-async function UpdateTask(_, { id, input }) {
+async function UpdateTask(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const { test_id, user_id, task_type, task_status, due_date } =
       await ValidateUpdateTask(input);
     const taskId = await ValidateMongoId(id);
@@ -288,8 +291,9 @@ async function UpdateTask(_, { id, input }) {
  * @throws {AppError} If the task is not found or already deleted.
  */
 
-async function DeleteTask(_, { id, deleted_by }) {
+async function DeleteTask(_, { id, deleted_by }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const taskId = await ValidateMongoId(id);
 
     const deleted = await Task.updateOne(
@@ -327,6 +331,7 @@ async function DeleteTask(_, { id, deleted_by }) {
  */
 async function AssignCorrector(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     // *************** Step 1: Validate and fetch task
     const taskId = await ValidateMongoId(id);
     const { user_id, due_date, assignTask } = await ValidateAssignCorrector(

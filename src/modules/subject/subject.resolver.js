@@ -10,6 +10,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { SUBJECT } = require("../../shared/utils/enum.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -43,8 +44,14 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
  * @throws {AppError} If any filter is invalid or if the database operation fails.
  */
 
-async function GetAllSubjects(_, { filter }) {
+async function GetAllSubjects(_, { filter }, context) {
   try {
+    CheckRoleAccess(context, [
+      "ACADEMIC_ADMIN",
+      "ACADEMIC_DIRECTOR",
+      "CORRECTOR",
+      "STUDENT",
+    ]);
     const query = {};
 
     // *************** Filter: subject_status
@@ -57,7 +64,7 @@ async function GetAllSubjects(_, { filter }) {
         );
       }
       query.subject_status = filter.subject_status;
-    } 
+    }
 
     // *************** Filter: level
     if (filter && filter.level) {
@@ -128,8 +135,14 @@ async function GetAllSubjects(_, { filter }) {
  * @throws {AppError} If the subject is not found or any filter is invalid.
  */
 
-async function GetOneSubject(_, { id, filter }) {
+async function GetOneSubject(_, { id, filter }, context) {
   try {
+    CheckRoleAccess(context, [
+      "ACADEMIC_ADMIN",
+      "ACADEMIC_DIRECTOR",
+      "CORRECTOR",
+      "STUDENT",
+    ]);
     const subjectId = await ValidateMongoId(id);
 
     const query = { _id: subjectId };
@@ -144,7 +157,7 @@ async function GetOneSubject(_, { id, filter }) {
         );
       }
       query.subject_status = filter.subject_status;
-    } 
+    }
 
     // *************** Filter: level
     if (filter && filter.level) {
@@ -214,8 +227,9 @@ async function GetOneSubject(_, { id, filter }) {
  *
  * @throws {AppError} If input validation fails or creation fails.
  */
-async function CreateSubject(_, { input }) {
+async function CreateSubject(_, { input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       subject_code,
@@ -285,8 +299,9 @@ async function CreateSubject(_, { input }) {
  * @throws {AppError} If input validation fails, subject not found, or database error occurs.
  */
 
-async function UpdateSubject(_, { id, input }) {
+async function UpdateSubject(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       subject_code,
@@ -359,8 +374,9 @@ async function UpdateSubject(_, { id, input }) {
  * @throws {AppError} If a database or unexpected error occurs.
  */
 
-async function DeleteSubject(_, { id, deleted_by }) {
+async function DeleteSubject(_, { id, deleted_by }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const subjectId = await ValidateMongoId(id);
 
     const deleted = await Subject.updateOne(

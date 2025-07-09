@@ -3,8 +3,6 @@ const gql = require("graphql-tag");
 
 // *************** EXPORT MODULE ***************
 module.exports = gql`
-  scalar Date
-
   enum GradingMethod {
     MANUAL
     AUTO_GRADED

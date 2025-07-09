@@ -5,8 +5,6 @@ const gql = require("graphql-tag");
 // *************** EXPORT MODULE ***************
 
 module.exports = gql`
-  scalar Date
-
   enum StudentGender {
     MALE
     FEMALE
@@ -31,7 +29,7 @@ module.exports = gql`
   }
 
   type Student {
-    id: ID!
+    _id: ID!
     first_name: String!
     last_name: String!
     email: String!
@@ -55,6 +53,11 @@ module.exports = gql`
     created_by: String
     deleted_at: Date
     deleted_by: String
+  }
+
+  type StudentPaginationResult {
+    data: [Student!]
+    meta: PaginationResult!
   }
 
   input StudentBirthInput {
@@ -110,11 +113,18 @@ module.exports = gql`
     student_status: StudentStatus
     academic_status: AcademicStatus
     gender: StudentGender
+    date_of_birth: DateFilter
+    school_id: ID
+    school_name: String
   }
 
   extend type Query {
-    GetAllStudents(filter: StudentFilterInput): [Student!]!
-    GetOneStudent(id: ID!, filter: StudentFilterInput): Student
+    GetAllStudents(
+      filter: StudentFilterInput
+      sort: SortInput
+      pagination: PaginationInput
+    ): StudentPaginationResult!
+    GetOneStudent(id: ID!): Student
   }
 
   extend type Mutation {

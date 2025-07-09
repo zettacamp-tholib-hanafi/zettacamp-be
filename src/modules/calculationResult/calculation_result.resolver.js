@@ -9,6 +9,7 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 
 // *************** IMPORT UTILITIES ***************
 const { CALCULATION_RESULT } = require("../../shared/utils/enum.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** QUERY ***************
 
@@ -33,8 +34,9 @@ const { CALCULATION_RESULT } = require("../../shared/utils/enum.js");
  * @throws {AppError} Throws a generic error if fetching data from the database fails.
  */
 
-async function CalculationResults(_, { filter = {} }) {
+async function CalculationResults(_, { filter = {} }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR", "STUDENT"]);
     const query = {};
 
     if (filter.student_id) {

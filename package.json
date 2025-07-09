@@ -25,6 +25,7 @@
     "@graphql-tools/schema": "^10.0.23",
     "@sendgrid/mail": "^8.1.5",
     "apollo-server": "^3.13.0",
+    "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dataloader": "^2.2.3",
@@ -33,10 +34,16 @@
     "graphql": "^16.11.0",
     "graphql-tag": "^2.12.6",
     "handlebars": "^4.7.8",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.1",
     "puppeteer": "^24.11.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "@eslint/json": "^0.12.0",
+    "@eslint/markdown": "^6.6.0",
+    "eslint": "^9.30.1",
+    "globals": "^16.3.0",
     "nodemon": "^3.1.10"
   }
 }

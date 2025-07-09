@@ -11,6 +11,7 @@ const { resolvers } = require("./resolver");
 const { Loaders } = require("./loader");
 
 // *************** IMPORT MODULE ***************
+const AuthRequestMiddleware = require("../middlewares/auth/auth_request_middleware");
 
 const apollo = new ApolloServer({
   typeDefs,
@@ -20,9 +21,21 @@ const apollo = new ApolloServer({
 });
 
 const contextApollo = {
-  context: async () => ({
-    loaders: Loaders,
-  }),
+  context: async ({ req }) => {
+    let user = null;
+
+    try {
+      const authResult = await AuthRequestMiddleware({request: req});
+      user = authResult?.user || null;
+    } catch {
+      user = null;
+    }
+
+    return {
+      user,
+      loaders: Loaders,
+    };
+  },
 };
 
 // *************** EXPORT MODULE ***************

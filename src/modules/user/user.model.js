@@ -1,10 +1,8 @@
 // *************** IMPORT LIBRARY ***************
 const { Schema, model } = require("mongoose");
 
-// *************** Constant Enum
-const ROLE_ENUM = ["ACADEMIC_DIRECTOR", "ACADEMIC_ADMIN", "CORRECTOR"];
-const STATUS_ENUM = ["ACTIVE", "PENDING", "DELETED"];
-const DEPARTMENT_ENUM = ["ACADEMIC", "ADMISSIONS"];
+// ************** IMPORT UTILITIES *************
+const { USER } = require("../../shared/utils/enum");
 
 const userSchema = new Schema(
   {
@@ -39,14 +37,14 @@ const userSchema = new Schema(
     // Role(s) assigned to the user
     role: {
       type: [String],
-      enum: ROLE_ENUM,
+      enum: USER.VALID_ROLE,
       required: true,
     },
 
     // Current status of the user account
     user_status: {
       type: String,
-      enum: STATUS_ENUM,
+      enum: USER.VALID_STATUS,
       required: true,
     },
 
@@ -63,7 +61,7 @@ const userSchema = new Schema(
     // Department the user belongs to
     department: {
       type: String,
-      enum: DEPARTMENT_ENUM,
+      enum: USER.VALID_DEPARTEMENT,
     },
 
     // List of permissions

@@ -1,13 +1,17 @@
+// *************** IMPORT LIBRARY ***************
+const bcrypt = require("bcrypt");
+
 // *************** IMPORT CORE ***************
 const { CreateAppError } = require("../../core/error.js");
 
-// *************** Constant Regex & Enum
+// *************** IMPORT MODULE ***************
+const User = require("./user.model.js");
+
+// *************** IMPORT UTILITIES ***************
+const { USER } = require("../../shared/utils/enum.js");
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_REGEX = /^https?:\/\/.+\..+/;
-const VALID_ROLES = ["ACADEMIC_DIRECTOR", "ACADEMIC_ADMIN", "CORRECTOR"];
-const VALID_STATUSES = ["ACTIVE", "PENDING"];
-const VALID_DEPARTMENTS = ["ACADEMIC", "ADMISSIONS"];
 
 /**
  * Validate input payload for creating a user.
@@ -21,7 +25,6 @@ function ValidateCreateUserInput(input) {
     last_name,
     email,
     password,
-    role,
     user_status,
     phone,
     profile_picture_url,
@@ -55,7 +58,9 @@ function ValidateCreateUserInput(input) {
       { field: "password" }
     );
   }
-  const invalidRoles = input.role.filter((role) => !VALID_ROLES.includes(role));
+  const invalidRoles = input.role.filter(
+    (role) => !USER.VALID_ROLE.includes(role)
+  );
   if (invalidRoles.length > 0) {
     throw CreateAppError("Invalid role value.", "VALIDATION_ERROR", {
       field: "role",
@@ -64,7 +69,7 @@ function ValidateCreateUserInput(input) {
   }
 
   // *************** Optional / enum validation
-  if (user_status && !VALID_STATUSES.includes(user_status)) {
+  if (user_status && !USER.VALID_STATUS.includes(user_status)) {
     throw CreateAppError("Invalid user_status value.", "VALIDATION_ERROR", {
       field: "user_status",
     });
@@ -90,7 +95,7 @@ function ValidateCreateUserInput(input) {
     );
   }
 
-  if (department && !VALID_DEPARTMENTS.includes(department)) {
+  if (department && !USER.VALID_DEPARTEMENT.includes(department)) {
     throw CreateAppError("Invalid department.", "VALIDATION_ERROR", {
       field: "department",
     });
@@ -185,7 +190,7 @@ function ValidateUpdateUserInput(input) {
       );
     }
 
-    const invalidRoles = role.filter((role) => !VALID_ROLES.includes(role));
+    const invalidRoles = role.filter((role) => !USER.VALID_ROLE.includes(role));
     if (invalidRoles.length > 0) {
       throw CreateAppError("Invalid role value.", "VALIDATION_ERROR", {
         field: "role",
@@ -194,7 +199,7 @@ function ValidateUpdateUserInput(input) {
     }
   }
 
-  if (user_status !== undefined && !VALID_STATUSES.includes(user_status)) {
+  if (user_status !== undefined && !USER.VALID_STATUS.includes(user_status)) {
     throw CreateAppError("Invalid user_status value.", "VALIDATION_ERROR", {
       field: "user_status",
     });
@@ -220,7 +225,10 @@ function ValidateUpdateUserInput(input) {
     );
   }
 
-  if (department !== undefined && !VALID_DEPARTMENTS.includes(department)) {
+  if (
+    department !== undefined &&
+    !USER.VALID_DEPARTEMENT.includes(department)
+  ) {
     throw CreateAppError("Invalid department.", "VALIDATION_ERROR", {
       field: "department",
     });
@@ -240,8 +248,66 @@ function ValidateUpdateUserInput(input) {
   }
 }
 
+/**
+ * Validate user login credentials (email and password).
+ *
+ * This function performs a full login validation flow:
+ * - Validates email format using regex.
+ * - Ensures password is not empty or blank.
+ * - Finds user by email (excluding those with status "DELETED").
+ * - Verifies the password using bcrypt.
+ *
+ * If validation succeeds, the user document is returned.
+ * Otherwise, appropriate application-level errors are thrown.
+ *
+ * @async
+ * @function ValidateLoginInput
+ * @param {string} email - The email address provided by the user.
+ * @param {string} password - The plain-text password provided by the user.
+ * @throws {AppError} If email format is invalid.
+ * @throws {AppError} If password is empty or blank.
+ * @throws {AppError} If user is not found or is marked as deleted.
+ * @throws {AppError} If the password does not match the stored hash.
+ * @returns {Promise<Object>} The authenticated user document from the database.
+ */
+
+async function ValidateLoginInput(email, password) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    throw CreateAppError("Invalid email format", "BAD_REQUEST", {
+      field: "email",
+    });
+  }
+
+  if (!password || password.trim() === "") {
+    throw CreateAppError("Invalid password format", "BAD_REQUEST", {
+      field: "password",
+    });
+  }
+
+  const user = await User.findOne({
+    email,
+    user_status: {
+      $ne: "DELETED",
+    },
+  }).lean();
+  if (!user) {
+    throw CreateAppError("Invalid credentials", "UNAUTHORIZED");
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    throw CreateAppError("Invalid credentials", "UNAUTHORIZED");
+  }
+
+  delete user.password;
+
+  return user;
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   ValidateCreateUserInput,
   ValidateUpdateUserInput,
+  ValidateLoginInput,
 };

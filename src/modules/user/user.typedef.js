@@ -5,8 +5,6 @@ const gql = require("graphql-tag");
 // *************** EXPORT MODULE ***************
 
 module.exports = gql`
-  scalar Date
-
   enum UserStatus {
     ACTIVE
     PENDING
@@ -17,6 +15,7 @@ module.exports = gql`
     ACADEMIC_DIRECTOR
     ACADEMIC_ADMIN
     CORRECTOR
+    STUDENT
   }
 
   type UserPreferences {
@@ -25,11 +24,10 @@ module.exports = gql`
   }
 
   type User {
-    id: ID!
+    _id: ID!
     first_name: String!
     last_name: String!
     email: String!
-    password: String!
     role: [UserRoles!]!
     user_status: UserStatus!
     phone: String
@@ -45,6 +43,16 @@ module.exports = gql`
     deleted_by: String
   }
 
+  type AuthLogin {
+    token: String!
+    user: User!
+  }
+
+  type UserPaginationResult {
+    data: [User!]!
+    meta: PaginationResult!
+  }
+
   input UserPreferencesInput {
     language: String
     timezone: String
@@ -55,7 +63,7 @@ module.exports = gql`
     last_name: String!
     email: String!
     password: String!
-    role: [String!]!
+    role: [UserRoles!]!
     user_status: UserStatus!
     phone: String
     profile_picture_url: String
@@ -70,7 +78,7 @@ module.exports = gql`
     last_name: String
     email: String
     password: String
-    role: [String!]
+    role: [UserRoles!]
     user_status: UserStatus
     phone: String
     profile_picture_url: String
@@ -82,16 +90,28 @@ module.exports = gql`
 
   input UserFilterInput {
     user_status: UserStatus
+    role: [UserRoles!]
+    created_at: DateFilter
+  }
+
+  input LoginInput {
+    email: String!
+    password: String!
   }
 
   type Query {
-    GetAllUsers(filter: UserFilterInput): [User!]!
-    GetOneUser(id: ID!, filter: UserFilterInput): User
+    GetAllUsers(
+      filter: UserFilterInput
+      sort: SortInput
+      pagination: PaginationInput
+    ): UserPaginationResult!
+    GetOneUser(id: ID!): User
   }
 
   type Mutation {
     CreateUser(input: CreateUserInput!): User!
     UpdateUser(id: ID!, input: UpdateUserInput!): User!
     DeleteUser(id: ID!): User!
+    AuthLogin(input: LoginInput!): AuthLogin!
   }
 `;

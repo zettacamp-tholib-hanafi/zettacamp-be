@@ -10,19 +10,12 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { STUDENT } = require("../../shared/utils/enum.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
-
-// *************** Constant Enum
-const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
-const VALID_GENDERS = ["MALE", "FEMALE"];
-const VALID_ACADEMIC_STATUS = [
-  "ENROLLED",
-  "GRADUATED",
-  "DROPPED_OUT",
-  "TRANSFERRED",
-];
+const { StudentQueryPipeline } = require("./student.helper.js");
 
 // *************** QUERY ***************
 /**
@@ -37,42 +30,31 @@ const VALID_ACADEMIC_STATUS = [
  * @returns {Promise<Array<object>>} List of students matching the filter.
  */
 
-async function GetAllStudents(_, { filter }) {
+async function GetAllStudents(_, { filter, sort, pagination }, context) {
   try {
-    const query = {};
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
+    const { pipeline, page, limit } = await StudentQueryPipeline(
+      filter,
+      sort,
+      pagination
+    );
 
-    if (filter) {
-      if (filter.student_status) {
-        if (!VALID_STATUS.includes(filter.student_status)) {
-          throw CreateAppError(
-            "Invalid student_status filter value",
-            "BAD_REQUEST",
-            { student_status: filter.student_status }
-          );
-        }
-        query.student_status = filter.student_status;
-      } 
-      if (filter.academic_status) {
-        if (!VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
-          throw CreateAppError(
-            "Invalid academic_status filter value",
-            "BAD_REQUEST",
-            { academic_status: filter.academic_status }
-          );
-        }
-        query.academic_status = filter.academic_status;
-      }
-      if (filter.gender) {
-        if (!VALID_GENDERS.includes(filter.gender)) {
-          throw CreateAppError("Invalid gender filter value", "BAD_REQUEST", {
-            gender: filter.gender,
-          });
-        }
-        query.gender = filter.gender;
-      }
-    }
+    const result = await Student.aggregate(pipeline);
 
-    const studentResponse = await Student.find(query);
+    const data = result[0].data;
+    const total = result[0].metadata[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const studentResponse = {
+      data,
+      meta: {
+        total,
+        total_pages: totalPages,
+        current_page: page,
+        per_page: limit,
+      },
+    };
+
     return studentResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch students");
@@ -92,15 +74,16 @@ async function GetAllStudents(_, { filter }) {
  * @returns {Promise<object>} The student object if found.
  */
 
-async function GetOneStudent(_, { id, filter }) {
+async function GetOneStudent(_, { id, filter }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const studentId = await ValidateMongoId(id);
 
     const query = { _id: studentId };
 
     if (filter) {
       if (filter.student_status) {
-        if (!VALID_STATUS.includes(filter.student_status)) {
+        if (!STUDENT.VALID_STATUS.includes(filter.student_status)) {
           throw CreateAppError(
             "Invalid student_status filter value",
             "BAD_REQUEST",
@@ -108,9 +91,9 @@ async function GetOneStudent(_, { id, filter }) {
           );
         }
         query.student_status = filter.student_status;
-      } 
+      }
       if (filter.academic_status) {
-        if (!VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
+        if (!STUDENT.VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
           throw CreateAppError(
             "Invalid academic_status filter value",
             "BAD_REQUEST",
@@ -120,7 +103,7 @@ async function GetOneStudent(_, { id, filter }) {
         query.academic_status = filter.academic_status;
       }
       if (filter.gender) {
-        if (!VALID_GENDERS.includes(filter.gender)) {
+        if (!STUDENT.VALID_GENDER.includes(filter.gender)) {
           throw CreateAppError("Invalid gender filter value", "BAD_REQUEST", {
             gender: filter.gender,
           });
@@ -152,8 +135,9 @@ async function GetOneStudent(_, { id, filter }) {
  * @returns {Promise<object>} The created student object.
  */
 
-async function CreateStudent(_, { input }) {
+async function CreateStudent(_, { input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateCreateStudentInput(input);
 
     const existing = await Student.findOne({ email: input.email });
@@ -219,8 +203,9 @@ async function CreateStudent(_, { input }) {
  * @returns {Promise<object>} The updated student object.
  */
 
-async function UpdateStudent(_, { id, input }) {
+async function UpdateStudent(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateUpdateStudentInput(input);
     const studentId = await ValidateMongoId(id);
 
@@ -319,8 +304,9 @@ async function UpdateStudent(_, { id, input }) {
  * @returns {Promise<object>} The soft-deleted student object.
  */
 
-async function DeleteStudent(_, { id, input }) {
+async function DeleteStudent(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const studentId = await ValidateMongoId(id);
     const deleted = await Student.updateOne(
       { _id: studentId, student_status: { $ne: "DELETED" } },

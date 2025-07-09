@@ -13,11 +13,14 @@ const {
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { SCHOOL } = require("../../shared/utils/enum.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
-const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
+// *************** IMPORT HELPER FUNCTION ***************
+const { SchoolQueryPipeline } = require("./school.helper.js");
 
 // *************** QUERY ***************
 /**
@@ -35,24 +38,31 @@ const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
  * @returns {Promise<Object[]>} A promise resolving to an array of School documents.
  */
 
-async function GetAllSchools(_, { filter }) {
+async function GetAllSchools(_, { filter, sort, pagination }, context) {
   try {
-    const query = {};
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
+    const { pipeline, page, limit } = await SchoolQueryPipeline(
+      filter,
+      sort,
+      pagination
+    );
 
-    if (filter && filter.school_status) {
-      if (!VALID_STATUS.includes(filter.school_status)) {
-        throw CreateAppError(
-          "Invalid school_status filter value",
-          "BAD_REQUEST",
-          { school_status: filter.school_status }
-        );
-      }
-      query.school_status = filter.school_status;
-    } else {
-      query.school_status = "ACTIVE";
-    }
+    const result = await School.aggregate(pipeline);
 
-    const schoolResponse = await School.find(query);
+    const data = result[0].data;
+    const total = result[0].metadata[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const schoolResponse = {
+      data,
+      meta: {
+        total,
+        total_pages: totalPages,
+        current_page: page,
+        per_page: limit,
+      },
+    };
+
     return schoolResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch schools");
@@ -75,14 +85,15 @@ async function GetAllSchools(_, { filter }) {
  * @returns {Promise<Object|null>} A promise resolving to the School document if found, or `null` if not found.
  */
 
-async function GetOneSchool(_, { id, filter }) {
+async function GetOneSchool(_, { id, filter }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const schoolId = await ValidateMongoId(id);
 
     const query = { _id: schoolId };
 
     if (filter && filter.school_status) {
-      if (!VALID_STATUS.includes(filter.school_status)) {
+      if (!SCHOOL.VALID_STATUS.includes(filter.school_status)) {
         throw CreateAppError(
           "Invalid school_status filter value",
           "BAD_REQUEST",
@@ -152,8 +163,9 @@ async function GetOneSchool(_, { id, filter }) {
  * @returns {Promise<Object>} A promise resolving to the newly created School document.
  */
 
-async function CreateSchool(_, { input }) {
+async function CreateSchool(_, { input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateCreateSchoolInput(input);
     ValidateVerified(input.verified);
     ValidateAddress(input.address);
@@ -265,8 +277,9 @@ async function CreateSchool(_, { input }) {
  * @returns {Promise<object>} The updated school document.
  */
 
-async function UpdateSchool(_, { id, input }) {
+async function UpdateSchool(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateUpdateSchoolInput(input);
     if (input.verified) ValidateVerified(input.verified);
     if (input.address) ValidateAddress(input.address);
@@ -334,7 +347,7 @@ async function UpdateSchool(_, { id, input }) {
     if (!updated) {
       throw CreateAppError("School not found", "NOT_FOUND", { schoolId });
     }
-    const updateSchoolResponse = { id: schoolId };
+    const updateSchoolResponse = { _id: schoolId };
     return updateSchoolResponse;
   } catch (error) {
     throw HandleCaughtError(
@@ -366,8 +379,9 @@ async function UpdateSchool(_, { id, input }) {
  * @throws {AppError} Throws a generic `AppError` if deletion fails due to a server or validation error.
  */
 
-async function DeleteSchool(_, { id, input }) {
+async function DeleteSchool(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const schoolId = await ValidateMongoId(id);
 
     const deleted = await School.updateOne(

@@ -1,6 +1,5 @@
 // *************** IMPORT MODULE ***************
 const Task = require("../task/task.model");
-const User = require("../user/user.model");
 const Test = require("./test.model");
 
 // *************** IMPORT VALIDATOR ***************
@@ -13,6 +12,7 @@ const {
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
 const { TEST } = require("../../shared/utils/enum.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
@@ -33,8 +33,9 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
  * @throws {AppError} Throws a BAD_REQUEST error if filter values are invalid.
  * @throws {AppError} Throws a general error if the query fails.
  */
-async function GetAllTests(_, { filter }) {
+async function GetAllTests(_, { filter }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const query = {};
 
     if (filter && filter.test_status) {
@@ -80,8 +81,9 @@ async function GetAllTests(_, { filter }) {
  * @throws {AppError} Throws NOT_FOUND if no matching test is found.
  * @throws {AppError} Throws generic error if query operation fails.
  */
-async function GetOneTest(_, { id, filter }) {
+async function GetOneTest(_, { id, filter }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const testId = await ValidateMongoId(id);
 
     const query = { _id: testId };
@@ -128,8 +130,9 @@ async function GetOneTest(_, { id, filter }) {
  * @param {Object} args.input - The validated test creation input.
  * @returns {Promise<Object>} The created test document.
  */
-async function CreateTest(_, { input }) {
+async function CreateTest(_, { input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const {
       name,
       subject_id,
@@ -174,8 +177,9 @@ async function CreateTest(_, { input }) {
  * @param {Object} args.input - The validated update input.
  * @returns {Promise<Object>} The response containing updated test ID.
  */
-async function UpdateTest(_, { id, input }) {
+async function UpdateTest(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const testId = await ValidateMongoId(id);
 
     const {
@@ -242,8 +246,9 @@ async function UpdateTest(_, { id, input }) {
  * @throws {AppError} Throws general error if the operation fails due to other reasons.
  */
 
-async function DeleteTest(_, { id, deleted_by }) {
+async function DeleteTest(_, { id, deleted_by }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const testId = await ValidateMongoId(id);
 
     const deleted = await Test.updateOne(
@@ -291,8 +296,9 @@ async function DeleteTest(_, { id, deleted_by }) {
  * @throws {AppError} - Throws a custom application error if validation or any DB operation fails.
  */
 
-async function PublishTest(_, { id, input }) {
+async function PublishTest(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const testId = await ValidateMongoId(id);
     const { corrector, due_date } = await ValidateAssignCorrector(
       testId,

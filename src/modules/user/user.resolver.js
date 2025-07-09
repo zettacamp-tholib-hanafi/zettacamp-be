@@ -1,3 +1,7 @@
+// *************** IMPORT LIBRARY ***************
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
 // *************** IMPORT MODULE ***************
 const User = require("./user.model.js");
 
@@ -5,16 +9,19 @@ const User = require("./user.model.js");
 const {
   ValidateCreateUserInput,
   ValidateUpdateUserInput,
+  ValidateLoginInput,
 } = require("./user.validator.js");
 
 // *************** IMPORT UTILITIES ***************
 const { ValidateMongoId } = require("../../shared/utils/validate_mongo_id.js");
+const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
+const { JWT_SECRET } = require("../../core/config.js");
 
-// *************** Constant Enum
-const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
+// *************** IMPORT HELPER FUNCTION ***************
+const { UserQueryPipeline } = require("./user.helper.js");
 
 // *************** QUERY ***************
 
@@ -28,23 +35,32 @@ const VALID_STATUS = ["ACTIVE", "PENDING", "DELETED"];
  * @returns {Promise<Array>} List of users matching the criteria.
  */
 
-async function GetAllUsers(_, { filter }) {
+async function GetAllUsers(_, { filter, sort, pagination }, context) {
   try {
-    const query = {};
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
 
-    if (filter && filter.user_status) {
-      if (!VALID_STATUS.includes(filter.user_status)) {
-        throw CreateAppError(
-          "Invalid user_status filter value",
-          "BAD_REQUEST",
-          { user_status: filter.user_status }
-        );
-      }
-      query.user_status = filter.user_status;
-    }
+    const { pipeline, page, limit } = UserQueryPipeline(
+      filter,
+      sort,
+      pagination
+    );
+    const result = await User.aggregate(pipeline);
 
-    const userResponse = await User.find(query);
-    return userResponse
+    const data = result[0].data;
+    const total = result[0].metadata[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const userResponse = {
+      data,
+      meta: {
+        total,
+        total_pages: totalPages,
+        current_page: page,
+        per_page: limit,
+      },
+    };
+
+    return userResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch users");
   }
@@ -61,24 +77,13 @@ async function GetAllUsers(_, { filter }) {
  * @returns {Promise<Object>} The user document.
  */
 
-async function GetOneUser(_, { id, filter }) {
+async function GetOneUser(_, { id }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const userId = await ValidateMongoId(id);
 
-    const query = { _id: userId };
+    const user = User.findById(userId).lean();
 
-    if (filter && filter.user_status) {
-      if (!VALID_STATUS.includes(filter.user_status)) {
-        throw CreateAppError(
-          "Invalid user_status filter value",
-          "BAD_REQUEST",
-          { user_status: filter.user_status }
-        );
-      }
-      query.user_status = filter.user_status;
-    }
-
-    const user = await User.findOne(query);
     if (!user) {
       throw CreateAppError("User not found", "NOT_FOUND", { userId });
     }
@@ -110,6 +115,10 @@ async function CreateUser(_, { input }) {
       });
     }
 
+    if (typeof input.password === "string" && input.password.trim()) {
+      input.password = await bcrypt.hash(input.password, 10);
+    }
+
     const userInputPayload = {
       first_name: input.first_name,
       last_name: input.last_name,
@@ -125,7 +134,7 @@ async function CreateUser(_, { input }) {
     };
 
     const createUserResponse = await User.create(userInputPayload);
-    return createUserResponse
+    return createUserResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to create user", "VALIDATION_ERROR");
   }
@@ -140,8 +149,9 @@ async function CreateUser(_, { input }) {
  * @param {Object} args.input - Updated user data.
  * @returns {Promise<Object>} The updated user document.
  */
-async function UpdateUser(_, { id, input }) {
+async function UpdateUser(_, { id, input }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     ValidateUpdateUserInput(input);
     const userId = await ValidateMongoId(id);
 
@@ -157,6 +167,10 @@ async function UpdateUser(_, { id, input }) {
           field: "email",
         });
       }
+    }
+
+    if (input.password) {
+      input.password = await bcrypt.hash(input.password, 10);
     }
 
     const userUpdatePayload = {
@@ -199,8 +213,9 @@ async function UpdateUser(_, { id, input }) {
  * @returns {Promise<Object>} The deleted (soft) user document.
  */
 
-async function DeleteUser(_, { id }) {
+async function DeleteUser(_, { id }, context) {
   try {
+    CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const userId = await ValidateMongoId(id);
 
     const deleted = await User.updateOne(
@@ -224,6 +239,54 @@ async function DeleteUser(_, { id }) {
   }
 }
 
+/**
+ * Authenticate a user and return a JWT token along with user data.
+ *
+ * This mutation performs the login process by:
+ * - Validating the input email and password via `ValidateLoginInput`.
+ * - Verifying credentials and rejecting unauthorized attempts.
+ * - Generating a JWT token with payload: `{ user_id, role }`.
+ * - Setting a token expiration of 7 days.
+ * - Returning the token and the user data (excluding the password).
+ *
+ * @async
+ * @function AuthLogin
+ * @param {Object} _ - Unused resolver parent argument.
+ * @param {Object} args - Resolver arguments.
+ * @param {Object} args.input - The login input containing email and password.
+ * @param {string} args.input.email - User email used for authentication.
+ * @param {string} args.input.password - User password to be verified.
+ * @returns {Promise<Object>} An object containing:
+ *   - {string} token: Signed JWT token for the authenticated user.
+ *   - {Object} user: The authenticated user's data (password already stripped).
+ * @throws {AppError} If validation fails or credentials are invalid.
+ */
+
+async function AuthLogin(_, { input }) {
+  try {
+    const { email, password } = input;
+
+    const user = await ValidateLoginInput(email, password);
+
+    const payload = {
+      user_id: String(user._id),
+      role: user.role,
+    };
+
+    const token = jwt.sign(payload, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    const loginResult = {
+      token,
+      user: user,
+    };
+    return loginResult;
+  } catch (error) {
+    throw HandleCaughtError(error, "Failed to login user", "UNAUTHORIZED");
+  }
+}
+
 // *************** EXPORT MODULE ***************
 module.exports = {
   Query: {
@@ -234,5 +297,6 @@ module.exports = {
     CreateUser,
     UpdateUser,
     DeleteUser,
+    AuthLogin,
   },
 };
