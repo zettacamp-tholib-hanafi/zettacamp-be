@@ -21,7 +21,7 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 const { JWT_SECRET } = require("../../core/config.js");
 
 // *************** IMPORT HELPER FUNCTION ***************
-const { UserQueryPipeline, UserFilterStage } = require("./user.helper.js");
+const { UserQueryPipeline } = require("./user.helper.js");
 
 // *************** QUERY ***************
 
@@ -77,14 +77,12 @@ async function GetAllUsers(_, { filter, sort, pagination }, context) {
  * @returns {Promise<Object>} The user document.
  */
 
-async function GetOneUser(_, { id, filter }, context) {
+async function GetOneUser(_, { id }, context) {
   try {
     CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
     const userId = await ValidateMongoId(id);
 
-    const matchStage = UserFilterStage(filter, userId);
-    const pipeline = [{ $match: matchStage }];
-    const user = await User.aggregate(pipeline);
+    const user = User.findById(userId).lean();
 
     if (!user) {
       throw CreateAppError("User not found", "NOT_FOUND", { userId });

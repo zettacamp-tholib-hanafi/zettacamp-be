@@ -29,7 +29,7 @@ module.exports = gql`
   }
 
   type Student {
-    id: ID!
+    _id: ID!
     first_name: String!
     last_name: String!
     email: String!

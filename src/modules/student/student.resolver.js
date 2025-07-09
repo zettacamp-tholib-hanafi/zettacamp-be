@@ -15,6 +15,7 @@ const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
 // *************** IMPORT CORE ***************
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
+const { StudentQueryPipeline } = require("./student.helper.js");
 
 // *************** QUERY ***************
 /**
@@ -29,43 +30,31 @@ const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
  * @returns {Promise<Array<object>>} List of students matching the filter.
  */
 
-async function GetAllStudents(_, { filter }, context) {
+async function GetAllStudents(_, { filter, sort, pagination }, context) {
   try {
     CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
-    const query = {};
+    const { pipeline, page, limit } = await StudentQueryPipeline(
+      filter,
+      sort,
+      pagination
+    );
 
-    if (filter) {
-      if (filter.student_status) {
-        if (!STUDENT.VALID_STATUS.includes(filter.student_status)) {
-          throw CreateAppError(
-            "Invalid student_status filter value",
-            "BAD_REQUEST",
-            { student_status: filter.student_status }
-          );
-        }
-        query.student_status = filter.student_status;
-      }
-      if (filter.academic_status) {
-        if (!STUDENT.VALID_ACADEMIC_STATUS.includes(filter.academic_status)) {
-          throw CreateAppError(
-            "Invalid academic_status filter value",
-            "BAD_REQUEST",
-            { academic_status: filter.academic_status }
-          );
-        }
-        query.academic_status = filter.academic_status;
-      }
-      if (filter.gender) {
-        if (!STUDENT.VALID_GENDER.includes(filter.gender)) {
-          throw CreateAppError("Invalid gender filter value", "BAD_REQUEST", {
-            gender: filter.gender,
-          });
-        }
-        query.gender = filter.gender;
-      }
-    }
+    const result = await Student.aggregate(pipeline);
 
-    const studentResponse = await Student.find(query);
+    const data = result[0].data;
+    const total = result[0].metadata[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const studentResponse = {
+      data,
+      meta: {
+        total,
+        total_pages: totalPages,
+        current_page: page,
+        per_page: limit,
+      },
+    };
+
     return studentResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch students");
