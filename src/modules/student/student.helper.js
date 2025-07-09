@@ -100,22 +100,6 @@ async function StudentFilterStage(filter = {}) {
 async function StudentQueryPipeline(filter = {}, sort = {}, pagination = {}) {
   const pipeline = [];
 
-  pipeline.push({
-    $lookup: {
-      from: "schools",
-      localField: "school_id",
-      foreignField: "_id",
-      as: "school",
-    },
-  });
-
-  pipeline.push({
-    $unwind: {
-      path: "$school",
-      preserveNullAndEmptyArrays: true,
-    },
-  });
-
   const matchStage = await StudentFilterStage(filter);
 
   if (Object.keys(matchStage).length > 0) {
@@ -123,6 +107,22 @@ async function StudentQueryPipeline(filter = {}, sort = {}, pagination = {}) {
   }
 
   if (filter.school_name) {
+    pipeline.push({
+      $lookup: {
+        from: "schools",
+        localField: "school_id",
+        foreignField: "_id",
+        as: "school",
+      },
+    });
+
+    pipeline.push({
+      $unwind: {
+        path: "$school",
+        preserveNullAndEmptyArrays: true,
+      },
+    });
+
     pipeline.push({
       $match: {
         $or: [

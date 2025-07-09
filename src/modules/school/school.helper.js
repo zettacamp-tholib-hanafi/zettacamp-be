@@ -90,22 +90,6 @@ async function SchoolFilterStage(filter = {}) {
 async function SchoolQueryPipeline(filter = {}, sort = {}, pagination = {}) {
   const pipeline = [];
 
-  pipeline.push({
-    $lookup: {
-      from: "users",
-      localField: "admin_user.id",
-      foreignField: "_id",
-      as: "user",
-    },
-  });
-
-  pipeline.push({
-    $unwind: {
-      path: "$user",
-      preserveNullAndEmptyArrays: true,
-    },
-  });
-
   const matchStage = await SchoolFilterStage(filter);
 
   if (Object.keys(matchStage).length > 0) {
@@ -114,9 +98,25 @@ async function SchoolQueryPipeline(filter = {}, sort = {}, pagination = {}) {
 
   if (filter.admin_user_email) {
     pipeline.push({
-        $match: {
-          "user.email": filter.admin_user_email,
-        },
+      $lookup: {
+        from: "users",
+        localField: "admin_user.id",
+        foreignField: "_id",
+        as: "user",
+      },
+    });
+
+    pipeline.push({
+      $unwind: {
+        path: "$user",
+        preserveNullAndEmptyArrays: true,
+      },
+    });
+
+    pipeline.push({
+      $match: {
+        "user.email": filter.admin_user_email,
+      },
     });
   }
   const sortField = sort.field || "created_at";
