@@ -19,6 +19,9 @@ const { SCHOOL } = require("../../shared/utils/enum.js");
 const { HandleCaughtError, CreateAppError } = require("../../core/error.js");
 const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
 
+// *************** IMPORT HELPER FUNCTION ***************
+const { SchoolQueryPipeline } = require("./school.helper.js");
+
 // *************** QUERY ***************
 /**
  * Get a list of schools based on an optional status filter.
@@ -35,25 +38,31 @@ const { CheckRoleAccess } = require("../../shared/utils/check_role_access.js");
  * @returns {Promise<Object[]>} A promise resolving to an array of School documents.
  */
 
-async function GetAllSchools(_, { filter }, context) {
+async function GetAllSchools(_, { filter, sort, pagination }, context) {
   try {
     CheckRoleAccess(context, ["ACADEMIC_ADMIN", "ACADEMIC_DIRECTOR"]);
-    const query = {};
+    const { pipeline, page, limit } = await SchoolQueryPipeline(
+      filter,
+      sort,
+      pagination
+    );
 
-    if (filter && filter.school_status) {
-      if (!SCHOOL.VALID_STATUS.includes(filter.school_status)) {
-        throw CreateAppError(
-          "Invalid school_status filter value",
-          "BAD_REQUEST",
-          { school_status: filter.school_status }
-        );
-      }
-      query.school_status = filter.school_status;
-    } else {
-      query.school_status = "ACTIVE";
-    }
+    const result = await School.aggregate(pipeline);
 
-    const schoolResponse = await School.find(query);
+    const data = result[0].data;
+    const total = result[0].metadata[0]?.total || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const schoolResponse = {
+      data,
+      meta: {
+        total,
+        total_pages: totalPages,
+        current_page: page,
+        per_page: limit,
+      },
+    };
+
     return schoolResponse;
   } catch (error) {
     throw HandleCaughtError(error, "Failed to fetch schools");
@@ -338,7 +347,7 @@ async function UpdateSchool(_, { id, input }, context) {
     if (!updated) {
       throw CreateAppError("School not found", "NOT_FOUND", { schoolId });
     }
-    const updateSchoolResponse = { id: schoolId };
+    const updateSchoolResponse = { _id: schoolId };
     return updateSchoolResponse;
   } catch (error) {
     throw HandleCaughtError(

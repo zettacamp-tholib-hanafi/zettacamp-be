@@ -14,19 +14,10 @@ const MAX_LIMIT = 10;
  * Build a $match stage for student filtering.
  *
  * @param {Object} filter - Filter object
- * @param {ObjectId} [fixedId] - Optional _id to match (for GetOneStudent)
  * @returns {Object} matchStage object
  */
-async function StudentFilterStage(filter = {}, fixedId = null) {
+async function StudentFilterStage(filter = {}) {
   const matchStage = {};
-
-  if (fixedId) {
-    try {
-      matchStage._id = await ValidateMongoId(fixedId);
-    } catch {
-      throw CreateAppError("Invalid student ID", "BAD_REQUEST");
-    }
-  }
 
   if (filter.student_status) {
     if (!STUDENT.VALID_STATUS.includes(filter.student_status)) {
