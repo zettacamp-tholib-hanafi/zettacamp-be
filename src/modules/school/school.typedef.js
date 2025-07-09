@@ -40,7 +40,7 @@ module.exports = gql`
   }
 
   type School {
-    id: ID!
+    _id: ID!
     short_name: String!
     long_name: String!
     logo_url: String
